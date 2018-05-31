@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from Selector import et_selector, soil_selector
-from gwlcalculator import gwlcal
+from urbanwb.selector import et_selector, soil_selector
+from urbanwb.gwlcalculator import gwlcal
 import time
 
 # 1.3 Class Unsaturated zone.
