@@ -10,11 +10,16 @@ from SewerSystem import SewerSystem
 from OpenWater import OpenWater
 from Selector import soil_selector, et_selector
 import time
+from pathlib import Path
 
 start = time.time()
 # Load csv file
-path = "C:/Users/ZWX/PycharmProjects/UWM/Model/input/"
-InputData = pd.read_csv(path + 'input_csv.csv')  # input the precipitation, potential evaporation
+
+indir = Path('input')
+outdir = Path('pysol')
+outdir.mkdir(parents=True, exist_ok=True)
+
+InputData = pd.read_csv(indir / 'input_csv.csv')  # input the precipitation, potential evaporation
 
 date = InputData['date']
 P_atm = InputData['P_atm']
@@ -269,12 +274,12 @@ while t <= iters - 1:
     Q_ow_out.append(sol_ow[7])
     Owl.append(sol_ow[8])
 
-
-    print(t)
+    if t % 200 == 0:
+        print(f'timestep {t} / {iters}')
     t += 1
 
 filename = 'test.csv'
-np.savetxt('pysol/' + filename, np.c_[Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R_pr_swds, R_pr_mss, R_pr_up, Intcp_cp,
+np.savetxt(outdir / filename, np.c_[Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R_pr_swds, R_pr_mss, R_pr_up, Intcp_cp,
                                       E_atm_cp, Intstor_cp, R_cp_meas, R_cp_swds, R_cp_mss, R_cp_up, Intcp_op, E_atm_op,
                                       Intstor_op, P_op_gw, R_op_meas, R_op_swds, R_op_mss, R_op_up, Sum_r_up,
                                       Init_stor_up, Act_infilcap_up, Tfac_up, E_atm_up, I_up_uz, Fin_stor_up, R_up_meas,
@@ -295,11 +300,17 @@ np.savetxt('pysol/' + filename, np.c_[Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R
                                  'R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow, '
                                  'So_swds, So_mss, Stor_swds, Stor_mss, Prec_ow, E_atm_ow, Sum_r_ow, Sum_d_ow, '
                                  'Sum_q_ow, Sum_so_ow, R_meas_ow, Q_ow_out, Owl')
-df = pd.read_csv('pysol/' + filename)
+df = pd.read_csv(outdir / filename)
 df.insert(0, 'Date', date)
-df.to_csv('pysol/' + filename)
+df.to_csv(outdir / filename)
 
 end = time.time()
-print(end - start)
+print(f'Model runtime: {end - start:.1f}s')
+
+print("The results have been validated. Exactly the same as excel solutions.")
+df.to_csv(outdir / filename)
+
+end = time.time()
+print(f'Model runtime: {end - start:.1f}s')
 
 print("The results have been validated. Exactly the same as excel solutions.")

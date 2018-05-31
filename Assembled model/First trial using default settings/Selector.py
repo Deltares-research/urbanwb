@@ -2,9 +2,9 @@ import pandas as pd
 from decimal import Decimal, ROUND_FLOOR
 
 
-path = 'C:/Users/ZWX/PycharmProjects/UWM/Unit_test/Groundwater/'
+path = 'input/'
 soilmatrix = pd.read_csv(path + 'soilparameter_new.csv')
-etmatrix = pd.read_csv(path + 'ETparameter.csv')
+etmatrix = pd.read_csv(path + 'etparameter.csv')
 
 
 # ET selector
