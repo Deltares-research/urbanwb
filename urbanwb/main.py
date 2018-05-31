@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
-from PavedRoof import PavedRoof
-from ClosedPaved import ClosedPaved
-from OpenPaved import OpenPaved
-from Unpaved import Unpaved
-from Groundwater import Groundwater
-from UnsaturatedZone import UnsaturatedZone
-from SewerSystem import SewerSystem
-from OpenWater import OpenWater
-from Selector import soil_selector, et_selector
+from .pavedroof import PavedRoof
+from .closedpaved import ClosedPaved
+from .openpaved import OpenPaved
+from .unpaved import Unpaved
+from .groundwater import Groundwater
+from .unsaturatedzone import UnsaturatedZone
+from .sewersystem import SewerSystem
+from .openwater import OpenWater
+from .selector import soil_selector, et_selector
 import time
 from pathlib import Path
 
