@@ -293,8 +293,8 @@ np.savetxt('pysol/' + filename, np.c_[Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R
                                  'Gwl_low_uz, Theta_eq_uz, Capris_max_uz, P_uz_gw, Theta_uz, Sum_p_gw, R_meas_gw, '
                                  'Sc_gw, H_gw, S_gw_out, D_gw_ow, Gwl, Gwl_sl, Sum_r_swds, '
                                  'R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow, '
-                                 'So_swds, So_mss, Stor_swds, Stor_mss, Prec_ow, E_atm_ow, Sum_r_ow, Sum_d_ow, Sum_q_ow, '
-                                 'Sum_so_ow, R_meas_ow, Q_ow_out, Owl')
+                                 'So_swds, So_mss, Stor_swds, Stor_mss, Prec_ow, E_atm_ow, Sum_r_ow, Sum_d_ow, '
+                                 'Sum_q_ow, Sum_so_ow, R_meas_ow, Q_ow_out, Owl')
 df = pd.read_csv('pysol/' + filename)
 df.insert(0, 'Date', date)
 df.to_csv('pysol/' + filename)
