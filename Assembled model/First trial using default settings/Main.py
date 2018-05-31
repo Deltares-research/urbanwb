@@ -13,7 +13,7 @@ import time
 
 start = time.time()
 # Load csv file
-path = "C:/Users/ZWX/PycharmProjects/UWM/Model/input/"
+path = "input/"
 InputData = pd.read_csv(path + 'input_csv.csv')  # input the precipitation, potential evaporation
 
 date = InputData['date']
@@ -269,8 +269,8 @@ while t <= iters - 1:
     Q_ow_out.append(sol_ow[7])
     Owl.append(sol_ow[8])
 
-
-    print(t)
+    if t % 200 == 0:
+        print(t)
     t += 1
 
 filename = 'test.csv'
