@@ -308,9 +308,3 @@ end = time.time()
 print(f'Model runtime: {end - start:.1f}s')
 
 print("The results have been validated. Exactly the same as excel solutions.")
-df.to_csv(outdir / filename)
-
-end = time.time()
-print(f'Model runtime: {end - start:.1f}s')
-
-print("The results have been validated. Exactly the same as excel solutions.")
