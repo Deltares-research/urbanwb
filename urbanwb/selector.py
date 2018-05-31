@@ -1,5 +1,5 @@
 import pandas as pd
-from decimal import Decimal, ROUND_FLOOR
+import math
 
 
 path = 'input/'
@@ -23,7 +23,7 @@ def soil_selector(a, b, c):
     # b --- crop type
     # c --- initial GWL [m -MSL]
     if 0.0 <= c <= 2.5:
-        c = float(Decimal(str(c)).quantize(Decimal('.1'), rounding=ROUND_FLOOR))  # need optimization.
+        c = math.floor(c * 10) / 10.0
     elif c < 3.0:
         c = 2.5
     elif c < 5.0:
