@@ -27,6 +27,8 @@ Ref_grass = InputData['Ref.grass']
 E_pot_OW = InputData['E_pot_OW']
 iters = np.shape(date)[0]
 
+filename = 'test.csv'  # name the output file
+
 # Parameter settings.
 delta_t = 1/24
 pr_no_meas_area = 1560
@@ -156,6 +158,7 @@ Q_ow_out = [0]
 init_owl_t0 = 1.5
 Owl = [init_owl_t0]
 
+# create instances for each land use component.
 m_pr = PavedRoof(init_intstor_pr_t0, pr_no_meas_area, pr_meas_area, pr_meas_inflow_area, intstorcap_pr=1.6,
                  stormfrac_pr=1.0, discfrac_pr=0.0)
 m_cp = ClosedPaved(init_intstor_cp_t0, cp_no_meas_area, cp_meas_area, cp_meas_inflow_area, intstorcap_cp=1.6,
@@ -180,7 +183,7 @@ m_ow = OpenWater(init_owl_t0, ow_no_meas_area, ow_level, q_ow_out_cap=200)
 t = 1
 
 while t <= iters - 1:
-
+    # paved roof
     sol_pr = m_pr.sol(P_atm[t], E_pot_OW[t])
     Int_pr.append(sol_pr[0])
     E_atm_pr.append(sol_pr[1])
@@ -190,6 +193,7 @@ while t <= iters - 1:
     R_pr_mss.append(sol_pr[5])
     R_pr_up.append(sol_pr[6])
 
+    # closed paved
     sol_cp = m_cp.sol(P_atm[t], E_pot_OW[t])
     Intcp_cp.append(sol_cp[0])
     E_atm_cp.append(sol_cp[1])
@@ -199,6 +203,7 @@ while t <= iters - 1:
     R_cp_mss.append(sol_cp[5])
     R_cp_up.append(sol_cp[6])
 
+    # open paved
     sol_op = m_op.sol(P_atm[t], E_pot_OW[t], delta_t)
     Intcp_op.append(sol_op[0])
     E_atm_op.append(sol_op[1])
@@ -209,6 +214,7 @@ while t <= iters - 1:
     R_op_mss.append(sol_op[6])
     R_op_up.append(sol_op[7])
 
+    # unpaved
     sol_up = m_up.sol(P_atm[t], E_pot_OW[t], sol_pr[6], sol_cp[6], sol_op[7], Theta_uz[t - 1], pr_no_meas_area,
                       cp_no_meas_area, op_no_meas_area, ow_no_meas_area, delta_t)
     Sum_r_up.append(sol_up[0])
@@ -221,6 +227,7 @@ while t <= iters - 1:
     R_up_meas.append(sol_up[7])
     R_up_ow.append(sol_up[8])
 
+    # unsaturated zone
     sol_uz = m_uz.sol(sol_up[5], meas_uz[t], tot_meas_area, Ref_grass[t], Gwl[t - 1], delta_t)
     Sum_i_uz.append(sol_uz[0])
     R_meas_uz.append(sol_uz[1])
@@ -234,6 +241,7 @@ while t <= iters - 1:
     P_uz_gw.append(sol_uz[9])
     Theta_uz.append(sol_uz[10])
 
+    # groundwater
     sol_gw = m_gw.sol(sol_uz[9], uz_no_meas_area, sol_op[3], op_no_meas_area, tot_meas_area, meas_gw[t],
                       Owl[t-1], delta_t)
     Sum_p_gw.append(sol_gw[0])
@@ -247,6 +255,7 @@ while t <= iters - 1:
     Gwl.append(sol_gw[8])
     Gwl_sl.append(sol_gw[9])
 
+    # sewer system
     sol_ss = m_ss.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, sol_pr[4], sol_cp[4], sol_op[5], sol_pr[5],
                       sol_cp[5], sol_op[6], meas_swds[t], meas_mss[t], ow_no_meas_area, tot_meas_area)
     Sum_r_swds.append(sol_ss[0])
@@ -261,9 +270,10 @@ while t <= iters - 1:
     Stor_swds.append(sol_ss[9])
     Stor_mss.append(sol_ss[10])
 
+    # open water
     sol_ow = m_ow.sol(P_atm[t], E_pot_OW[t], sol_up[8], sol_gw[7], sol_ss[4], sol_ss[6], sol_ss[7], sol_ss[8],
                       meas_ow[t], up_no_meas_area, gw_no_meas_area, swds_no_meas_area, mss_no_meas_area,
-                        total_meas_area, total_area, delta_t)
+                      total_meas_area, total_area, delta_t)
     Prec_ow.append(sol_ow[0])
     E_atm_ow.append(sol_ow[1])
     Sum_r_ow.append(sol_ow[2])
@@ -278,17 +288,16 @@ while t <= iters - 1:
         print(f'timestep {t} / {iters}')
     t += 1
 
-filename = 'test.csv'
 np.savetxt(outdir / filename, np.c_[Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R_pr_swds, R_pr_mss, R_pr_up, Intcp_cp,
-                                      E_atm_cp, Intstor_cp, R_cp_meas, R_cp_swds, R_cp_mss, R_cp_up, Intcp_op, E_atm_op,
-                                      Intstor_op, P_op_gw, R_op_meas, R_op_swds, R_op_mss, R_op_up, Sum_r_up,
-                                      Init_stor_up, Act_infilcap_up, Tfac_up, E_atm_up, I_up_uz, Fin_stor_up, R_up_meas,
-                                      R_up_ow, Sum_i_uz, R_meas_uz, Theta_h3_uz, T_alpha_uz, T_atm_uz, Gwl_up_uz,
-                                      Gwl_low_uz, Theta_eq_uz, Capris_max_uz, P_uz_gw, Theta_uz, Sum_p_gw, R_meas_gw,
-                                      Sc_gw, H_gw, S_gw_out, D_gw_ow, Gwl, Gwl_sl, Sum_r_swds,
-                                      R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
-                                      So_swds, So_mss, Stor_swds, Stor_mss, Prec_ow, E_atm_ow, Sum_r_ow, Sum_d_ow,
-                                      Sum_q_ow, Sum_so_ow, R_meas_ow, Q_ow_out, Owl],
+                                    E_atm_cp, Intstor_cp, R_cp_meas, R_cp_swds, R_cp_mss, R_cp_up, Intcp_op, E_atm_op,
+                                    Intstor_op, P_op_gw, R_op_meas, R_op_swds, R_op_mss, R_op_up, Sum_r_up,
+                                    Init_stor_up, Act_infilcap_up, Tfac_up, E_atm_up, I_up_uz, Fin_stor_up, R_up_meas,
+                                    R_up_ow, Sum_i_uz, R_meas_uz, Theta_h3_uz, T_alpha_uz, T_atm_uz, Gwl_up_uz,
+                                    Gwl_low_uz, Theta_eq_uz, Capris_max_uz, P_uz_gw, Theta_uz, Sum_p_gw, R_meas_gw,
+                                    Sc_gw, H_gw, S_gw_out, D_gw_ow, Gwl, Gwl_sl, Sum_r_swds,
+                                    R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
+                                    So_swds, So_mss, Stor_swds, Stor_mss, Prec_ow, E_atm_ow, Sum_r_ow, Sum_d_ow,
+                                    Sum_q_ow, Sum_so_ow, R_meas_ow, Q_ow_out, Owl],
            fmt="%.8f",
            delimiter=',', header='Int_pr, E_atm_pr, Intstor_pr, R_pr_meas, R_pr_swds, R_pr_mss, R_pr_up, Intcp_cp, '
                                  'E_atm_cp, Intstor_cp, R_cp_meas, R_cp_swds, R_cp_mss, R_cp_up, Intcp_op, E_atm_op, '
@@ -308,9 +317,5 @@ end = time.time()
 print(f'Model runtime: {end - start:.1f}s')
 
 print("The results have been validated. Exactly the same as excel solutions.")
-df.to_csv(outdir / filename)
 
-end = time.time()
-print(f'Model runtime: {end - start:.1f}s')
 
-print("The results have been validated. Exactly the same as excel solutions.")
