@@ -1,6 +1,4 @@
 import pandas as pd
-from decimal import Decimal, ROUND_FLOOR
-
 
 path = 'input/'
 soilmatrix = pd.read_csv(path + 'soilparameter_new.csv')
@@ -16,24 +14,15 @@ def et_selector(a, b):
     return sol
 
 
-def soil_selector(a, b, c):
-    """defines parameters of equilibrium moisture content, maximum capillary rise,
-    storage coefficient and permeability based on soil type, crop type and initial groundwater level"""
+def soil_selector(a, b):
+    """returns a database of soil parameters of equilibrium moisture content, maximum capillary rise,
+    storage coefficient and permeability based on soil type, crop type"""
     # a --- soil type
     # b --- crop type
-    # c --- initial GWL [m -MSL]
-    if 0.0 <= c <= 2.5:
-        c = float(Decimal(str(c)).quantize(Decimal('.1'), rounding=ROUND_FLOOR))  # need optimization.
-    elif c < 3.0:
-        c = 2.5
-    elif c < 5.0:
-        c = int(c)
-    elif c < 10:
-        c = 5.0
-    else:
-        c = 10.0
+
     rootzone_thickness = 100 * et_selector(a, b)['th_rz_m'].values
-    sol = soilmatrix.loc[(soilmatrix.soil_type == int(a)) &
-                         (soilmatrix.th_rz == int(rootzone_thickness)) &
-                         (soilmatrix.gwl == c)]
-    return sol
+    soil_prm = soilmatrix.loc[(soilmatrix.soil_type == int(a)) &
+                              (soilmatrix.th_rz == int(rootzone_thickness))]
+    soil_prm = soil_prm.to_dict(orient="Records")
+
+    return soil_prm

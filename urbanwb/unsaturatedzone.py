@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from urbanwb.selector import et_selector, soil_selector
 from urbanwb.gwlcalculator import gwlcal
-import time
+
 
 # 1.3 Class Unsaturated zone.
 class UnsaturatedZone:
@@ -24,6 +24,7 @@ class UnsaturatedZone:
         # theta_h2 --- Equilibrium moisture content in rootzone with groundwater level at bottom rootzone
         # (field capacity).
         # theta_h4 --- Equilibrium moisture content in rootzone, at which transpiration = 0 (wilting point).
+        # soil_prm --- soil parameter database determined by soil type and crop type.
         # k_sat_uz --- Predefined saturated permeability of unsaturated zone.
 
         self.uz_no_meas_area = uz_no_meas_area
@@ -36,8 +37,9 @@ class UnsaturatedZone:
         self.theta_h1 = et['theta_h1_mm'].values
         self.theta_h2 = et['theta_h2_mm'].values
         self.theta_h4 = et['theta_h4_mm'].values
-        self.k_sat_uz = 10 * soil_selector(self.soiltype, self.croptype, 1.5)['k_sat'].values
-        # Note here the input gwl (1.5m -MSL) does not affect the K_sat_uz, which is only dependent on soiltype.
+        self.soil_prm = soil_selector(self.soiltype, self.croptype)
+        self.k_sat_uz = 10 * self.soil_prm[0]['k_sat']
+        # Note here the predefined index 0 does not affect K_sat_uz, which is only dependent on soiltype.
 
     def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1 / 24):
 
@@ -86,28 +88,28 @@ class UnsaturatedZone:
 
             t_atm_uz = e_ref * t_alpha_uz
 
-            gwl_up_uz = gwlcal(prev_gwl)[0]
-            gwl_low_uz = gwlcal(prev_gwl)[1]
+            gwl_sol = gwlcal(prev_gwl)
+            gwl_up = gwl_sol[0]
+            gwl_low = gwl_sol[1]
+            id1 = gwl_sol[2]
+            id2 = gwl_sol[3]
 
             if prev_gwl < 10:
-                sol_low = soil_selector(self.soiltype, self.croptype, gwl_low_uz)
-                sol_up = soil_selector(self.soiltype, self.croptype, gwl_up_uz)
-                theta_eq_uz = sol_low['moist_cont_eq_rz[mm]'].values + (
-                            gwl_low_uz - prev_gwl) / (gwl_low_uz - gwl_up_uz) * (
-                                          sol_up[
-                                              'moist_cont_eq_rz[mm]'].values -
-                                          sol_low[
-                                              'moist_cont_eq_rz[mm]'].values)
-                capris_max_uz = sol_low['capris_max[mm/d]'].values + (
-                            gwl_low_uz - prev_gwl) / (gwl_low_uz - gwl_up_uz) * (
-                                            sol_up[
-                                                'capris_max[mm/d]'].values -
-                                            sol_low[
-                                                'capris_max[mm/d]'].values)
+                theta_eq_uz = self.soil_prm[id2]['moist_cont_eq_rz[mm]'] + (
+                            gwl_low - prev_gwl) / (gwl_low - gwl_up) * (
+                            self.soil_prm[id1][
+                                              'moist_cont_eq_rz[mm]'] -
+                            self.soil_prm[id2][
+                                              'moist_cont_eq_rz[mm]'])
+                capris_max_uz = self.soil_prm[id2]['capris_max[mm/d]'] + (
+                            gwl_low - prev_gwl) / (gwl_low - gwl_up) * (
+                        self.soil_prm[id1][
+                                                'capris_max[mm/d]'] -
+                        self.soil_prm[id2][
+                                                'capris_max[mm/d]'])
             else:
-                sol_10 = soil_selector(self.soiltype, self.croptype, 10)
-                theta_eq_uz = sol_10['moist_cont_eq_rz[mm]'].values
-                capris_max_uz = sol_10['capris_max[mm/d]'].values
+                theta_eq_uz = self.soil_prm[29]['moist_cont_eq_rz[mm]']
+                capris_max_uz = self.soil_prm[29]['capris_max[mm/d]']
 
             if self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
                 p_uz_gw = min(self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
@@ -121,5 +123,5 @@ class UnsaturatedZone:
             # update state
             self.init_theta_uz = theta_uz
 
-        return i_up_uz, r_meas_uz, theta_h3_uz, t_alpha_uz, t_atm_uz, gwl_up_uz, gwl_low_uz, theta_eq_uz, \
+        return i_up_uz, r_meas_uz, theta_h3_uz, t_alpha_uz, t_atm_uz, gwl_up, gwl_low, theta_eq_uz, \
             capris_max_uz, p_uz_gw, theta_uz

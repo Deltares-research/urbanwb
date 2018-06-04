@@ -1,7 +1,7 @@
 import numpy as np
-import pandas as pd
 from urbanwb.selector import et_selector, soil_selector
 from urbanwb.gwlcalculator import gwlcal
+
 
 # 1.3 Class Groundwater.
 class Groundwater:
@@ -24,6 +24,7 @@ class Groundwater:
         # flux --- defined constant downward seepage flux [mm/d]
         # soiltype --- soil type
         # croptype --- crop type
+        # soil_prm --- soil parameter database determined by soil type and crop type.
 
         self.gw_no_meas_area = gw_no_meas_area
         self.gw_meas_area = gw_meas_area
@@ -34,6 +35,7 @@ class Groundwater:
         self.flux = flux
         self.soiltype = soiltype
         self.croptype = croptype
+        self.soil_prm = soil_selector(self.soiltype, self.croptype)
 
     def sol(self, p_uz_gw, uz_no_meas_area, p_op_gw, op_no_meas_area, tot_meas_area, meas_gw,
             prev_owl,  delta_t=1 / 24):
@@ -57,25 +59,26 @@ class Groundwater:
 
             r_meas_gw = meas_gw * tot_meas_area / self.gw_no_meas_area
 
-            gwl_up = gwlcal(self.prev_gwl)[0]  # when combine them , we could also directly use results from uz module.
-            gwl_low = gwlcal(self.prev_gwl)[1]
+            gwl_sol = gwlcal(self.prev_gwl)
+            gwl_up = gwl_sol[0]
+            gwl_low = gwl_sol[1]
+            id1 = gwl_sol[2]
+            id2 = gwl_sol[3]
 
             if self.prev_gwl < 10:
-                sol_low = soil_selector(self.soiltype, self.croptype, gwl_low)
-                sol_up = soil_selector(self.soiltype, self.croptype, gwl_up)
-                sc_gw = sol_low['stor_coef'].values + \
+                sc_gw = self.soil_prm[id2]['stor_coef'] + \
                     (gwl_low - self.prev_gwl) / (gwl_low - gwl_up) * (
-                        sol_up['stor_coef'].values -
-                        sol_low['stor_coef'].values)
+                        self.soil_prm[id1]['stor_coef'] -
+                        self.soil_prm[id2]['stor_coef'])
             else:
-                sol_10 = soil_selector(self.soiltype, self.croptype, 10)
-                sc_gw = sol_10['stor_coef'].values
+                sc_gw = self.soil_prm[29]['stor_coef']
 
             if self.seep_def > 0.5:
-                h_gw = -(((sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc - self.h_deepgw * self.w - prev_owl * self.vc) /
-                         (self.w + self.vc) + (-(self.prev_gwl + self.prev_gwl_sl) - ((sum_p_gw + r_meas_gw) / 1000 *
-                          self.w * self.vc - self.h_deepgw * self.w - prev_owl * self.vc) / (self.w + self.vc)) *
-                            np.exp(- delta_t * (self.w + self.vc) / (sc_gw * self.w * self.vc)))
+                h_gw = -(((sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc - self.h_deepgw * self.w - prev_owl *
+                          self.vc) / (self.w + self.vc) + (-(self.prev_gwl + self.prev_gwl_sl) -
+                         ((sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc - self.h_deepgw * self.w - prev_owl *
+                             self.vc) / (self.w + self.vc)) * np.exp(- delta_t * (self.w + self.vc) /
+                                                                                 (sc_gw * self.w * self.vc)))
 
                 s_gw_out = 1000 * (
                             self.h_deepgw - 0.5 * (h_gw + (self.prev_gwl + self.prev_gwl_sl))) / self.vc * delta_t

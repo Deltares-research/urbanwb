@@ -116,7 +116,7 @@ Theta_eq_uz = [0]
 Capris_max_uz = [0]
 P_uz_gw = [0]
 init_GWL = 1.5
-theta_uz_t0 = soil_selector(2, 1, init_GWL)['moist_cont_eq_rz[mm]'].values  # 1.5m is initial gwl.
+theta_uz_t0 = soil_selector(2, 1)[15]['moist_cont_eq_rz[mm]']  # 1.5m is initial gwl, need add codes here.
 Theta_uz = [theta_uz_t0]
 
 # Groundwater:
@@ -124,7 +124,7 @@ Sum_p_gw = [0]
 R_meas_gw = [0]
 Gwl_up = [0]
 Gwl_low = [0]
-Sc_gw = [soil_selector(2, 1, 1.5)['stor_coef'].values]
+Sc_gw = [soil_selector(2, 1)[15]['stor_coef']]
 H_gw = [0]
 S_gw_out = [0]
 D_gw_ow = [0]
