@@ -95,7 +95,7 @@ class SewerSystem:
                 q_mss_out = min(self.prev_stor_mss + sum_r_mss + r_meas_mss + self.prev_so_mss, self.q_mss_out_cap)
 
                 q_mss_ow = max(0, min(self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out + self.prev_so_mss,
-                               self.q_mss_ow_cap - self.q_mss_out_cap))
+                                      self.q_mss_ow_cap - self.q_mss_out_cap))
 
                 so_mss = max(0, self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out - q_mss_ow - self.stor_mss_cap
                              + self.prev_so_mss)

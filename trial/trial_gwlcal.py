@@ -1,0 +1,40 @@
+import numpy as np
+import math
+
+
+def gwlcal(x):
+    """calculates the groundwater up and groundwater low and index for referencing the soilmatrix."""
+    gwl_up = float(x)
+    if 0 <= gwl_up <= 2.5:
+        gwl_up = math.floor(gwl_up * 10) / 10.0
+        index = int(gwl_up * 10)
+    elif gwl_up < 3.0:
+        gwl_up = 2.5
+        index = 25
+    elif gwl_up < 5.0:
+        gwl_up = int(gwl_up)
+        index = 23 + gwl_up
+    elif gwl_up <= 10:
+        gwl_up = 5.0
+        index = 28
+    else:
+        gwl_up = 10
+        index = 29
+
+    if gwl_up < 2.5:
+        gwl_low = round(gwl_up + 0.1, 2)
+        index2 = index + 1
+    elif gwl_up < 3:
+        gwl_low = 3
+        index2 = index + 1
+    elif gwl_up < 4:
+        gwl_low = 4
+        index2 = index + 1
+    elif gwl_up < 5:
+        gwl_low = 5
+        index2 = index + 1
+    else:
+        gwl_low = 10
+        index2 = 29
+
+    return gwl_up, gwl_low, index, index2
