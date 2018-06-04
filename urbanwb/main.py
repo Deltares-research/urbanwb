@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import pandas as pd
 from urbanwb.pavedroof import PavedRoof
@@ -8,7 +11,8 @@ from urbanwb.groundwater import Groundwater
 from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
-from urbanwb.selector import soil_selector, et_selector
+from urbanwb.selector import soil_selector
+from urbanwb.gwlcalculator import gwlcal
 import time
 from pathlib import Path
 
@@ -60,11 +64,12 @@ meas_gw = np.zeros(iters)
 meas_swds = np.zeros(iters)
 meas_mss = np.zeros(iters)
 meas_ow = np.zeros(iters)
-# Run:
+
+# Run the model:
 # PavedRoof:
 Int_pr = [0]
 E_atm_pr = [0]
-init_intstor_pr_t0 = 0  # Set initial interception storage as 0.
+init_intstor_pr_t0 = 0  # Set initial interception storage on paved roof as 0.
 Intstor_pr = [init_intstor_pr_t0]
 R_pr_meas = [0]
 R_pr_swds = [0]
@@ -74,7 +79,7 @@ R_pr_up = [0]
 # ClosedPaved:
 Intcp_cp = [0]
 E_atm_cp = [0]
-init_intstor_cp_t0 = 0  # Set initial interception storage as 0.
+init_intstor_cp_t0 = 0  # Set initial interception storage on closed paved as 0.
 Intstor_cp = [init_intstor_cp_t0]
 R_cp_meas = [0]
 R_cp_swds = [0]
@@ -84,7 +89,7 @@ R_cp_up = [0]
 # OpenPaved:
 Intcp_op = [0]
 E_atm_op = [0]
-init_intstor_op_t0 = 0
+init_intstor_op_t0 = 0  # Set initial interception storage on open paved as 0.
 Intstor_op = [init_intstor_op_t0]
 P_op_gw = [0]
 R_op_meas = [0]
@@ -99,7 +104,7 @@ Act_infilcap_up = [0]
 Tfac_up = [0]
 E_atm_up = [0]
 I_up_uz = [0]
-fin_stor_up_t0 = 0  # Set initial final storage on the surface of the unpaved area as 0.
+fin_stor_up_t0 = 0  # Set initial final storage on unpaved area as 0.
 Fin_stor_up = [fin_stor_up_t0]
 R_up_meas = [0]
 R_up_ow = [0]
@@ -115,8 +120,8 @@ Gwl_low_uz = [0]
 Theta_eq_uz = [0]
 Capris_max_uz = [0]
 P_uz_gw = [0]
-init_GWL = 1.5
-theta_uz_t0 = soil_selector(2, 1)[15]['moist_cont_eq_rz[mm]']  # 1.5m is initial gwl, need add codes here.
+init_gwl_t0 = 1.5 # 1.5m is initial gwl
+theta_uz_t0 = soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['moist_cont_eq_rz[mm]']
 Theta_uz = [theta_uz_t0]
 
 # Groundwater:
@@ -124,11 +129,10 @@ Sum_p_gw = [0]
 R_meas_gw = [0]
 Gwl_up = [0]
 Gwl_low = [0]
-Sc_gw = [soil_selector(2, 1)[15]['stor_coef']]
+Sc_gw = [soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['stor_coef']]
 H_gw = [0]
 S_gw_out = [0]
 D_gw_ow = [0]
-init_gwl_t0 = 1.5
 Gwl = [init_gwl_t0]
 Gwl_sl = [0]
 
@@ -166,8 +170,8 @@ m_cp = ClosedPaved(init_intstor_cp_t0, cp_no_meas_area, cp_meas_area, cp_meas_in
 m_op = OpenPaved(init_intstor_op_t0, op_no_meas_area, op_meas_area, op_meas_inflow_area,
                  intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0, infilcap_op=1.0)
 
-m_up = Unpaved(fin_stor_up_t0, up_no_meas_area, up_meas_area, up_meas_inflow_area, infilcap_up=48, mois_uz_max=249.2,
-               k_sat_uz=67.9, intstorcap_up=20)
+m_up = Unpaved(fin_stor_up_t0, up_no_meas_area, up_meas_area, up_meas_inflow_area, infilcap_up=48, intstorcap_up=20,
+               soiltype=2, croptype=1)
 m_uz = UnsaturatedZone(theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1)
 
 m_gw = Groundwater(init_gwl_t0, gw_no_meas_area, gw_meas_area, seep_def=0, w=100, vc=20000, h_deepgw=21.5,
@@ -273,7 +277,7 @@ while t <= iters - 1:
     # open water
     sol_ow = m_ow.sol(P_atm[t], E_pot_OW[t], sol_up[8], sol_gw[7], sol_ss[4], sol_ss[6], sol_ss[7], sol_ss[8],
                       meas_ow[t], up_no_meas_area, gw_no_meas_area, swds_no_meas_area, mss_no_meas_area,
-                      total_meas_area, total_area, delta_t)
+                      tot_meas_area, total_area, delta_t)
     Prec_ow.append(sol_ow[0])
     E_atm_ow.append(sol_ow[1])
     Sum_r_ow.append(sol_ow[2])

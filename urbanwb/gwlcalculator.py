@@ -2,7 +2,14 @@ import math
 
 
 def gwlcal(x):
-    """calculates the groundwater up and groundwater low and index for referencing the soilmatrix."""
+    """
+    calculates the groundwater up and groundwater low and the corresponding indexes for referencing in the database.
+    """
+    # gwl_up --- First value in predefined table above groundwater level at the end of previous time step [m-SL]
+    # gwl_low --- First value in predefined table below groundwater level at the end of previous time step[m-SL].
+    # index --- index of gwl_up value in the database.
+    # index2 --- index of gwl_low value in the database.
+
     gwl_up = float(x)
     if 0 <= gwl_up <= 2.5:
         gwl_up = math.floor(gwl_up * 10) / 10.0
@@ -13,7 +20,7 @@ def gwlcal(x):
     elif gwl_up < 5.0:
         gwl_up = int(gwl_up)
         index = 23 + gwl_up
-    elif gwl_up <= 10:
+    elif gwl_up < 10:
         gwl_up = 5.0
         index = 28
     else:

@@ -1,16 +1,16 @@
-import numpy as np
-import pandas as pd
-
-
-# 1.3 Class SewerSystem.
 class SewerSystem:
-    def __init__(self, swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0, prev_so_mss_t0, q_swds_ow_cap=55.1,
-                 q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2, stor_mss_cap=9):
+    """
+    creates an instance of sewer system class with given states and properties,
+    iterates sol function at each time step.
+    """
+    def __init__(self, swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
+                 prev_so_mss_t0, q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2,
+                 stor_mss_cap=9):
         # state
-        # prev_stor_swds --- Storage in the storm water drainage system at the end of the previous time step [mm]
-        # prev_so_swds --- Overflow of storm water drainage system during the previous time step [mm]
-        # prev_stor_mss --- Storage in the mixed sewer system at the end of the previous time step [mm]
-        # prev_so_mss --- Overflow of mixed sewer system during the previous time step [mm]
+        # prev_stor_swds --- Storage in the storm water drainage system at the end of the previous time step [mm].
+        # prev_so_swds --- Overflow of storm water drainage system during the previous time step [mm].
+        # prev_stor_mss --- Storage in the mixed sewer system at the end of the previous time step [mm].
+        # prev_so_mss --- Overflow of mixed sewer system during the previous time step [mm].
 
         self.prev_stor_swds = prev_stor_swds_t0
         self.prev_so_swds = prev_so_swds_t0
@@ -20,11 +20,11 @@ class SewerSystem:
         # properties
         # swds_no_meas_area --- area of storm water drainage system (without a measure) [m^2].
         # mss_no_meas_area --- area of mixed sewer system (without a measure) [m^2].
-        # q_swds_ow_cap --- predefined discharge capacity of storm water drainage system.
-        # q_mss_out_cap --- predefined discharge capacity of mixed sewer system to WWTP.
-        # q_mss_ow_cap --- predefined discharge capacity of storm water drainage system to open water.
+        # q_swds_ow_cap --- predefined discharge capacity of storm water drainage system [mm/hr].
+        # q_mss_out_cap --- predefined discharge capacity of mixed sewer system to WWTP [mm/hr].
+        # q_mss_ow_cap --- predefined discharge capacity of mixed sewer system to open water [mm/hr].
         # stor_swds_cap --- predefined storage capacity of storm water drainage system [mm].
-        # stor_mss_cap --- predefined storage capacity of mixed sewer system.
+        # stor_mss_cap --- predefined storage capacity of mixed sewer system [mm].
         # Note the relationship between q_swds_ow_cap, stor_swds_cap, cp_intstor_cap, rainfall intensity.
 
         self.swds_no_meas_area = swds_no_meas_area

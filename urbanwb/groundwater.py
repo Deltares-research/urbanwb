@@ -1,23 +1,26 @@
 import numpy as np
-from urbanwb.selector import et_selector, soil_selector
+from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
 
 
-# 1.3 Class Groundwater.
 class Groundwater:
+    """
+    creates an instance of groundwater class with given states and properties, iterates sol function at each time step.
+    """
     def __init__(self, init_gwl_t0, gw_no_meas_area, gw_meas_area, seep_def=0, w=100, vc=20000, h_deepgw=21.5,
                  flux=1, soiltype=2, croptype=1):
 
         # state
         # prev_gwl --- groundwater level at previous time step [m-SL].
         # prev_gwl_sl --- groundwater level above surface level at previous time step [m-SL].
+
         self.prev_gwl = init_gwl_t0
         self.prev_gwl_sl = 0
 
         # properties
         # gw_no_meas_area --- groundwater area (without a measure) [m^2].
         # gw_meas_area --- groundwater area (with a measure) [m^2].
-        # seep_def --- seepage defined by deep groundwater level and flow resistance.
+        # seep_def --- seepage defined by deep groundwater level and flow resistance [0=flux; 1=level].
         # w --- groundwater drainage resistance [d].
         # vc --- flow resistance between deep and shallow groundwater [d].
         # h_deepgw --- defined hydraulic head of deep groundwater [m-SL].

@@ -1,16 +1,17 @@
-import numpy as np
-import pandas as pd
 from urbanwb.selector import et_selector, soil_selector
 from urbanwb.gwlcalculator import gwlcal
 
 
-# 1.3 Class Unsaturated zone.
 class UnsaturatedZone:
+    """
+    creates an instance of unsaturated zone class with given states and properties,
+    iterates sol function at each time step.
+    """
     def __init__(self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1):
 
         # state
         # init_theta_uz --- moisture content at previous time step [mm].
-        self.init_theta_uz = theta_uz_t0  # Could also include initial GWL here, or just leave it outside the function.
+        self.init_theta_uz = theta_uz_t0
 
         # properties
         # uz_no_meas_area --- unsaturated zone area (without a measure) [m^2].
@@ -20,8 +21,8 @@ class UnsaturatedZone:
         # theta_h3l --- Equilibrium moisture content in rootzone, at which transpiration(Epot≤ 1 mm/d) reduction starts.
         # theta_h3h --- Equilibrium moisture content in rootzone, at which transpiration(Epot≥ 5 mm/d) reduction starts.
         # theta_h1 --- Equilibrium moisture content in rootzone with groundwater level at surface level
-        # (top rootzone) (complete saturation).
-        # theta_h2 --- Equilibrium moisture content in rootzone with groundwater level at bottom rootzone
+        # i.e. top root zone (complete saturation).
+        # theta_h2 --- Equilibrium moisture content in rootzone with groundwater level at bottom root zone
         # (field capacity).
         # theta_h4 --- Equilibrium moisture content in rootzone, at which transpiration = 0 (wilting point).
         # soil_prm --- soil parameter database determined by soil type and crop type.
@@ -55,16 +56,16 @@ class UnsaturatedZone:
         # gwl_low_uz --- First value in predefined table below groundwater level at the end of previous time step[m-SL].
         # theta_eq_uz --- Equilibrium soil moisture content in the root zone for the current time step [mm].
         # capris_max_uz --- Maximum capillary rise for the current time step [mm/d].
-        # theta_uz --- Soil moisture content in the root zone at the end of the current time step [mm]
+        # theta_uz --- Soil moisture content in the root zone at the end of the current time step [mm].
 
         if self.uz_no_meas_area == 0:
-            i_up_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up_uz = gwl_low_uz = theta_eq_uz = \
+            i_up_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = gwl_low = theta_eq_uz = \
                       capris_max_uz = p_uz_gw = theta_uz = 0
 
         else:
-            i_up_uz = i_up_uz
+            i_up_uz = i_up_uz  # It is assumed that UP and UZ areas area equal.
 
-            r_meas_uz = meas_uz * tot_meas_area / self.uz_no_meas_area  # May need modifications here?
+            r_meas_uz = meas_uz * tot_meas_area / self.uz_no_meas_area
 
             if e_ref / (2 * delta_t) < 1:
                 theta_h3_uz = self.theta_h3l

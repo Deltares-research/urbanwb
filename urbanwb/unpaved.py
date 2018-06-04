@@ -1,10 +1,12 @@
-import numpy as np
-import pandas as pd
+from urbanwb.selector import soil_selector
 
-# 1.3 Class Unpaved.
+
 class Unpaved:
+    """
+    creates an instance of unpaved class with given states and properties, iterates sol function at each time step.
+    """
     def __init__(self, fin_stor_up_t0, up_no_meas_area, up_meas_area, up_meas_inflow_area, infilcap_up=48,
-                 mois_uz_max=249.2, k_sat_uz=67.9, intstorcap_up=20):
+                 intstorcap_up=20, soiltype=2, croptype=1):
 
         # state
         # prev_fin_stor_up --- final storage on the surface of the unpaved area at previous time step [mm].
@@ -14,17 +16,23 @@ class Unpaved:
         # up_no_meas_area --- unpaved area (without a measure) [m^2].
         # up_meas_area --- unpaved area (with a measure) [m^2].
         # up_meas_inflow_area --- measure inflow area (>= measure area and <= total area) [m^2].
+        # soiltype --- Soil type
+        # croptype --- Crop type
         # infilcap_up --- predefined infiltration capacity of unpaved area [mm/d].
         # mois_uz_max --- maximum water volume in root zone [mm].
         # k_sat_uz --- predefined saturated permeability of unsaturated zone [mm/d].
         # intstorcap_up --- predefined storage capacity on unpaved area [mm].
+
         self.up_no_meas_area = up_no_meas_area
         self.up_meas_area = up_meas_area
         self.up_meas_inflow_area = up_meas_inflow_area
+        self.soiltype = soiltype
+        self.croptype = croptype
         self.infilcap_up = infilcap_up
-        self.mois_uz_max = mois_uz_max
-        self.k_sat_uz = k_sat_uz
         self.intstorcap_up = intstorcap_up
+        self.soil_prm = soil_selector(self.soiltype, self.croptype)
+        self.mois_uz_max = self.soil_prm[0]['moist_cont_eq_rz[mm]']
+        self.k_sat_uz = 10 * self.soil_prm[0]['k_sat']
 
     def inflowfac(self):
         return (self.up_meas_inflow_area - self.up_meas_area) / self.up_no_meas_area
@@ -40,11 +48,11 @@ class Unpaved:
         # prev_mois_uz --- water volume in root zone at the previous time step [mm].
         # tfac_up --- Time factor [-]. Part of the current time step that storage on the surface of the unpaved area
         # is available for infiltration and evaporation.
-        # e_atm_up --- Evaporation from storage on the surface of the unpaved area during the current time step [mm]
-        # i_up_uz --- Infiltration from storage on the surface of the unpaved area
+        # e_atm_up --- Evaporation from storage on the surface of the unpaved area during the current time step [mm].
+        # i_up_uz --- Infiltration from storage on the surface of the unpaved area [mm].
         # to the unsaturated zone during the current time step [mm].
         # fin_stor_up --- Final storage on the surface of the unpaved area at the end of the current time step [mm].
-        # r_up_meas --- Runoff from unpaved to an area with a drainage measure during the current time step
+        # r_up_meas --- Runoff from unpaved to an area with a drainage measure during the current time step [mm].
         # (not necessarily on the unpaved area itself) [mm].
         # r_up_ow --- Runoff from unpaved to open water area during the current time step [mm].
 
