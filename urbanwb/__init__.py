@@ -1,7 +1,6 @@
 from urbanwb import closedpaved
 from urbanwb import groundwater
 from urbanwb import gwlcalculator
-from urbanwb import main
 from urbanwb import openpaved
 from urbanwb import openwater
 from urbanwb import pavedroof
