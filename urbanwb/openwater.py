@@ -1,13 +1,13 @@
 class OpenWater:
-    def __init__(self, init_owl_t0, ow_no_meas_area, ow_level, q_ow_out_cap=200):
+    def __init__(self, ow_no_meas_area, ow_level, q_ow_out_cap=200):
         """
         creates an instance of open water class with given states and properties,
         iterates sol function at each time step.
         """
 
         # state
-        # prev_owl --- open water level at previous time step [m-SL].
-        self.prev_owl = init_owl_t0
+        # prev_owl --- open water level at previous time step [m-SL], i.e. initial open water level.
+        self.prev_owl = ow_level
 
         # properties
         # ow_no_meas_area --- area of open water (without a measure) [m^2].
@@ -34,6 +34,7 @@ class OpenWater:
         if self.ow_no_meas_area == 0:
             prec_ow = e_atm_ow = sum_r_ow = sum_d_ow = sum_q_ow = sum_so_ow = r_meas_ow = q_ow_out = 0
 
+            # if no open water area is defined, then owl means fixed drainage level for all time steps.
             owl = self.ow_level
 
         else:

@@ -122,7 +122,7 @@ def run():
     Theta_eq_uz = [0]
     Capris_max_uz = [0]
     P_uz_gw = [0]
-    init_gwl_t0 = 1.5 # 1.5m is initial gwl
+    init_gwl_t0 = 1.5  # 1.5m is initial gwl
     theta_uz_t0 = soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['moist_cont_eq_rz[mm]']
     Theta_uz = [theta_uz_t0]
 
@@ -161,8 +161,10 @@ def run():
     Sum_so_ow = [0]
     R_meas_ow = [0]
     Q_ow_out = [0]
-    init_owl_t0 = 1.5
-    Owl = [init_owl_t0]
+    # ow_level is not only the target open water level (groundwater drainage level when no open water)
+    # but also the initial open water level.
+    ow_level = 1.5
+    Owl = [ow_level]
 
     # create instances for each land use component.
     m_pr = PavedRoof(init_intstor_pr_t0, pr_no_meas_area, pr_meas_area, pr_meas_inflow_area, intstorcap_pr=1.6,
@@ -183,8 +185,7 @@ def run():
                        prev_so_mss_t0,
                        q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2, stor_mss_cap=9)
 
-    m_ow = OpenWater(init_owl_t0, ow_no_meas_area, ow_level, q_ow_out_cap=200)
-
+    m_ow = OpenWater(ow_no_meas_area, ow_level, q_ow_out_cap=200)
 
     t = 1
 
@@ -280,6 +281,7 @@ def run():
         sol_ow = m_ow.sol(P_atm[t], E_pot_OW[t], sol_up[8], sol_gw[7], sol_ss[4], sol_ss[6], sol_ss[7], sol_ss[8],
                           meas_ow[t], up_no_meas_area, gw_no_meas_area, swds_no_meas_area, mss_no_meas_area,
                           tot_meas_area, total_area, delta_t)
+
         Prec_ow.append(sol_ow[0])
         E_atm_ow.append(sol_ow[1])
         Sum_r_ow.append(sol_ow[2])
@@ -323,3 +325,4 @@ def run():
     print(f'Model runtime: {end - start:.1f}s')
 
 run()
+
