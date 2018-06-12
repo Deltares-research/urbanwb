@@ -3,64 +3,12 @@ import pandas as pd
 from pathlib import Path
 import time
 
-indir = Path('input')
-outdir = Path('pysol')
-outdir.mkdir(parents=True, exist_ok=True)
-InputData = pd.read_csv(indir / 'input_csv.csv')  # input the precipitation, potential evaporation
-
-date = InputData['date']
-P_atm = InputData['P_atm']
-Ref_grass = InputData['Ref.grass']
-E_pot_OW = InputData['E_pot_OW']
-iters = np.shape(date)[0]
-
-# 1.GENERAL TEST
-# 1.1 Input data from other modules.
-# a. results of r_pr_swds, r_cp_swds, r_op_swds, r_pr_mss, r_cp_mss, r_op_mss
-# from paved roof, closed paved, open paved module.
-r_pr_swds = pd.read_csv(indir / 'r_swds.csv')['r_pr_swds_0']
-r_cp_swds = pd.read_csv(indir / 'r_swds.csv')['r_cp_swds_0']
-r_op_swds = pd.read_csv(indir / 'r_swds.csv')['r_op_swds_0']
-r_pr_mss = pd.read_csv(indir / 'r_mss.csv')['r_pr_mss_0']
-r_cp_mss = pd.read_csv(indir / 'r_mss.csv')['r_cp_mss_0']
-r_op_mss = pd.read_csv(indir / 'r_mss.csv')['r_op_mss_0']
-# b. flow from measure to swds/mss
-meas_swds = meas_mss = np.zeros(iters)
-
-
-# 1.2 General test settings
-tot_pr_area = 1560
-tot_cp_area = 803.3906406
-tot_op_area = 481.6093594
-pr_discfrac = 0.0
-cp_discfrac, op_discfrac = 0, 0
-swds_frac = 1
-mss_frac = 1 - swds_frac
-tot_disc_area = tot_pr_area * pr_discfrac + tot_cp_area * cp_discfrac + tot_op_area * op_discfrac
-tot_sdws_area = (tot_pr_area + tot_cp_area + tot_op_area - tot_disc_area) * swds_frac
-# 1 is the storm drainage fraction 100%
-tot_mss_area = (tot_pr_area + tot_cp_area + tot_op_area - tot_disc_area) * mss_frac
-# 0 is the mss drainage fraction 0 %
-pr_meas_area = 0
-pr_no_meas_area = tot_pr_area - pr_meas_area
-cp_meas_area = 0
-cp_no_meas_area = tot_cp_area - cp_meas_area
-op_meas_area = 0
-op_no_meas_area = tot_op_area - op_meas_area
-swds_meas_area = 0
-swds_no_meas_area = tot_sdws_area - swds_meas_area
-mss_meas_area = 0
-mss_no_meas_area = tot_mss_area - mss_meas_area
-ow_no_meas_area = 300
-tot_meas_area = 0  # for the time being, it equals to swds_meas_area 0.
-
 
 class SewerSystem:
     """
     creates an instance of sewer system class with given states and properties,
     iterates sol function at each time step.
     """
-
     def __init__(self, swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
                  prev_so_mss_t0, q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2,
                  stor_mss_cap=9):
@@ -179,86 +127,60 @@ class SewerSystem:
                stor_swds, stor_mss
 
 
-# 1.4 Get python solutions and save in csv file
-start = time.time()
-Sum_r_swds =[0]
-R_meas_swds = [0]
-Sum_r_mss = [0]
-R_meas_mss = [0]
-Q_swds_ow = [0]
-Q_mss_out = [0]
-Q_mss_ow = [0]
-prev_so_swds_t0, prev_so_mss_t0, prev_stor_swds_t0, prev_stor_mss_t0 = 0, 0, 0, 0
-So_swds = [prev_so_swds_t0]
-So_mss = [prev_so_mss_t0]
-Stor_swds = [prev_stor_swds_t0]
-Stor_mss = [prev_stor_mss_t0]
+if __name__ == '__main___':
+    indir = Path('input')
+    outdir = Path('pysol')
+    outdir.mkdir(parents=True, exist_ok=True)
+    InputData = pd.read_csv(indir / 'input_csv.csv')  # input the precipitation, potential evaporation
 
+    date = InputData['date']
+    P_atm = InputData['P_atm']
+    Ref_grass = InputData['Ref.grass']
+    E_pot_OW = InputData['E_pot_OW']
+    iters = np.shape(date)[0]
 
-m = SewerSystem(swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
-                prev_so_mss_t0,
-                q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2, stor_mss_cap=9)
+    # 1.GENERAL TEST
+    # 1.1 Input data from other modules.
+    # a. results of r_pr_swds, r_cp_swds, r_op_swds, r_pr_mss, r_cp_mss, r_op_mss
+    # from paved roof, closed paved, open paved module.
+    r_pr_swds = pd.read_csv(indir / 'r_swds.csv')['r_pr_swds_0']
+    r_cp_swds = pd.read_csv(indir / 'r_swds.csv')['r_cp_swds_0']
+    r_op_swds = pd.read_csv(indir / 'r_swds.csv')['r_op_swds_0']
+    r_pr_mss = pd.read_csv(indir / 'r_mss.csv')['r_pr_mss_0']
+    r_cp_mss = pd.read_csv(indir / 'r_mss.csv')['r_cp_mss_0']
+    r_op_mss = pd.read_csv(indir / 'r_mss.csv')['r_op_mss_0']
+    # b. flow from measure to swds/mss
+    meas_swds = meas_mss = np.zeros(iters)
 
-t = 1
+    # 1.2 General test settings
+    tot_pr_area = 1560
+    tot_cp_area = 803.3906406
+    tot_op_area = 481.6093594
+    pr_discfrac = 0.0
+    cp_discfrac, op_discfrac = 0, 0
+    swds_frac = 1
+    mss_frac = 1 - swds_frac
+    tot_disc_area = tot_pr_area * pr_discfrac + tot_cp_area * cp_discfrac + tot_op_area * op_discfrac
+    tot_sdws_area = (tot_pr_area + tot_cp_area + tot_op_area - tot_disc_area) * swds_frac
+    # 1 is the storm drainage fraction 100%
+    tot_mss_area = (tot_pr_area + tot_cp_area + tot_op_area - tot_disc_area) * mss_frac
+    # 0 is the mss drainage fraction 0 %
+    pr_meas_area = 0
+    pr_no_meas_area = tot_pr_area - pr_meas_area
+    cp_meas_area = 0
+    cp_no_meas_area = tot_cp_area - cp_meas_area
+    op_meas_area = 0
+    op_no_meas_area = tot_op_area - op_meas_area
+    swds_meas_area = 0
+    swds_no_meas_area = tot_sdws_area - swds_meas_area
+    mss_meas_area = 0
+    mss_no_meas_area = tot_mss_area - mss_meas_area
+    ow_no_meas_area = 300
+    tot_meas_area = 0  # for the time being, it equals to swds_meas_area 0.
 
-while t <= iters - 1:
-    sol = m.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, r_pr_swds[t], r_cp_swds[t], r_op_swds[t], r_pr_mss[t]
-                , r_cp_mss[t], r_op_mss[t], meas_swds[t], meas_mss[t], ow_no_meas_area, tot_meas_area)
-
-    Sum_r_swds.append(sol[0])
-    R_meas_swds.append(sol[1])
-    Sum_r_mss.append(sol[2])
-    R_meas_mss.append(sol[3])
-    Q_swds_ow.append(sol[4])
-    Q_mss_out.append(sol[5])
-    Q_mss_ow.append(sol[6])
-    So_swds.append(sol[7])
-    So_mss.append(sol[8])
-    Stor_swds.append(sol[9])
-    Stor_mss.append(sol[10])
-
-    t += 1
-
-filename = 'SS_general_test_pysol.csv'
-np.savetxt('pysol/' + filename, np.c_[Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
-                                      So_swds, So_mss, Stor_swds, Stor_mss],
-           fmt="%.8f", delimiter=',',
-           header='Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow, So_swds, '
-                  'So_mss, Stor_swds, Stor_mss')
-# Insert the Date column for locating purposes.
-df = pd.read_csv('pysol/' + filename)
-df.insert(0, 'Date', date)
-df.to_csv('pysol/' + filename)
-end = time.time()
-print(end - start)
-
-# 1.5 Validate with excel solutions.
-data_py = pd.read_csv('pysol/' + filename)
-data_ex = pd.read_csv('exsol/SS_general_test_exsol.csv')
-
-# Examine through the dataframe column by column
-A = np.zeros((43825, 11))
-for c in range(11):
-    for r in range(1, 43825):  # from row 1 to the last row (row 43824), excluding first row(t=0).
-        A[r, c] = data_ex[list(data_ex)[c]][r] - data_py[list(data_py)[c+2]][r]
-for c in range(11):
-    print('col ' + str(c), 'max', max(A[:, c]), 'min', min(A[:, c]))
-
-
-# 2. EXTENDED TESTS
-# 2.0 Validate function. Built for easily manipulating comparisons between python and excel solutions.
-def validate(a, b, c, d, e, f, A1, A2):
-    """Validates python solution with excel solution based on given parameter sets"""
-    # a ---  q_swds_ow_cap (default: 55.1)
-    # b ---  q_mss_out_cap (default: 26.3)
-    # c --- q_mss_ow_cap (default: 48.1)
-    # d --- stor_swds_cap (default: 2)
-    # e --- stor_mss_cap (default: 9)
-    # f --- Set No., used to name the output file.
-    # A1 --- swds_no_meas_area
-    # A2 --- mss_no_meas_area
-
-    Sum_r_swds = [0]
+    # 1.4 Get python solutions and save in csv file
+    start = time.time()
+    Sum_r_swds =[0]
     R_meas_swds = [0]
     Sum_r_mss = [0]
     R_meas_mss = [0]
@@ -271,15 +193,16 @@ def validate(a, b, c, d, e, f, A1, A2):
     Stor_swds = [prev_stor_swds_t0]
     Stor_mss = [prev_stor_mss_t0]
 
-    m = SewerSystem(A1, A2, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
+
+    m = SewerSystem(swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
                     prev_so_mss_t0,
-                    q_swds_ow_cap=a, q_mss_out_cap=b, q_mss_ow_cap=c, stor_swds_cap=d, stor_mss_cap=e)
+                    q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2, stor_mss_cap=9)
 
     t = 1
 
     while t <= iters - 1:
-        sol = m.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, r_pr_swds[t], r_cp_swds[t], r_op_swds[t],
-                    r_pr_mss[t], r_cp_mss[t], r_op_mss[t], meas_swds[t], meas_mss[t], ow_no_meas_area, tot_meas_area)
+        sol = m.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, r_pr_swds[t], r_cp_swds[t], r_op_swds[t], r_pr_mss[t]
+                    , r_cp_mss[t], r_op_mss[t], meas_swds[t], meas_mss[t], ow_no_meas_area, tot_meas_area)
 
         Sum_r_swds.append(sol[0])
         R_meas_swds.append(sol[1])
@@ -295,140 +218,216 @@ def validate(a, b, c, d, e, f, A1, A2):
 
         t += 1
 
-    filename = 'SS_extended_test_pysol' + str(f) + '.csv'
-    np.savetxt('pysol/' + filename,
-               np.c_[Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
-                     So_swds, So_mss, Stor_swds, Stor_mss],
+    filename = 'SS_general_test_pysol.csv'
+    np.savetxt('pysol/' + filename, np.c_[Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
+                                          So_swds, So_mss, Stor_swds, Stor_mss],
                fmt="%.8f", delimiter=',',
                header='Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow, So_swds, '
                       'So_mss, Stor_swds, Stor_mss')
+    # Insert the Date column for locating purposes.
     df = pd.read_csv('pysol/' + filename)
     df.insert(0, 'Date', date)
     df.to_csv('pysol/' + filename)
+    end = time.time()
+    print(end - start)
 
+    # 1.5 Validate with excel solutions.
     data_py = pd.read_csv('pysol/' + filename)
-    data_ex = pd.read_csv('exsol/SS_extended_test_exsol_set' + str(f) + '.csv')
+    data_ex = pd.read_csv('exsol/SS_general_test_exsol.csv')
+
+    # Examine through the dataframe column by column
     A = np.zeros((43825, 11))
     for c in range(11):
         for r in range(1, 43825):  # from row 1 to the last row (row 43824), excluding first row(t=0).
-            A[r, c] = data_ex[list(data_ex)[c]][r] - data_py[list(data_py)[c + 2]][r]
+            A[r, c] = data_ex[list(data_ex)[c]][r] - data_py[list(data_py)[c+2]][r]
     for c in range(11):
         print('col ' + str(c), 'max', max(A[:, c]), 'min', min(A[:, c]))
-        #print(np.where(max(A[:,c]) != 0 and A[:,c] == max(A[:,c])), np.where(min(A[:,c]) != 0 and A[:,c] == min(A[:,c])))
+
+    # 2. EXTENDED TESTS
+    # 2.0 Validate function. Built for easily manipulating comparisons between python and excel solutions.
+    def validate(a, b, c, d, e, f, A1, A2):
+        """Validates python solution with excel solution based on given parameter sets"""
+        # a ---  q_swds_ow_cap (default: 55.1)
+        # b ---  q_mss_out_cap (default: 26.3)
+        # c --- q_mss_ow_cap (default: 48.1)
+        # d --- stor_swds_cap (default: 2)
+        # e --- stor_mss_cap (default: 9)
+        # f --- Set No., used to name the output file.
+        # A1 --- swds_no_meas_area
+        # A2 --- mss_no_meas_area
+
+        Sum_r_swds = [0]
+        R_meas_swds = [0]
+        Sum_r_mss = [0]
+        R_meas_mss = [0]
+        Q_swds_ow = [0]
+        Q_mss_out = [0]
+        Q_mss_ow = [0]
+        prev_so_swds_t0, prev_so_mss_t0, prev_stor_swds_t0, prev_stor_mss_t0 = 0, 0, 0, 0
+        So_swds = [prev_so_swds_t0]
+        So_mss = [prev_so_mss_t0]
+        Stor_swds = [prev_stor_swds_t0]
+        Stor_mss = [prev_stor_mss_t0]
+
+        m = SewerSystem(A1, A2, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
+                        prev_so_mss_t0,
+                        q_swds_ow_cap=a, q_mss_out_cap=b, q_mss_ow_cap=c, stor_swds_cap=d, stor_mss_cap=e)
+
+        t = 1
+
+        while t <= iters - 1:
+            sol = m.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, r_pr_swds[t], r_cp_swds[t], r_op_swds[t],
+                        r_pr_mss[t], r_cp_mss[t], r_op_mss[t], meas_swds[t], meas_mss[t], ow_no_meas_area, tot_meas_area)
+
+            Sum_r_swds.append(sol[0])
+            R_meas_swds.append(sol[1])
+            Sum_r_mss.append(sol[2])
+            R_meas_mss.append(sol[3])
+            Q_swds_ow.append(sol[4])
+            Q_mss_out.append(sol[5])
+            Q_mss_ow.append(sol[6])
+            So_swds.append(sol[7])
+            So_mss.append(sol[8])
+            Stor_swds.append(sol[9])
+            Stor_mss.append(sol[10])
+
+            t += 1
+
+        filename = 'SS_extended_test_pysol' + str(f) + '.csv'
+        np.savetxt('pysol/' + filename,
+                   np.c_[Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow,
+                         So_swds, So_mss, Stor_swds, Stor_mss],
+                   fmt="%.8f", delimiter=',',
+                   header='Sum_r_swds, R_meas_swds, Sum_r_mss, R_meas_mss, Q_swds_ow, Q_mss_out, Q_mss_ow, So_swds, '
+                          'So_mss, Stor_swds, Stor_mss')
+        df = pd.read_csv('pysol/' + filename)
+        df.insert(0, 'Date', date)
+        df.to_csv('pysol/' + filename)
+
+        data_py = pd.read_csv('pysol/' + filename)
+        data_ex = pd.read_csv('exsol/SS_extended_test_exsol_set' + str(f) + '.csv')
+        A = np.zeros((43825, 11))
+        for c in range(11):
+            for r in range(1, 43825):  # from row 1 to the last row (row 43824), excluding first row(t=0).
+                A[r, c] = data_ex[list(data_ex)[c]][r] - data_py[list(data_py)[c + 2]][r]
+        for c in range(11):
+            print('col ' + str(c), 'max', max(A[:, c]), 'min', min(A[:, c]))
+            #print(np.where(max(A[:,c]) != 0 and A[:,c] == max(A[:,c])),
+            # np.where(min(A[:,c]) != 0 and A[:,c] == min(A[:,c])))
 
 
-R_swds_all = pd.read_csv(indir / 'r_swds.csv')
-R_mss_all = pd.read_csv(indir / 'r_mss.csv')
+    R_swds_all = pd.read_csv(indir / 'r_swds.csv')
+    R_mss_all = pd.read_csv(indir / 'r_mss.csv')
 
-# 2.1 Set 1: q_swds_ow_cap  = 551
-f = 1
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(551, 26.3, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.1 Set 1: q_swds_ow_cap  = 551
+    f = 1
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(551, 26.3, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.2 Set 2: q_swds_ow_cap  = 0
-f = 2
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(0, 26.3, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.2 Set 2: q_swds_ow_cap  = 0
+    f = 2
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(0, 26.3, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.3 Set 3: q_mss_out_cap = 263
-f = 3
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 263, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.3 Set 3: q_mss_out_cap = 263
+    f = 3
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 263, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.4 Set 4: q_mss_out_cap = 0
-f = 4
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 0, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.4 Set 4: q_mss_out_cap = 0
+    f = 4
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 0, 48.1, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.5 Set 5: q_mss_ow_cap = 481
-f = 5
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 26.3, 481, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.5 Set 5: q_mss_ow_cap = 481
+    f = 5
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 26.3, 481, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.6 Set 6: q_mss_ow_cap = 0
-f = 6
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 26.3, 0, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.6 Set 6: q_mss_ow_cap = 0
+    f = 6
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 26.3, 0, 2, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.7 Set 7: stor_swds_cap = 20
-f = 7
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(37.1, 26.3, 48.1, 20, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.7 Set 7: stor_swds_cap = 20
+    f = 7
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(37.1, 26.3, 48.1, 20, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.8 Set 8: stor_swds_cap = 0
-f = 8
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(57.1, 26.3, 48.1, 0, 9, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.8 Set 8: stor_swds_cap = 0
+    f = 8
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(57.1, 26.3, 48.1, 0, 9, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.9 Set 9: stor_mss_cap = 90
-f = 9
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 26.3, 48.1, 2, 90, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.9 Set 9: stor_mss_cap = 90
+    f = 9
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 26.3, 48.1, 2, 90, f, swds_no_meas_area, mss_no_meas_area)
 
-# 2.10 Set 10: stor_mss_cap = 0
-f = 10
-print(str(f))
-r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
-r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
-r_op_swds = R_swds_all['r_op_swds_'+str(f)]
-r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
-r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
-r_op_mss = R_mss_all['r_op_mss_'+str(f)]
-validate(55.1, 26.3, 48.1, 2, 0, f, swds_no_meas_area, mss_no_meas_area)
+    # 2.10 Set 10: stor_mss_cap = 0
+    f = 10
+    print(str(f))
+    r_pr_swds = R_swds_all['r_pr_swds_'+str(f)]
+    r_cp_swds = R_swds_all['r_cp_swds_'+str(f)]
+    r_op_swds = R_swds_all['r_op_swds_'+str(f)]
+    r_pr_mss = R_mss_all['r_pr_mss_'+str(f)]
+    r_cp_mss = R_mss_all['r_cp_mss_'+str(f)]
+    r_op_mss = R_mss_all['r_op_mss_'+str(f)]
+    validate(55.1, 26.3, 48.1, 2, 0, f, swds_no_meas_area, mss_no_meas_area)
 
 
 
