@@ -145,5 +145,6 @@ def read_parameter():
            tot_gw_area, discfrac_pr, discfrac_cp, discfrac_op, swds_frac, intstorcap_pr, intstorcap_cp, intstorcap_op, \
            intstorcap_up, infilcap_op, infilcap_up, w, seep_def, flux, init_gwl, h_deepgw, vc, q_swds_ow_cap, \
            q_mss_ow_cap, q_mss_out_cap, storcap_swds, storcap_mss, q_ow_out_cap, ow_level
+    # make it return dictionary later after being checked.
 
 print(read_parameter())
