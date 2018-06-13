@@ -1,0 +1,149 @@
+from pathlib import Path
+import math
+import toml
+
+
+def read_parameter():
+    """reads parameters from the static form in TOML format."""
+    # indir = Path('input')
+    try:
+        cf = toml.load('input/static_form.ini', _dict=dict)  # "indir" is not working here. Need some modifications here.
+        delta_t = cf['timestep'] / 86400  # delta_t, converted from second to day
+        tot_area = cf['tot_area']  # total area
+        soiltype = cf['soiltype']  # soil type
+        croptype = cf['croptype']  # crop type
+        type = cf['type']
+        validinput = False
+        while not validinput:
+            if type == 0:  # input type: fraction
+                pr_frac = cf['pr_frac']  # Paved roof fraction of total [-]
+                cp_frac = cf['cp_frac']  # closed paved fraction of total [-]
+                op_frac = cf['op_frac']  # open paved fraction of total [-]
+                up_frac = cf['up_frac']  # unpaved fraction of total [-]
+                ow_frac = cf['ow_frac']  # open water fraction of total [-]
+                tot_pr_area = pr_frac * tot_area
+                frac_pr_aboveGW = cf['frac_pr_aboveGW']  # part of buildings above GW [-]
+                tot_cp_area = cp_frac * tot_area
+                tot_op_area = op_frac * tot_area
+                tot_up_area = up_frac * tot_area
+                tot_ow_area = ow_frac * tot_area
+                frac_ow_aboveGW = cf['frac_ow_aboveGW']  # part of open water above GW [-]
+                tot_uz_area = tot_up_area  # total area of unsaturated zone [m^2] (Assumed to be equal to unpaved area)
+                gw_frac = pr_frac * frac_pr_aboveGW + cp_frac + op_frac + up_frac + frac_ow_aboveGW * ow_frac
+                tot_gw_area = gw_frac * tot_area  # total area of groundwater [m^2]
+                if math.isclose(pr_frac + cp_frac + op_frac + up_frac + ow_frac, 1, rel_tol=1e-9, abs_tol=0.0):  # instead of numpy approx
+                    validinput = True
+                else:
+                    raise ValueError('Error: Area fractions do not add up to 1 (type = 0).')
+                    # raise Exception('Area fractions do not add up to 1.')  # --- infinite loop error/ go to unknown error.
+                    # print('Area fractions do not add up to 1. Please check the config file and try again.')
+                    # return
+            elif type == 1:  # input type: area
+                tot_pr_area = cf['tot_pr_area']  # total area of paved roof [m^2]
+                pr_frac = tot_pr_area / tot_area
+                frac_pr_aboveGW = cf['frac_pr_aboveGW']
+                tot_cp_area = cf['tot_cp_area']  # total area of closed paved [m^2]
+                cp_frac = tot_cp_area / tot_area
+                tot_op_area = cf['tot_op_area']  # total area of open paved [m^2]
+                op_frac = tot_op_area / tot_area
+                tot_up_area = cf['tot_up_area']  # total area of unpaved [m^2]
+                up_frac = tot_up_area / tot_area
+                tot_ow_area = cf['tot_ow_area']  # total area of open water [m^2]
+                ow_frac = tot_ow_area / tot_area
+                frac_ow_aboveGW = cf['frac_ow_aboveGW']
+                tot_uz_area = tot_up_area
+                gw_frac = pr_frac * frac_pr_aboveGW + cp_frac + op_frac + up_frac + ow_frac * frac_ow_aboveGW
+                tot_gw_area = gw_frac * tot_area
+                if math.isclose(tot_pr_area + tot_cp_area + tot_op_area + tot_up_area + tot_ow_area, tot_area,
+                                rel_tol=1e-9, abs_tol=0.0):
+                    validinput = True
+                else:
+                    raise ValueError('Error: Areas do not sum up to the total area (type = 1).')
+                    # print('Areas do not sum up to the total area.')
+                    # return
+            else:
+                raise ValueError('Error: Type can only be 0 or 1.')
+                # print("The input 'type' can only be 0 or 1. Please check the config file and try again.")
+                # return
+
+        # fraction of area that is disconnected from the sewer [-]
+        discfrac_pr = cf['discfrac_pr']  # fraction of paved roof area disconnected from sewer [-]
+        discfrac_cp = cf['discfrac_cp']  # fraction of closed paved area disconnected from sewer [-]
+        discfrac_op = cf['discfrac_op']  # fraction of open paved area disconnected from sewer [-]
+
+        # interception storage capacity [mm]
+        intstorcap_pr = cf['intstorcap_pr']  # interception storage capacity on paved roof [mm]
+        intstorcap_cp = cf['intstorcap_cp']  # interception storage capacity on closed paved [mm]
+        intstorcap_op = cf['intstorcap_op']  # interception storage capacity on open paved [mm]
+        intstorcap_up = cf['intstorcap_up']  # interception storage capacity on unpaved [mm]
+        storcap_ow = cf['storcap_ow']  # open water storage capacity [mm]
+
+        # infiltration capacity parameters
+        infilcap_op = cf['infilcap_op']  # infiltration capacity of the open paved area [mm/d]
+        infilcap_up = cf['infilcap_up']  # infiltration capacity of the unpaved area [mm/d]
+
+        # rainfall statistics
+        rainfall_swds_so = cf['rainfall_swds_so']  # rainfall intensity when swds overflow on the street [mm/time step]
+        rainfall_mss_ow = cf['rainfall_mss_ow']  # rainfall intensity when mss overflow to open water [mm/time step]
+
+        # sewer system parameters
+        swds_frac = cf['swds_frac']  # storm water drainage system fraction [-]
+        mss_pct = 1 - swds_frac  # mixed sewer system fraction [-]
+        storcap_swds = cf['storcap_swds']  # storage capacity of storm water drainage system [mm]
+        storcap_mss = cf['storcap_mss']  # storage capacity of mixed sewer system [mm]
+        pump_cap = cf['pump_cap']  # pump capacity [lt/s/ha]
+        discharge_cap = pump_cap * 8.64  # discharge capacity for total area [mm/d]
+        q_swds_ow_cap = rainfall_swds_so - intstorcap_cp - storcap_swds  # discharge capacity of SWDS to open water [mm/time step]
+        q_mss_ow_cap = rainfall_swds_so - intstorcap_cp - storcap_mss  # discharge capacity of MSS to open water [mm/time step].
+        q_mss_out_cap = rainfall_mss_ow - intstorcap_cp  # discharge capacity of MSS to WWTP [mm/time step]
+        """reask about this time step part?"""
+
+        # groundwater calculation parameters
+        w = cf['w']  # groundwater drainage resistance w [d]
+        seep_def = cf['seep_def']  # defined seepage [type: 0=flux, 1=level]
+        if seep_def == 0 or seep_def == 1:
+            flux = cf['flux']  # defined constant downward seepage flux [mm/d] (can be negative [upward])
+            init_gwl = cf['init_gwl']
+            h_deepgw = cf['h_deepgw']  # defined hydraulic head of deep groundwater [m-SL]
+            vc = cf['vc']  # flow resistance between deep and shallow groundwater vc [d]
+        else:
+            raise ValueError("Error: 'seep_def' (defined seepage) can only be 0(flux) or 1(level).")
+
+        # open water calculation parameters.
+        q_ow_out_cap = discharge_cap  # predefined discharge capacity from open water to outside water [mm/d]
+        ow_level = storcap_ow / 1000  # predefined target open water level [m-Sl]
+
+        # check whether parameters are non-negative
+        lst = [tot_area, tot_pr_area, tot_cp_area, tot_op_area, tot_up_area, tot_ow_area, frac_pr_aboveGW, frac_ow_aboveGW,
+               gw_frac, discfrac_pr, discfrac_cp, discfrac_op, intstorcap_pr, intstorcap_cp, intstorcap_op, intstorcap_up,
+               storcap_ow, infilcap_op, infilcap_up, rainfall_swds_so, rainfall_mss_ow, swds_frac, storcap_swds, storcap_mss,
+               pump_cap, q_swds_ow_cap, q_mss_ow_cap, q_mss_out_cap, w, init_gwl, h_deepgw, vc, q_ow_out_cap]
+
+        # check whether percentage is within 100 [%]
+        lst2 = [pr_frac, cp_frac, op_frac, up_frac, ow_frac, frac_pr_aboveGW, frac_ow_aboveGW, discfrac_pr, discfrac_cp,
+                discfrac_op, swds_frac]
+
+        k1 = [n for n in lst if n < 0]  # Use list comprehension to reduce the lines of codes.
+        k2 = [n for n in lst2 if n > 1]
+        if len(k1) != 0:
+            raise ValueError("Error: Parameter is negative.")
+        if len(k2) != 0:
+            raise ValueError("Error: Fraction is over 1.")
+
+    except ValueError as val_err:
+        print('ValueError: ', val_err)
+        return
+    except toml.TomlDecodeError as toml_err:
+        print('TomlDecodeError: ', toml_err)
+        return
+    except KeyError as key_err:
+        print('KeyError: ', key_err)
+        return
+    else:
+        print('No error')
+    return delta_t, tot_area, soiltype, croptype, tot_pr_area, tot_cp_area, tot_op_area, tot_up_area, tot_ow_area, tot_uz_area, \
+           tot_gw_area, discfrac_pr, discfrac_cp, discfrac_op, swds_frac, intstorcap_pr, intstorcap_cp, intstorcap_op, \
+           intstorcap_up, infilcap_op, infilcap_up, w, seep_def, flux, init_gwl, h_deepgw, vc, q_swds_ow_cap, \
+           q_mss_ow_cap, q_mss_out_cap, storcap_swds, storcap_mss, q_ow_out_cap, ow_level
+
+print(read_parameter())

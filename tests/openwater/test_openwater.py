@@ -32,5 +32,12 @@ class TestOpenPaved(unittest.TestCase):
 
         # time level t = 1/4/1986 11:00
         self.ow_1.prev_stor_swds = 0
+        self.ow_1.prev_stor_mss = 0
+        # self.ow_1.prev
         self.assertAlmostEqual(self.ow_1.sol(0, 0.331006211, 0, -0.083728895, 0, 0, 0, 0, 0, 6855, 8140,
                                              2845, 0, 0, 10000, 1/24)[3], -2.271844027, places=7)
+        # time level t = 1/4/1986 12:00
+        self.ow_1.prev_stor_swds = 0
+        # self.ow_
+        self.assertAlmostEquals(self.ow_1.sol(),a,b,c,places=9)
+
