@@ -98,4 +98,6 @@ class Unpaved:
             # update state
             self.prev_fin_stor_up = fin_stor_up
 
-        return sum_r_up, init_stor_up, act_infilcap_up, tfac_up, e_atm_up, i_up_uz, fin_stor_up, r_up_meas, r_up_ow
+        return {'sum_r_up': sum_r_up, 'init_stor_up': init_stor_up, 'act_infilcap_up': act_infilcap_up,
+                'tfac_up': tfac_up, 'e_atm_up': e_atm_up, 'i_up_uz': i_up_uz, 'fin_stor_up': fin_stor_up,
+                'r_up_meas': r_up_meas, 'r_up_ow': r_up_ow}

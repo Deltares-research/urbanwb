@@ -64,4 +64,5 @@ class ClosedPaved:
             # update state
             self.init_intstor_cp = intstor_cp
 
-        return int_cp, e_atm_cp, intstor_cp, r_cp_meas, r_cp_swds, r_cp_mss, r_cp_up
+        return {'int_cp': int_cp, 'e_atm_cp': e_atm_cp, 'intstor_cp': intstor_cp, 'r_cp_meas': r_cp_meas,
+                'r_cp_swds': r_cp_swds, 'r_cp_mss': r_cp_mss, 'r_cp_up': r_cp_up}

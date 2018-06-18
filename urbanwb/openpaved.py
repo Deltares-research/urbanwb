@@ -71,4 +71,5 @@ class OpenPaved:
             # update state
             self.init_intstor_op = intstor_op
 
-        return int_op, e_atm_op, intstor_op, p_op_gw, r_op_meas, r_op_swds, r_op_mss, r_op_up
+        return {'int_op': int_op, 'e_atm_op': e_atm_op, 'intstor_op': intstor_op, 'p_op_gw': p_op_gw,
+                'r_op_meas': r_op_meas, 'r_op_swds': r_op_swds, 'r_op_mss': r_op_mss, 'r_op_up': r_op_up}

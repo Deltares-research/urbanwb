@@ -64,4 +64,5 @@ class PavedRoof:
             # update state
             self.init_intstor_pr = intstor_pr
 
-        return int_pr, e_atm_pr, intstor_pr, r_pr_meas, r_pr_swds, r_pr_mss, r_pr_up
+        return {'int_pr': int_pr, 'e_atm_pr': e_atm_pr, 'intstor_pr': intstor_pr, 'r_pr_meas': r_pr_meas,
+                'r_pr_swds': r_pr_swds, 'r_pr_mss': r_pr_mss, 'r_pr_up': r_pr_up}

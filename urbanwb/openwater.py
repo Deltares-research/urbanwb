@@ -64,4 +64,5 @@ class OpenWater:
             # update state
             self.prev_owl = owl
 
-        return prec_ow, e_atm_ow, sum_r_ow, sum_d_ow, sum_q_ow, sum_so_ow, r_meas_ow, q_ow_out, owl
+        return {'prec_ow': prec_ow, 'e_atm_ow': e_atm_ow, 'sum_r_ow': sum_r_ow, 'sum_d_ow': sum_d_ow,
+                'sum_q_ow': sum_q_ow, 'sum_so_ow': sum_so_ow, 'r_meas_ow': r_meas_ow, 'q_ow_out': q_ow_out, 'owl': owl}

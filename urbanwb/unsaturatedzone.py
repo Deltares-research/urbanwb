@@ -33,16 +33,16 @@ class UnsaturatedZone:
         self.soiltype = soiltype
         self.croptype = croptype
         et = et_selector(self.soiltype, self.croptype)
-        self.theta_h3l = et['theta_h3l_mm'].values
-        self.theta_h3h = et['theta_h3h_mm'].values
-        self.theta_h1 = et['theta_h1_mm'].values
-        self.theta_h2 = et['theta_h2_mm'].values
-        self.theta_h4 = et['theta_h4_mm'].values
+        self.theta_h3l = et['theta_h3l_mm'].values[0]
+        self.theta_h3h = et['theta_h3h_mm'].values[0]
+        self.theta_h1 = et['theta_h1_mm'].values[0]
+        self.theta_h2 = et['theta_h2_mm'].values[0]
+        self.theta_h4 = et['theta_h4_mm'].values[0]
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
         self.k_sat_uz = 10 * self.soil_prm[0]['k_sat']
         # Note here the predefined index 0 does not affect K_sat_uz, which is only dependent on soiltype.
 
-    def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1 / 24):
+    def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1/24):
 
         # parameters
         # i_up_uz --- Infiltration from storage on the surface of the unpaved area
@@ -124,5 +124,6 @@ class UnsaturatedZone:
             # update state
             self.init_theta_uz = theta_uz
 
-        return i_up_uz, r_meas_uz, theta_h3_uz, t_alpha_uz, t_atm_uz, gwl_up, gwl_low, theta_eq_uz, \
-            capris_max_uz, p_uz_gw, theta_uz
+        return {'i_up_uz': i_up_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
+                't_atm_uz': t_atm_uz, 'gwl_up': gwl_up, 'gwl_low': gwl_low, 'theta_eq_uz': theta_eq_uz,
+                'capris_max_uz': capris_max_uz, 'p_uz_gw': p_uz_gw, 'theta_uz': theta_uz}
