@@ -50,7 +50,7 @@ class PavedRoof:
             e_atm_pr = min(e_pot_ow, int_pr)
 
             intstor_pr = int_pr - e_atm_pr
-
+            # everytime it will excute inflowfac(), improvements can be made here.
             r_pr_meas = self.inflowfac() * max(0, p_atm - e_atm_pr - (intstor_pr - self.init_intstor_pr))
 
             r_pr_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_pr - (

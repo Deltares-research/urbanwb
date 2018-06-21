@@ -82,7 +82,7 @@ meas_mss = np.zeros(iters)
 meas_ow = np.zeros(iters)
 
 
-class Model:
+class Model(object):
     def __init__(self):
         self.pavedroof = PavedRoof(init_intstor_pr_t0, pr_no_meas_area, pr_meas_area, pr_meas_inflow_area,
                                    intstorcap_pr=1.6, stormfrac_pr=1.0, discfrac_pr=0.0)
@@ -184,7 +184,7 @@ def run():
 
     df = pd.DataFrame(lst)
     df.insert(0, 'Date', date)
-    df.to_csv(outdir/ 'list.csv', index=True)
+    df.to_csv(outdir / filename, index=True)
     end = time.time()
     print(f'Model runtime: {end - start:.1f}s')
 
@@ -196,5 +196,8 @@ def run():
     print(a)
     print(b)
 
-
 run()
+
+if __name__ == '__main__':
+    filename = '.csv'
+    run()

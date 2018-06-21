@@ -105,5 +105,5 @@ class Groundwater:
             self.prev_gwl = gwl
             self.prev_gwl_sl = gwl_sl
 
-        return {'sum_p_gw': sum_p_gw, 'r_meas_gw': r_meas_gw, 'gwl_up': gwl_up, 'gwl_low': gwl_low, 'sc_gw': sc_gw,
+        return {'sum_p_gw': sum_p_gw, 'r_meas_gw': r_meas_gw, 'gwl_up_1': gwl_up, 'gwl_low_1': gwl_low, 'sc_gw': sc_gw,
                 'h_gw': h_gw, 's_gw_out': s_gw_out, 'd_gw_ow': d_gw_ow, 'gwl': gwl, 'gwl_sl': gwl_sl}

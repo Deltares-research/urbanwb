@@ -124,6 +124,6 @@ class UnsaturatedZone:
             # update state
             self.init_theta_uz = theta_uz
 
-        return {'i_up_uz': i_up_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
+        return {'sum_i_up_uz': i_up_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
                 't_atm_uz': t_atm_uz, 'gwl_up': gwl_up, 'gwl_low': gwl_low, 'theta_eq_uz': theta_eq_uz,
                 'capris_max_uz': capris_max_uz, 'p_uz_gw': p_uz_gw, 'theta_uz': theta_uz}
