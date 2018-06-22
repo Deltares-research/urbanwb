@@ -3,6 +3,9 @@
 
 import numpy as np
 import pandas as pd
+import time
+from pathlib import Path
+from collections import OrderedDict
 from urbanwb.pavedroof import PavedRoof
 from urbanwb.closedpaved import ClosedPaved
 from urbanwb.openpaved import OpenPaved
@@ -13,8 +16,7 @@ from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
 from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
-import time
-from pathlib import Path
+
 
 start = time.time()
 # Load csv file
@@ -110,62 +112,52 @@ class Model(object):
     def __next__(self, p_atm, e_pot_ow, ref_grass, prev_lst, meas_uz, meas_gw, meas_swds, meas_mss, meas_ow):
         try:
             # empty dictionary
-            d = dict()
-            d['paved_roof'] = self.pavedroof.sol(p_atm, e_pot_ow)
-            d['closed_paved'] = self.closedpaved.sol(p_atm, e_pot_ow)
-            d['open_paved'] = self.openpaved.sol(p_atm, e_pot_ow, delta_t=1/24)
-            d['unpaved'] = self.unpaved.sol(p_atm, e_pot_ow, d['paved_roof']['r_pr_up'],
-                                            d['closed_paved']['r_cp_up'], d['open_paved']['r_op_up'],
-                                            prev_lst['unsaturatedzone']['theta_uz'],
-                                            pr_no_meas_area, cp_no_meas_area,
-                                            op_no_meas_area, ow_no_meas_area, delta_t=1/24)
-            d['unsaturatedzone'] = self.unsaturatedzone.sol(d['unpaved']['i_up_uz'], meas_uz, tot_meas_area,
-                                                            ref_grass, prev_lst['groundwater']['gwl'],
-                                                            delta_t=1/24)
-            d['groundwater'] = self.groundwater.sol(d['unsaturatedzone']['p_uz_gw'], uz_no_meas_area,
-                                                    d['open_paved']['p_op_gw'], op_no_meas_area, tot_meas_area,
-                                                    meas_gw, prev_lst['openwater']['owl'],  delta_t=1 / 24)
-            d['sewersystem'] = self.sewersystem.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area,
-                                                    d['paved_roof']['r_pr_swds'], d['closed_paved']['r_cp_swds'],
-                                                    d['open_paved']['r_op_swds'], d['paved_roof']['r_pr_mss'],
-                                                    d['closed_paved']['r_cp_mss'], d['open_paved']['r_op_mss'],
-                                                    meas_swds, meas_mss, ow_no_meas_area, tot_meas_area)
-
-            d['openwater'] = self.openwater.sol(p_atm, e_pot_ow,
-                                                d['unpaved']['r_up_ow'], d['groundwater']['d_gw_ow'],
-                                                d['sewersystem']['q_swds_ow'], d['sewersystem']['q_mss_ow'],
-                                                d['sewersystem']['so_swds_ow'], d['sewersystem']['so_mss_ow'],
-                                                meas_ow, up_no_meas_area, gw_no_meas_area, swds_no_meas_area,
-                                                mss_no_meas_area, tot_meas_area, total_area, delta_t=1/24)
+            a = self.pavedroof.sol(p_atm, e_pot_ow)
+            b = self.closedpaved.sol(p_atm, e_pot_ow)
+            c = self.openpaved.sol(p_atm, e_pot_ow, delta_t=1/24)
+            d = self.unpaved.sol(p_atm, e_pot_ow, a['r_pr_up'], b['r_cp_up'], c['r_op_up'], prev_lst['theta_uz'],
+                                 pr_no_meas_area, cp_no_meas_area, op_no_meas_area, ow_no_meas_area, delta_t=1/24)
+            e = self.unsaturatedzone.sol(d['i_up_uz'], meas_uz, tot_meas_area, ref_grass, prev_lst['gwl'], delta_t=1/24)
+            f = self.groundwater.sol(e['p_uz_gw'], uz_no_meas_area, c['p_op_gw'], op_no_meas_area, tot_meas_area,
+                                     meas_gw, prev_lst['owl'], delta_t=1/24)
+            g = self.sewersystem.sol(pr_no_meas_area, cp_no_meas_area, op_no_meas_area, a['r_pr_swds'], b['r_cp_swds'],
+                                     c['r_op_swds'], a['r_pr_mss'], b['r_cp_mss'], c['r_op_mss'],
+                                     meas_swds, meas_mss, ow_no_meas_area, tot_meas_area)
+            h = self.openwater.sol(p_atm, e_pot_ow, d['r_up_ow'], f['d_gw_ow'], g['q_swds_ow'], g['q_mss_ow'],
+                                   g['so_swds_ow'], g['so_mss_ow'], meas_ow, up_no_meas_area, gw_no_meas_area,
+                                   swds_no_meas_area, mss_no_meas_area, tot_meas_area, total_area, delta_t=1/24)
+            dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h))
         except IndexError:
             raise StopIteration
-        return d
+        return dictmerged
 
 
 def run():
-    start = time.time()
+    lst = [{'int_pr': 0, 'e_atm_pr': 0, 'intstor_pr': init_intstor_pr_t0, 'r_pr_meas': 0, 'r_pr_swds': 0,
+            'r_pr_mss': 0, 'r_pr_up': 0,
 
-    lst = [{'paved_roof': {'int_pr': 0, 'e_atm_pr': 0, 'intstor_pr': init_intstor_pr_t0, 'r_pr_meas': 0, 'r_pr_swds': 0,
-                           'r_pr_mss': 0, 'r_pr_up': 0},
-            'closed_paved': {'int_cp': 0, 'e_atm_cp': 0, 'intstor_cp': init_intstor_cp_t0, 'r_cp_meas': 0, 'r_cp_swds': 0,
-                             'r_cp_mss': 0, 'r_cp_up': 0},
-            'open_paved': {'int_op': 0, 'e_atm_op': 0, 'intstor_op': init_intstor_op_t0, 'p_op_gw': 0, 'r_op_meas': 0,
-                           'r_op_swds': 00, 'r_op_mss': 0.0, 'r_op_up': 0.0},
-            'unpaved': {'sum_r_up': 0, 'init_stor_up': 0, 'act_infilcap_up': 0,
-                        'tfac_up': 0, 'e_atm_up': 0, 'i_up_uz': 0, 'fin_stor_up': fin_stor_up_t0,
-                        'r_up_meas': 0, 'r_up_ow': 0},
-            'unsaturatedzone': {'i_up_uz': 0, 'r_meas_uz': 0, 'theta_h3_uz': 0, 't_alpha_uz': 0,
-                                't_atm_uz': 0, 'gwl_up': 0, 'gwl_low': 0, 'theta_eq_uz': 0,
-                                'capris_max_uz': 0, 'p_uz_gw': 0, 'theta_uz': theta_uz_t0},
+            'int_cp': 0, 'e_atm_cp': 0, 'intstor_cp': init_intstor_cp_t0, 'r_cp_meas': 0, 'r_cp_swds': 0,
+            'r_cp_mss': 0, 'r_cp_up': 0,
+
+            'int_op': 0, 'e_atm_op': 0, 'intstor_op': init_intstor_op_t0, 'p_op_gw': 0, 'r_op_meas': 0,
+            'r_op_swds': 00, 'r_op_mss': 0.0, 'r_op_up': 0.0,
+            'sum_r_up': 0, 'init_stor_up': 0, 'act_infilcap_up': 0,
+            'tfac_up': 0, 'e_atm_up': 0, 'i_up_uz': 0, 'fin_stor_up': fin_stor_up_t0,
+            'r_up_meas': 0, 'r_up_ow': 0,
             # theta_uz_t0 could be written as soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['moist_cont_eq_rz[mm]']
-            'groundwater': {'sum_p_gw': 0, 'r_meas_gw': 0, 'gwl_up': 0, 'gwl_low': 0,
-                            'sc_gw': soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['stor_coef'],
-                            'h_gw': 0, 's_gw_out': 0, 'd_gw_ow': 0, 'gwl': init_gwl_t0, 'gwl_sl': 0},
-            'sewersystem': {'sum_r_swds': 0, 'r_meas_swds': 0, 'sum_r_mss': 0, 'r_meas_mss': 0,
-                            'q_swds_ow': 0, 'q_mss_out': 0, 'q_mss_ow': 0, 'so_swds': prev_so_swds_t0,
-                            'so_mss': prev_so_mss_t0, 'stor_swds': prev_stor_swds_t0, 'stor_mss': prev_stor_mss_t0},
-            'openwater': {'prec_ow': P_atm[0], 'e_atm_ow': E_pot_OW[0], 'sum_r_ow': 0, 'sum_d_ow': 0,
-                          'sum_q_ow': 0, 'sum_so_ow': 0, 'r_meas_ow': 0, 'q_ow_out': 0, 'owl': ow_level}
+            'sum_i_uz': 0, 'r_meas_uz': 0, 'theta_h3_uz': 0, 't_alpha_uz': 0,
+            't_atm_uz': 0, 'gwl_up': 0, 'gwl_low': 0, 'theta_eq_uz': 0,
+            'capris_max_uz': 0, 'p_uz_gw': 0, 'theta_uz': theta_uz_t0,
+
+            'sum_p_gw': 0, 'r_meas_gw': 0, 'gwl_up_1': 0, 'gwl_low_1': 0,
+            'sc_gw': soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['stor_coef'],
+            'h_gw': 0, 's_gw_out': 0, 'd_gw_ow': 0, 'gwl': init_gwl_t0, 'gwl_sl': 0,
+
+            'sum_r_swds': 0, 'r_meas_swds': 0, 'sum_r_mss': 0, 'r_meas_mss': 0,
+            'q_swds_ow': 0, 'q_mss_out': 0, 'q_mss_ow': 0, 'so_swds': prev_so_swds_t0,
+            'so_mss': prev_so_mss_t0, 'stor_swds': prev_stor_swds_t0, 'stor_mss': prev_stor_mss_t0,
+            'prec_ow': P_atm[0], 'e_atm_ow': E_pot_OW[0], 'sum_r_ow': 0, 'sum_d_ow': 0,
+            'sum_q_ow': 0, 'sum_so_ow': 0, 'r_meas_ow': 0, 'q_ow_out': 0, 'owl': ow_level
             }]
 
     k = Model()
@@ -174,6 +166,7 @@ def run():
     while t <= iters - 1:
         lst.append(k.__next__(P_atm[t], E_pot_OW[t], Ref_grass[t], lst[t - 1], meas_uz[t], meas_gw[t], meas_swds[t],
                               meas_mss[t], meas_ow[t]))
+
         if t % 200 == 0:
             print(f'timestep {t} / {iters}')
         t += 1
@@ -185,19 +178,13 @@ def run():
     df = pd.DataFrame(lst)
     df.insert(0, 'Date', date)
     df.to_csv(outdir / filename, index=True)
-    end = time.time()
-    print(f'Model runtime: {end - start:.1f}s')
 
-    a = 0
-    b = 0
-    for i in range(iters):
-        a += lst[i]['unsaturatedzone']['capris_max_uz']
-        b += lst[i]['unsaturatedzone']['p_uz_gw']
-    print(a)
-    print(b)
 
+start = time.time()
 run()
+end = time.time()
+print(f'Model runtime: {end - start:.1f}s')
 
 if __name__ == '__main__':
-    filename = '.csv'
+    filename = 'test.csv'
     run()

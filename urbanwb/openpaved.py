@@ -27,6 +27,7 @@ class OpenPaved:
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_op
         self.infilcap = infilcap_op
+        self.inflowfac = self.inflowfac()
 
     def inflowfac(self):
         return (self.op_meas_inflow_area - self.op_meas_area) / self.op_no_meas_area
@@ -57,7 +58,7 @@ class OpenPaved:
             p_op_gw = max(0, min(p_atm - (self.intstorcap - self.init_intstor_op),
                                  self.infilcap * delta_t))  # infiltration capacity (mm/d) * time step size (hr to d)
 
-            r_op_meas = self.inflowfac() * max(0, p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw)
+            r_op_meas = self.inflowfac * max(0, p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw)
 
             r_op_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_op - (
                         intstor_op - self.init_intstor_op) - p_op_gw - r_op_meas)

@@ -33,6 +33,7 @@ class Unpaved:
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
         self.mois_uz_max = self.soil_prm[0]['moist_cont_eq_rz[mm]']
         self.k_sat_uz = 10 * self.soil_prm[0]['k_sat']
+        self.inflowfac = self.inflowfac()
 
     def inflowfac(self):
         return (self.up_meas_inflow_area - self.up_meas_area) / self.up_no_meas_area
@@ -88,7 +89,7 @@ class Unpaved:
             else:
                 fin_stor_up = max(0, min(self.intstorcap_up, init_stor_up - e_atm_up - i_up_uz))
 
-            r_up_meas = self.inflowfac() * max(0, init_stor_up - e_atm_up - i_up_uz - self.intstorcap_up)
+            r_up_meas = self.inflowfac * max(0, init_stor_up - e_atm_up - i_up_uz - self.intstorcap_up)
 
             if ow_no_meas_area == 0:
                 r_up_ow = 0

@@ -59,11 +59,11 @@ class UnsaturatedZone:
         # theta_uz --- Soil moisture content in the root zone at the end of the current time step [mm].
 
         if self.uz_no_meas_area == 0:
-            i_up_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = gwl_low = theta_eq_uz = \
+            sum_i_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = gwl_low = theta_eq_uz = \
                       capris_max_uz = p_uz_gw = theta_uz = 0
 
         else:
-            i_up_uz = i_up_uz  # It is assumed that UP and UZ areas area equal.
+            sum_i_uz = i_up_uz  # It is assumed that UP and UZ areas area equal.
 
             r_meas_uz = meas_uz * tot_meas_area / self.uz_no_meas_area
 
@@ -74,15 +74,15 @@ class UnsaturatedZone:
             else:
                 theta_h3_uz = self.theta_h3l + (e_ref / (2 * delta_t) - 1) / 4 * (self.theta_h3h - self.theta_h3l)
 
-            if self.init_theta_uz + i_up_uz + r_meas_uz > self.theta_h1:
+            if self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h1:
                 t_alpha_uz = 0
-            elif self.init_theta_uz + i_up_uz + r_meas_uz > self.theta_h2:
-                t_alpha_uz = 1 - ((self.init_theta_uz + i_up_uz + r_meas_uz) - self.theta_h2) / (
+            elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h2:
+                t_alpha_uz = 1 - ((self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h2) / (
                             self.theta_h1 - self.theta_h2)
-            elif self.init_theta_uz + i_up_uz + r_meas_uz > theta_h3_uz:
+            elif self.init_theta_uz + sum_i_uz + r_meas_uz > theta_h3_uz:
                 t_alpha_uz = 1
-            elif self.init_theta_uz + i_up_uz + r_meas_uz > self.theta_h4:
-                t_alpha_uz = ((self.init_theta_uz + i_up_uz + r_meas_uz) - self.theta_h4) / (
+            elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h4:
+                t_alpha_uz = ((self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h4) / (
                             theta_h3_uz - self.theta_h4)
             else:
                 t_alpha_uz = 0
@@ -112,18 +112,18 @@ class UnsaturatedZone:
                 theta_eq_uz = self.soil_prm[29]['moist_cont_eq_rz[mm]']
                 capris_max_uz = self.soil_prm[29]['capris_max[mm/d]']
 
-            if self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
-                p_uz_gw = min(self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
+            if self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
+                p_uz_gw = min(self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
                               delta_t * self.k_sat_uz)
             else:
-                p_uz_gw = -1 * min(theta_eq_uz - (self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz),
+                p_uz_gw = -1 * min(theta_eq_uz - (self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz),
                                    delta_t * capris_max_uz)
 
-            theta_uz = self.init_theta_uz + i_up_uz + r_meas_uz - t_atm_uz - p_uz_gw
+            theta_uz = self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - p_uz_gw
 
             # update state
             self.init_theta_uz = theta_uz
 
-        return {'sum_i_up_uz': i_up_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
+        return {'sum_i_uz': sum_i_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
                 't_atm_uz': t_atm_uz, 'gwl_up': gwl_up, 'gwl_low': gwl_low, 'theta_eq_uz': theta_eq_uz,
                 'capris_max_uz': capris_max_uz, 'p_uz_gw': p_uz_gw, 'theta_uz': theta_uz}

@@ -25,6 +25,7 @@ class PavedRoof:
         self.stormfrac = stormfrac_pr
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_pr
+        self.inflowfac = self.inflowfac()
 
     def inflowfac(self):
         return (self.pr_meas_inflow_area - self.pr_meas_area) / self.pr_no_meas_area
@@ -51,7 +52,7 @@ class PavedRoof:
 
             intstor_pr = int_pr - e_atm_pr
             # everytime it will excute inflowfac(), improvements can be made here.
-            r_pr_meas = self.inflowfac() * max(0, p_atm - e_atm_pr - (intstor_pr - self.init_intstor_pr))
+            r_pr_meas = self.inflowfac * max(0, p_atm - e_atm_pr - (intstor_pr - self.init_intstor_pr))
 
             r_pr_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_pr - (
                         intstor_pr - self.init_intstor_pr) - r_pr_meas)
