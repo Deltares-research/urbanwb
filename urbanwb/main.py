@@ -16,95 +16,76 @@ from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
 from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
+from urbanwb.read_parameter_no_section import read_parameter
 
-
-start = time.time()
 # Load csv file
-
 indir = Path('input')
 outdir = Path('pysol')
 outdir.mkdir(parents=True, exist_ok=True)
-
 InputData = pd.read_csv(indir / 'input_csv.csv')  # input the precipitation, potential evaporation
-
 date = InputData['date']
 P_atm = InputData['P_atm']
 Ref_grass = InputData['Ref.grass']
 E_pot_OW = InputData['E_pot_OW']
 iters = np.shape(date)[0]
 
-filename = 'test.csv'  # name the output file
-
 # Parameter settings.
-delta_t = 1/24
+para = read_parameter('input/static_form.ini')
+# general parameters
+delta_t = para['delta_t']
+total_area = para['tot_area']
+soiltype, croptype = para['soiltype'], para['croptype']
 # paved roof
-pr_no_meas_area = 1560
-pr_meas_area = 0
-pr_meas_inflow_area = 0
-init_intstor_pr_t0 = 0
+tot_pr_area, pr_meas_area = para['tot_pr_area'], 0
+pr_no_meas_area, pr_meas_inflow_area, init_intstor_pr_t0 = tot_pr_area - pr_meas_area, 0, 0
 # closed paved
-cp_no_meas_area = 803.39064064
-cp_meas_area = 0
-cp_meas_inflow_area = 0
-init_intstor_cp_t0 = 0
+tot_cp_area, cp_meas_area = para['tot_cp_area'], 0
+cp_no_meas_area, cp_meas_inflow_area, init_intstor_cp_t0 = tot_cp_area - cp_meas_area, 0, 0
 # open paved
-op_no_meas_area = 481.60935936000004
-op_meas_area = 0
-op_meas_inflow_area = 0
-init_intstor_op_t0 = 0
+tot_op_area, op_meas_area = para['tot_op_area'], 0
+op_no_meas_area, op_meas_inflow_area, init_intstor_op_t0 = tot_op_area - op_meas_area, 0, 0
 # unpaved
-up_no_meas_area = 6855
-up_meas_area = 0
-up_meas_inflow_area = 0
-fin_stor_up_t0 = 0
-ow_no_meas_area = 300
+tot_up_area, up_meas_area = para['tot_up_area'], 0
+up_no_meas_area, up_meas_inflow_area, fin_stor_up_t0 = tot_up_area - up_meas_area, 0, 0
+# openwater
+tot_ow_area, ow_meas_area = para['tot_ow_area'], 0
+ow_no_meas_area, ow_level = tot_ow_area - ow_meas_area, para['ow_level']
 # unsaturated zone
 init_gwl_t0 = 1.5
 theta_uz_t0 = soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['moist_cont_eq_rz[mm]']
-uz_no_meas_area = 6855
-uz_meas_area = 0
+tot_uz_area, uz_meas_area = para['tot_uz_area'], 0
+uz_no_meas_area = tot_uz_area - uz_meas_area
 # groundwater
-gw_no_meas_area = 8140
-gw_meas_area = 0
+tot_gw_area, gw_meas_area = para['tot_gw_area'], 0
+gw_no_meas_area = tot_gw_area - gw_meas_area
 # swds
-swds_no_meas_area = 2845
-mss_no_meas_area = 0
-prev_stor_swds_t0 = 0
-prev_so_swds_t0 = 0
-prev_stor_mss_t0 = 0
-prev_so_mss_t0 = 0
-ow_level = 1.5
+tot_swds_area, swds_meas_area, tot_mss_area, mss_meas_area = para['tot_swds_area'], 0, para['tot_mss_area'], 0
+swds_no_meas_area, mss_no_meas_area = tot_swds_area - swds_meas_area, tot_mss_area - mss_meas_area
+prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0, prev_so_mss_t0 = 0, 0, 0, 0
+
 # measure inflow:
-total_area = 10000
-tot_meas_area = total_meas_area = 0  # reduplicated.
-meas_uz = np.zeros(iters)
-meas_gw = np.zeros(iters)
-meas_swds = np.zeros(iters)
-meas_mss = np.zeros(iters)
-meas_ow = np.zeros(iters)
+tot_meas_area = 0
+meas_uz, meas_gw, meas_swds, meas_mss, meas_ow = np.zeros(iters), np.zeros(iters), np.zeros(iters), np.zeros(iters), np.zeros(iters)
 
 
 class Model(object):
     def __init__(self):
         self.pavedroof = PavedRoof(init_intstor_pr_t0, pr_no_meas_area, pr_meas_area, pr_meas_inflow_area,
-                                   intstorcap_pr=1.6, stormfrac_pr=1.0, discfrac_pr=0.0)
+                                   intstorcap_pr=para['intstorcap_pr'], stormfrac_pr=para['swds_frac'], discfrac_pr=para['discfrac_pr'])
         self.closedpaved = ClosedPaved(init_intstor_cp_t0, cp_no_meas_area, cp_meas_area, cp_meas_inflow_area,
-                                       intstorcap_cp=1.6, stormfrac_cp=1.0, discfrac_cp=0.0)
+                                       intstorcap_cp=para['intstorcap_cp'], stormfrac_cp=para['swds_frac'], discfrac_cp=para['discfrac_cp'])
         self.openpaved = OpenPaved(init_intstor_op_t0, op_no_meas_area, op_meas_area, op_meas_inflow_area,
-                                   intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0, infilcap_op=1.0)
-
-        self.unpaved = Unpaved(fin_stor_up_t0, up_no_meas_area, up_meas_area, up_meas_inflow_area, infilcap_up=48,
-                               intstorcap_up=20, soiltype=2, croptype=1)
-        self.unsaturatedzone = UnsaturatedZone(theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1)
-
-        self.groundwater = Groundwater(init_gwl_t0, gw_no_meas_area, gw_meas_area, seep_def=0, w=100, vc=20000,
-                                       h_deepgw=21.5, flux=1, soiltype=2, croptype=1)
-
+                                   intstorcap_op=para['intstorcap_op'], stormfrac_op=para['swds_frac'], discfrac_op=para['discfrac_op'], infilcap_op=para['infilcap_op'])
+        self.unpaved = Unpaved(fin_stor_up_t0, up_no_meas_area, up_meas_area, up_meas_inflow_area, infilcap_up=para['infilcap_up'],
+                               intstorcap_up=para['intstorcap_up'], soiltype=soiltype, croptype=croptype)
+        self.unsaturatedzone = UnsaturatedZone(theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=soiltype, croptype=croptype)
+        self.groundwater = Groundwater(init_gwl_t0, gw_no_meas_area, gw_meas_area, seep_def=para['seep_def'], w=para['w'], vc=para['vc'], h_deepgw=para['h_deepgw'],
+                                       flux=para['flux'], soiltype=soiltype, croptype=croptype)
         self.sewersystem = SewerSystem(swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0,
-                                       prev_stor_mss_t0, prev_so_mss_t0, q_swds_ow_cap=55.1, q_mss_out_cap=26.3,
-                                       q_mss_ow_cap=48.1, stor_swds_cap=2, stor_mss_cap=9)
-
-        self.openwater = OpenWater(ow_no_meas_area, ow_level, q_ow_out_cap=200)
+                                       prev_stor_mss_t0, prev_so_mss_t0, q_swds_ow_cap=para['q_swds_ow_cap'], q_mss_out_cap=para['q_mss_out_cap'],
+                                       q_mss_ow_cap=para['q_mss_ow_cap'], stor_swds_cap=para['storcap_swds'], stor_mss_cap=para['storcap_mss'])
+        self.openwater = OpenWater(ow_no_meas_area, para['ow_level'], q_ow_out_cap=200)
+        # batch run (different pump capacity, different q_ow_out_cap)
 
     def __iter__(self):
         return self
@@ -132,7 +113,8 @@ class Model(object):
         return dictmerged
 
 
-def run():
+def running(filename):
+    start = time.time()
     lst = [{'int_pr': 0, 'e_atm_pr': 0, 'intstor_pr': init_intstor_pr_t0, 'r_pr_meas': 0, 'r_pr_swds': 0,
             'r_pr_mss': 0, 'r_pr_up': 0,
 
@@ -156,6 +138,7 @@ def run():
             'sum_r_swds': 0, 'r_meas_swds': 0, 'sum_r_mss': 0, 'r_meas_mss': 0,
             'q_swds_ow': 0, 'q_mss_out': 0, 'q_mss_ow': 0, 'so_swds': prev_so_swds_t0,
             'so_mss': prev_so_mss_t0, 'stor_swds': prev_stor_swds_t0, 'stor_mss': prev_stor_mss_t0,
+
             'prec_ow': P_atm[0], 'e_atm_ow': E_pot_OW[0], 'sum_r_ow': 0, 'sum_d_ow': 0,
             'sum_q_ow': 0, 'sum_so_ow': 0, 'r_meas_ow': 0, 'q_ow_out': 0, 'owl': ow_level
             }]
@@ -171,20 +154,14 @@ def run():
             print(f'timestep {t} / {iters}')
         t += 1
 
-    # print(lst[3]['paved_roof']['e_atm_pr'])
-    # print(lst[4]['closed_paved']['intstor_cp'])
-    # print(lst[100])
-
     df = pd.DataFrame(lst)
     df.insert(0, 'Date', date)
     df.to_csv(outdir / filename, index=True)
+    end = time.time()
+    print(f'Model runtime: {end - start:.1f}s')
 
-
-start = time.time()
-run()
-end = time.time()
-print(f'Model runtime: {end - start:.1f}s')
 
 if __name__ == '__main__':
     filename = 'test.csv'
-    run()
+    running(filename)
+
