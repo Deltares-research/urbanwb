@@ -1,5 +1,5 @@
 import unittest
-from sewersystem import SewerSystem
+from urbanwb.sewersystem import SewerSystem
 
 
 class TestOpenPaved(unittest.TestCase):
@@ -51,3 +51,7 @@ class TestOpenPaved(unittest.TestCase):
         self.ss_1.prev_so_mss = 0
         self.assertAlmostEqual(self.ss_1.sol(1560, 803.390641, 481.6093594, 0.670687196, 0.670687196, 0.629020529, 0, 0,
                                              0, 0, 0, 300, 0)[4], 0.663633749, places=8)
+
+
+if __name__ == '__main__':
+    unittest.main()

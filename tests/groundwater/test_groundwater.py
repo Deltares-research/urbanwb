@@ -1,5 +1,5 @@
 import unittest
-from groundwater import Groundwater
+from urbanwb.groundwater import Groundwater
 
 
 class TestOpenPaved(unittest.TestCase):
@@ -51,3 +51,7 @@ class TestOpenPaved(unittest.TestCase):
         self.gw_1.prev_gwl = 1.5588655980  # update state
         self.gw_1.prev_gwl_sl = 0  # update state
         self.assertAlmostEqual(self.gw_1.sol(0.3826862970, 6855, 0.041666667, 481.6093594, 0, 0, 1.5, 1/24)[8], 1.5588826117, places=9)
+
+
+if __name__ == '__main__':
+    unittest.main()

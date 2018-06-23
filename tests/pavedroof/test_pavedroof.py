@@ -1,5 +1,5 @@
 import unittest
-from pavedroof import PavedRoof
+from urbanwb.pavedroof import PavedRoof
 
 
 class TestPavedRoof(unittest.TestCase):
@@ -39,3 +39,6 @@ class TestPavedRoof(unittest.TestCase):
         self.pr_1.init_intstor_pr = 0.292061303  # update state
         self.assertEqual(self.pr_1.sol(20.32, 0.215938697)[0], 1.6)
 
+
+if __name__ == '__main__':
+    unittest.main()

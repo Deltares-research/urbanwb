@@ -1,5 +1,5 @@
 import unittest
-from openwater import OpenWater
+from urbanwb.openwater import OpenWater
 
 
 class TestOpenPaved(unittest.TestCase):
@@ -41,3 +41,6 @@ class TestOpenPaved(unittest.TestCase):
         # self.ow_
         self.assertAlmostEquals(self.ow_1.sol(),a,b,c,places=9)
 
+
+if __name__ == '__main__':
+    unittest.main()

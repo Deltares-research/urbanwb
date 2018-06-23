@@ -43,3 +43,7 @@ class TestOpenPaved(unittest.TestCase):
         """test the 'inflowfac' in the PavedRoof class. Actually not very necessary as it is already included in sol"""
 
         self.assertEqual(self.op_1.inflowfac(), 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,5 +1,5 @@
 import unittest
-from closedpaved import ClosedPaved
+from urbanwb.closedpaved import ClosedPaved
 
 
 class TestClosedPaved(unittest.TestCase):
@@ -38,3 +38,7 @@ class TestClosedPaved(unittest.TestCase):
         # time level t = 4/22/1990 20:00
         self.cp_1.init_intstor_cp = 0.111267176  # update state
         self.assertEqual(self.cp_1.sol(0.254, 0)[1], 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

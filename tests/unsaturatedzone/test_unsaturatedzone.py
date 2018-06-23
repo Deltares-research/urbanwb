@@ -1,5 +1,5 @@
 import unittest
-from unsaturatedzone import UnsaturatedZone
+from urbanwb.unsaturatedzone import UnsaturatedZone
 
 
 class TestOpenPaved(unittest.TestCase):
@@ -44,3 +44,7 @@ class TestOpenPaved(unittest.TestCase):
         self.uz_1.init_theta_uz = 193.6718515310  # update state
         self.assertEqual(self.uz_1.sol(2.00000000, 0, 0, 0.0820171606, 1.5151371876, 0.041666667)[8], 1.5102715093)
         # float causing cannot "assertequal" after 8 digits for eq. moisture content, maximum capillary rise.
+
+
+if __name__ == '__main__':
+    unittest.main()
