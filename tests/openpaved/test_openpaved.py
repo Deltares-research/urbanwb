@@ -1,5 +1,5 @@
 import unittest
-from openpaved import OpenPaved
+from urbanwb.openpaved import OpenPaved
 
 
 class TestOpenPaved(unittest.TestCase):
