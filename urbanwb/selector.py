@@ -1,8 +1,10 @@
 import pandas as pd
+import urbanwb
 
-path = 'input/'
-soilmatrix = pd.read_csv(path + 'soilparameter_new.csv')
-etmatrix = pd.read_csv(path + 'etparameter.csv')
+path = urbanwb.urbanwbdir / ".." / "input"
+
+soilmatrix = pd.read_csv(path / 'soilparameter_new.csv')
+etmatrix = pd.read_csv(path / 'etparameter.csv')
 
 
 def et_selector(a, b):
