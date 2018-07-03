@@ -1,0 +1,120 @@
+import unittest
+import urbanwb
+import numpy as np
+import pandas as pd
+import numpy.testing as npt
+from urbanwb.openpaved import OpenPaved
+
+
+def validate(a, b, c, d, e, f, g, Dec, Num):
+    """
+    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    whether the results match.
+    """
+
+    # a --- area of open paved (without a measure) [m^2].
+    # b --- area of open paved(with a measure) [m^2].
+    # c --- area of open paved measure inflow area [m^2].
+    # d --- interception storage capacity on open paved [mm].
+    # e --- fraction of open paved area with storm water drainage system [-].
+    # f --- fraction of open paved area that is disconnected to the sewer system [-].
+    # g --- predefined infiltration capacity on open paved area [mm/d]
+    # Num --- No. of test to locate excel file.
+    # Dec --- Desired precision, default is 6.
+
+    path = urbanwb.urbanwbdir / ".." / "input"
+    InputData = pd.read_csv(path / "integration_test" / 'input_csv.csv')
+    date = InputData['date']
+    P_atm = InputData['P_atm']
+    E_pot_OW = InputData['E_pot_OW']
+    iters = np.shape(date)[0]
+
+    m = OpenPaved(init_intstor_op_t0=0, op_no_meas_area=a, op_meas_area=b, op_meas_inflow_area=c, intstorcap_op=d,
+                  stormfrac_op=e, discfrac_op=f, infilcap_op=g)
+    data_py = [{'int_op': 0, 'e_atm_op': 0, 'intstor_op': 0, 'p_op_gw': 0,
+                'r_op_meas': 0, 'r_op_swds': 0, 'r_op_mss': 0, 'r_op_up': 0}]
+    t = 1
+    while t <= iters - 1:
+        data_py.append(m.sol(P_atm[t], E_pot_OW[t], delta_t=1/24))
+        t += 1
+    data_py = pd.DataFrame(data_py)
+    filename_excel = 'op_it_exsol_' + str(Num) + '.csv'
+    data_ex = pd.read_csv(path / "integration_test" / filename_excel)
+    keys = data_py.keys()
+    none_list = []
+    for key in keys:
+        none_list.append(npt.assert_array_almost_equal(data_py[key][1:], data_ex[key][1:], decimal=Dec))
+        # assert_array_almost_equal is used to compare two arrays. If true, it returns None.
+        # default decimal is 6.
+        # comparison excludes first row (where there are NaNs in excel)
+    return none_list
+
+
+class TestOpenPaved(unittest.TestCase):
+    @ classmethod
+    def setUpClass(cls):
+        print('setupClass')
+
+    @ classmethod
+    def tearDownClass(cls):
+        print('teardownClass')
+
+    def setUp(self):
+        """
+        runs the code before every single test
+        """
+        print('Setup')
+        self.op_1 = OpenPaved(0, 481.6093594, 0, 0, intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0)
+
+    def tearDown(self):
+        """
+        runs the code after every single test
+        """
+        print('tearDown\n')
+
+    def test_inflowfac(self):
+        """
+        test the 'inflowfac' in the PavedRoof class. Actually not very necessary as it is already included in sol
+        """
+        self.assertAlmostEqual(self.op_1.inflowfac(), 0, places=8)
+
+    def test_sol(self):
+        """
+        test the 'sol' in the OpenPaved class.
+        """
+        # time level t = 12/23/1990 6:00
+        self.op_1.init_intstor_op = 0  # update state
+        self.assertAlmostEqual(self.op_1.sol(2.286, 0.02145677, 1/24)['int_op'], 1.6, places=8)
+
+        # time level t = 12/23/1990 7:00
+        self.op_1.init_intstor_op = 0.02145677  # update state
+        self.assertAlmostEqual(self.op_1.sol(12.7, 0.183915171, 1/24)['e_atm_op'], 0.183915171, places=8)
+
+    def test_integration(self):
+        """
+        runs integration tests (validate with excel using different coefficient sets for all time steps)
+        """
+        for n in validate(481.61, 0, 0, 1.6, 1.0, 0, 1, Dec=8, Num=0):  # default
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 0, 1, 0, 1, Dec=8, Num=1):  # intstorcap_op = 0
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1600, 1, 0, 1, Dec=6, Num=2):  # intstorcap_op = 1600
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 0, 0, 1, Dec=8, Num=3):  # stormfrac = 0
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 0.37, 0, 1, Dec=8, Num=4):  # stormfrac = 0.37
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 1, 1, 1, Dec=8, Num=5):  # discfrac = 1
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 1, 0.37, 1, Dec=8, Num=6):  # discfrac = 0.37
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 1, 0, 0, Dec=8, Num=7):  # infilcap_op = 0
+            self.assertIsNone(n)
+        for n in validate(481.61, 0, 0, 1.6, 1, 0, 100, Dec=8, Num=8):  # infilcap_op = 100
+            self.assertIsNone(n)
+        for n in validate(0, 481.61, 481.61, 1.6, 1, 0, 1, Dec=8, Num=9):  # op_no_meas_area = 0
+            self.assertIsNone(n)
+
+
+if __name__ == '__main__':
+    unittest.main()
