@@ -25,7 +25,6 @@ class ClosedPaved:
         self.stormfrac = stormfrac_cp
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_cp
-        self.inflowfac = self.inflowfac()
 
     def inflowfac(self):
         return (self.cp_meas_inflow_area - self.cp_meas_area) / self.cp_no_meas_area
@@ -52,7 +51,7 @@ class ClosedPaved:
 
             intstor_cp = int_cp - e_atm_cp
 
-            r_cp_meas = self.inflowfac * max(0, (p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp)))
+            r_cp_meas = self.inflowfac() * max(0, (p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp)))
 
             r_cp_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_cp - (
                         intstor_cp - self.init_intstor_cp) - r_cp_meas)

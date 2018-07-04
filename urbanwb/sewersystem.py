@@ -118,5 +118,5 @@ class SewerSystem:
             self.prev_stor_mss = stor_mss
             self.prev_so_mss = so_mss
         return {'sum_r_swds': sum_r_swds, 'r_meas_swds': r_meas_swds, 'sum_r_mss': sum_r_mss, 'r_meas_mss': r_meas_mss,
-         'q_swds_ow': q_swds_ow, 'q_mss_out': q_mss_out, 'q_mss_ow': q_mss_ow, 'so_swds_ow': so_swds,
-         'so_mss_ow': so_mss, 'stor_swds': stor_swds, 'stor_mss': stor_mss}
+                'q_swds_ow': q_swds_ow, 'q_mss_out': q_mss_out, 'q_mss_ow': q_mss_ow, 'so_swds_ow': so_swds,
+                'so_mss_ow': so_mss, 'stor_swds': stor_swds, 'stor_mss': stor_mss}
