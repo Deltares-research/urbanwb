@@ -2,28 +2,34 @@ import numpy as np
 import pandas as pd
 import time
 from functools import reduce
+import urbanwb
+import matplotlib.pyplot as plt
 
-
-start = time.time()
-data = pd.read_csv('pysol/owl_sdf.csv')
-iters = np.shape(data['date'])[0]
-owl = data['owl']
-# owl_level --- target owl, as well as the initial owl.
-owl_level = 1.6
 
 class OWL(object):
+    """creates an instance of open water level series and analyses it"""
+    def __init__(self, owl_data, num_year, ow_level):
 
-    def __init__(self, owl_data):
-        self.owl = owl_data
+        # owl --- open water level series
+        # event_list --- list of events which are separated by zeros
+        # max_storage --- list of maximums of each event
+        # rank --- rank of max storage which is sorted from highest to lowest
+        # num_event --- total number of events
+        # num_year --- number of years of given time series
+        # return_time_list --- return time of the rank
+
+        self.owl = np.ones(len(owl_data)) * ow_level - owl_data
         self.event_list = self.event_partition()
         self.max_storage = self.max_stor()
         self.rank = self.ranking()
         self.num_event = len(self.rank)
+        self.num_year = num_year
+        self.return_time_list = self.return_time()
+        self.trendline = self.plot_trendline()
 
     def event_partition(self):
         """
-        differentiates events. segment events by zeros first, then remove empty lists[],
-        finally, a list of events is obtained
+        differentiates events (segment events by zeros first, then remove empty lists[])
         """
         rt = []
         n = 0
@@ -35,7 +41,7 @@ class OWL(object):
 
     def max_stor(self):
         """
-        gets a list of event maximum.
+        calculates event maximum and stores in a list.
         """
         storage = []
         for event in self.event_list:
@@ -46,80 +52,71 @@ class OWL(object):
         """
         sorts the max_storage list, ranks the event maximum from highest to lowest.
         """
-        return sorted(self.max_storage, reverse=True)
+        rank = sorted(self.max_storage, reverse=True)[0:50]
+        return rank
 
     def return_time(self):
         """
-        gets the return period of event extremes.
+        calculates the return period of event extremes by formula : return time = number of years / rank No.
         """
-        rp = []
-        for m in range(self.num_event):
-            rp.append(self.num_event/(1 + m))
-        return rp
+        rt = []
+        for m in range(50):
+            rt.append(self.num_year/(1 + m))
+        return rt
+
+    def plot_trendline(self):
+        """
+        plots the trend line of return time(year) and maximum open water level above target water level(owl)
+        """
+        plt.figure()
+        # plot the log-scaled rank - return time relationship
+        plt.semilogx(self.return_time_list, self.rank, 'b.')
+
+        # ployfit to get the formula of trend line
+        coe = np.polyfit(np.log(self.return_time_list), self.rank, 1)
+        plt.plot(self.return_time_list, coe[0]*np.log(self.return_time_list) + coe[1], 'r--',
+                 label=str("y=%.4flnx+%.4f" % (coe[0], coe[1])))
+        plt.xlabel('Return time (year)')
+        plt.ylabel('Maximum open water level above target water level (m)')
+        plt.legend(loc='best')
+        plt.title('Events and return period ' + str(self.rank[0]))
+        # plt.show()
+        return coe[0], coe[1]
+
+    def required_storage_capacity(self):
+        """
+        calculates required storage capacity using formula obtained from plot_trendline() for return period ranging
+        from 1 year to 100 year
+        """
+        # a, b --- corresponding coefficients of formula
+        a, b = self.trendline[0], self.trendline[1]
+        # rqd_stor_cap --- list of required storage capacity
+        rqd_stor_cap = []
+        for t in [1, 2, 5, 10, 20, 50, 100]:
+            rqd_stor_cap.append(a * np.log(t) + b)
+        return rqd_stor_cap
 
 
 if __name__ == '__main__':
+    path = urbanwb.urbanwbdir / ".." / "input"
+    data = pd.read_csv(path / 'owl.csv')
+
     # validation --- discharge = 5/3
     start = time.time()
-
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(owl)
-    k = OWL(my_lst)
+    iters = np.shape(data['owl_11'])[0]
+    owl = pd.Series.tolist(data['owl_11'])
+    # owl_level --- target owl, as well as the initial owl.
+    ow_level = 1.5
+    k = OWL(owl, 30, ow_level)
 
     print('max', max(k.max_stor()), 'min', min(k.max_stor()))
     print(k.rank)
     print(k.return_time())
+    print(k.required_storage_capacity())
 
     end = time.time()
     print(f'Model runtime: {end - start:.4f}s')
     print('-----'*6)
 
-    # series 2 --- discharge = 10/3
-    print('discharge', 10 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl2'])
-    k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
-    print(k.rank)
-    print(k.return_time())
-    print('-----' * 6)
 
-    # series 3 --- discharge = 20/3
-    print('discharge', 20 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl3'])
-    k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
-    print(k.rank)
-    print(k.return_time())
-    print('-----' * 6)
-
-    # series 4 --- discharge = 40/3
-    print('discharge', 40 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl4'])
-    k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
-    print(k.rank)
-    print(k.return_time())
-    print('-----' * 6)
-
-    # series 5 --- discharge = 80/3
-    print('discharge', 80/3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl5'])
-    k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
-    print(k.rank)
-    print(k.return_time())
-    print('-----' * 6)
-
-    # series 5 --- discharge = 160/3
-    print('discharge', 160 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl6'])
-    k = OWL(my_lst)
-    print(k.max_stor())
-    print('number of events', k.num_event)
-    print(k.rank)
-    print(k.return_time())
-    print('-----' * 6)
 
