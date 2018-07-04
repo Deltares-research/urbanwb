@@ -7,7 +7,10 @@ class UnsaturatedZone:
     creates an instance of unsaturated zone class with given states and properties,
     iterates sol function at each time step.
     """
-    def __init__(self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1):
+
+    def __init__(
+        self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1
+    ):
 
         # state
         # init_theta_uz --- moisture content at previous time step [mm].
@@ -33,16 +36,16 @@ class UnsaturatedZone:
         self.soiltype = soiltype
         self.croptype = croptype
         et = et_selector(self.soiltype, self.croptype)
-        self.theta_h3l = et['theta_h3l_mm'].values[0]
-        self.theta_h3h = et['theta_h3h_mm'].values[0]
-        self.theta_h1 = et['theta_h1_mm'].values[0]
-        self.theta_h2 = et['theta_h2_mm'].values[0]
-        self.theta_h4 = et['theta_h4_mm'].values[0]
+        self.theta_h3l = et["theta_h3l_mm"].values[0]
+        self.theta_h3h = et["theta_h3h_mm"].values[0]
+        self.theta_h1 = et["theta_h1_mm"].values[0]
+        self.theta_h2 = et["theta_h2_mm"].values[0]
+        self.theta_h4 = et["theta_h4_mm"].values[0]
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
-        self.k_sat_uz = 10 * self.soil_prm[0]['k_sat']
+        self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
         # Note here the predefined index 0 does not affect K_sat_uz, which is only dependent on soiltype.
 
-    def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1/24):
+    def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1 / 24):
 
         # parameters
         # i_up_uz --- Infiltration from storage on the surface of the unpaved area
@@ -59,8 +62,15 @@ class UnsaturatedZone:
         # theta_uz --- Soil moisture content in the root zone at the end of the current time step [mm].
 
         if self.uz_no_meas_area == 0:
-            sum_i_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = gwl_low = theta_eq_uz = \
-                      capris_max_uz = p_uz_gw = theta_uz = 0
+            sum_i_uz = (
+                r_meas_uz
+            ) = (
+                theta_h3_uz
+            ) = (
+                t_alpha_uz
+            ) = (
+                t_atm_uz
+            ) = gwl_up = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0
 
         else:
             sum_i_uz = i_up_uz  # It is assumed that UP and UZ areas area equal.
@@ -72,18 +82,22 @@ class UnsaturatedZone:
             elif e_ref / (2 * delta_t) > 5:
                 theta_h3_uz = self.theta_h3h
             else:
-                theta_h3_uz = self.theta_h3l + (e_ref / (2 * delta_t) - 1) / 4 * (self.theta_h3h - self.theta_h3l)
+                theta_h3_uz = self.theta_h3l + (e_ref / (2 * delta_t) - 1) / 4 * (
+                    self.theta_h3h - self.theta_h3l
+                )
 
             if self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h1:
                 t_alpha_uz = 0
             elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h2:
-                t_alpha_uz = 1 - ((self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h2) / (
-                            self.theta_h1 - self.theta_h2)
+                t_alpha_uz = 1 - (
+                    (self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h2
+                ) / (self.theta_h1 - self.theta_h2)
             elif self.init_theta_uz + sum_i_uz + r_meas_uz > theta_h3_uz:
                 t_alpha_uz = 1
             elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h4:
-                t_alpha_uz = ((self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h4) / (
-                            theta_h3_uz - self.theta_h4)
+                t_alpha_uz = (
+                    (self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h4
+                ) / (theta_h3_uz - self.theta_h4)
             else:
                 t_alpha_uz = 0
 
@@ -96,34 +110,49 @@ class UnsaturatedZone:
             id2 = gwl_sol[3]
 
             if prev_gwl < 10:
-                theta_eq_uz = self.soil_prm[id2]['moist_cont_eq_rz[mm]'] + (
-                            gwl_low - prev_gwl) / (gwl_low - gwl_up) * (
-                            self.soil_prm[id1][
-                                              'moist_cont_eq_rz[mm]'] -
-                            self.soil_prm[id2][
-                                              'moist_cont_eq_rz[mm]'])
-                capris_max_uz = self.soil_prm[id2]['capris_max[mm/d]'] + (
-                            gwl_low - prev_gwl) / (gwl_low - gwl_up) * (
-                        self.soil_prm[id1][
-                                                'capris_max[mm/d]'] -
-                        self.soil_prm[id2][
-                                                'capris_max[mm/d]'])
+                theta_eq_uz = self.soil_prm[id2]["moist_cont_eq_rz[mm]"] + (
+                    gwl_low - prev_gwl
+                ) / (gwl_low - gwl_up) * (
+                    self.soil_prm[id1]["moist_cont_eq_rz[mm]"]
+                    - self.soil_prm[id2]["moist_cont_eq_rz[mm]"]
+                )
+                capris_max_uz = self.soil_prm[id2]["capris_max[mm/d]"] + (
+                    gwl_low - prev_gwl
+                ) / (gwl_low - gwl_up) * (
+                    self.soil_prm[id1]["capris_max[mm/d]"]
+                    - self.soil_prm[id2]["capris_max[mm/d]"]
+                )
             else:
-                theta_eq_uz = self.soil_prm[29]['moist_cont_eq_rz[mm]']
-                capris_max_uz = self.soil_prm[29]['capris_max[mm/d]']
+                theta_eq_uz = self.soil_prm[29]["moist_cont_eq_rz[mm]"]
+                capris_max_uz = self.soil_prm[29]["capris_max[mm/d]"]
 
             if self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
-                p_uz_gw = min(self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
-                              delta_t * self.k_sat_uz)
+                p_uz_gw = min(
+                    self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
+                    delta_t * self.k_sat_uz,
+                )
             else:
-                p_uz_gw = -1 * min(theta_eq_uz - (self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz),
-                                   delta_t * capris_max_uz)
+                p_uz_gw = -1 * min(
+                    theta_eq_uz
+                    - (self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz),
+                    delta_t * capris_max_uz,
+                )
 
             theta_uz = self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - p_uz_gw
 
             # update state
             self.init_theta_uz = theta_uz
 
-        return {'sum_i_uz': sum_i_uz, 'r_meas_uz': r_meas_uz, 'theta_h3_uz': theta_h3_uz, 't_alpha_uz': t_alpha_uz,
-                't_atm_uz': t_atm_uz, 'gwl_up': gwl_up, 'gwl_low': gwl_low, 'theta_eq_uz': theta_eq_uz,
-                'capris_max_uz': capris_max_uz, 'p_uz_gw': p_uz_gw, 'theta_uz': theta_uz}
+        return {
+            "sum_i_uz": sum_i_uz,
+            "r_meas_uz": r_meas_uz,
+            "theta_h3_uz": theta_h3_uz,
+            "t_alpha_uz": t_alpha_uz,
+            "t_atm_uz": t_atm_uz,
+            "gwl_up": gwl_up,
+            "gwl_low": gwl_low,
+            "theta_eq_uz": theta_eq_uz,
+            "capris_max_uz": capris_max_uz,
+            "p_uz_gw": p_uz_gw,
+            "theta_uz": theta_uz,
+        }

@@ -5,14 +5,14 @@ from functools import reduce
 
 
 start = time.time()
-data = pd.read_csv('pysol/owl_sdf.csv')
-iters = np.shape(data['date'])[0]
-owl = data['owl']
+data = pd.read_csv("pysol/owl_sdf.csv")
+iters = np.shape(data["date"])[0]
+owl = data["owl"]
 # owl_level --- target owl, as well as the initial owl.
 owl_level = 1.6
 
-class OWL(object):
 
+class OWL(object):
     def __init__(self, owl_data):
         self.owl = owl_data
         self.event_list = self.event_partition()
@@ -54,72 +54,71 @@ class OWL(object):
         """
         rp = []
         for m in range(self.num_event):
-            rp.append(self.num_event/(1 + m))
+            rp.append(self.num_event / (1 + m))
         return rp
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # validation --- discharge = 5/3
     start = time.time()
 
     my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(owl)
     k = OWL(my_lst)
 
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
     print(k.rank)
     print(k.return_time())
 
     end = time.time()
-    print(f'Model runtime: {end - start:.4f}s')
-    print('-----'*6)
+    print(f"Model runtime: {end - start:.4f}s")
+    print("-----" * 6)
 
     # series 2 --- discharge = 10/3
-    print('discharge', 10 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl2'])
+    print("discharge", 10 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl2"])
     k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
     print(k.rank)
     print(k.return_time())
-    print('-----' * 6)
+    print("-----" * 6)
 
     # series 3 --- discharge = 20/3
-    print('discharge', 20 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl3'])
+    print("discharge", 20 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl3"])
     k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
     print(k.rank)
     print(k.return_time())
-    print('-----' * 6)
+    print("-----" * 6)
 
     # series 4 --- discharge = 40/3
-    print('discharge', 40 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl4'])
+    print("discharge", 40 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl4"])
     k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
     print(k.rank)
     print(k.return_time())
-    print('-----' * 6)
+    print("-----" * 6)
 
     # series 5 --- discharge = 80/3
-    print('discharge', 80/3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl5'])
+    print("discharge", 80 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl5"])
     k = OWL(my_lst)
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    print('number of events', k.num_event)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
     print(k.rank)
     print(k.return_time())
-    print('-----' * 6)
+    print("-----" * 6)
 
     # series 5 --- discharge = 160/3
-    print('discharge', 160 / 3)
-    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data['owl6'])
+    print("discharge", 160 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl6"])
     k = OWL(my_lst)
     print(k.max_stor())
-    print('number of events', k.num_event)
+    print("number of events", k.num_event)
     print(k.rank)
     print(k.return_time())
-    print('-----' * 6)
-
+    print("-----" * 6)

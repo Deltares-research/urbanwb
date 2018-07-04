@@ -3,9 +3,21 @@ class SewerSystem:
     creates an instance of sewer system class with given states and properties,
     iterates sol function at each time step.
     """
-    def __init__(self, swds_no_meas_area, mss_no_meas_area, prev_stor_swds_t0, prev_so_swds_t0, prev_stor_mss_t0,
-                 prev_so_mss_t0, q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1, stor_swds_cap=2,
-                 stor_mss_cap=9):
+
+    def __init__(
+        self,
+        swds_no_meas_area,
+        mss_no_meas_area,
+        prev_stor_swds_t0,
+        prev_so_swds_t0,
+        prev_stor_mss_t0,
+        prev_so_mss_t0,
+        q_swds_ow_cap=55.1,
+        q_mss_out_cap=26.3,
+        q_mss_ow_cap=48.1,
+        stor_swds_cap=2,
+        stor_mss_cap=9,
+    ):
         # state
         # prev_stor_swds --- Storage in the storm water drainage system at the end of the previous time step [mm].
         # prev_so_swds --- Overflow of storm water drainage system during the previous time step [mm].
@@ -35,8 +47,22 @@ class SewerSystem:
         self.stor_swds_cap = stor_swds_cap
         self.stor_mss_cap = stor_mss_cap
 
-    def sol(self, pr_no_meas_area, cp_no_meas_area, op_no_meas_area, r_pr_swds, r_cp_swds,
-            r_op_swds, r_pr_mss, r_cp_mss, r_op_mss, meas_swds, meas_mss, ow_no_meas_area, tot_meas_area):
+    def sol(
+        self,
+        pr_no_meas_area,
+        cp_no_meas_area,
+        op_no_meas_area,
+        r_pr_swds,
+        r_cp_swds,
+        r_op_swds,
+        r_pr_mss,
+        r_cp_mss,
+        r_op_mss,
+        meas_swds,
+        meas_mss,
+        ow_no_meas_area,
+        tot_meas_area,
+    ):
         # parameters
         # sum_r_swds --- Total runoff to storm water drainage system during the current time step [mm].
         # r_meas_swds --- Inflow from measure area (if applicable) during current time step [mm]
@@ -57,26 +83,62 @@ class SewerSystem:
 
         else:
 
-            sum_r_swds = (pr_no_meas_area * r_pr_swds + cp_no_meas_area * r_cp_swds + op_no_meas_area * r_op_swds) \
-                         / self.swds_no_meas_area
+            sum_r_swds = (
+                pr_no_meas_area * r_pr_swds
+                + cp_no_meas_area * r_cp_swds
+                + op_no_meas_area * r_op_swds
+            ) / self.swds_no_meas_area
             r_meas_swds = meas_swds * tot_meas_area / self.swds_no_meas_area
 
             if ow_no_meas_area == 0:
-                q_swds_ow = min(self.prev_stor_swds + sum_r_swds + r_meas_swds + self.prev_so_swds, self.q_swds_ow_cap)
+                q_swds_ow = min(
+                    self.prev_stor_swds + sum_r_swds + r_meas_swds + self.prev_so_swds,
+                    self.q_swds_ow_cap,
+                )
 
-                so_swds = max(0,
-                              self.prev_stor_swds + sum_r_swds + r_meas_swds - q_swds_ow - self.stor_swds_cap +
-                              self.prev_so_swds)
+                so_swds = max(
+                    0,
+                    self.prev_stor_swds
+                    + sum_r_swds
+                    + r_meas_swds
+                    - q_swds_ow
+                    - self.stor_swds_cap
+                    + self.prev_so_swds,
+                )
 
-                stor_swds = max(0, self.prev_stor_swds + sum_r_swds + r_meas_swds - q_swds_ow - (
-                            so_swds - self.prev_so_swds))
+                stor_swds = max(
+                    0,
+                    self.prev_stor_swds
+                    + sum_r_swds
+                    + r_meas_swds
+                    - q_swds_ow
+                    - (so_swds - self.prev_so_swds),
+                )
 
             else:
-                q_swds_ow = min(self.prev_stor_swds + sum_r_swds + r_meas_swds + 0, self.q_swds_ow_cap)
+                q_swds_ow = min(
+                    self.prev_stor_swds + sum_r_swds + r_meas_swds + 0,
+                    self.q_swds_ow_cap,
+                )
 
-                so_swds = max(0, self.prev_stor_swds + sum_r_swds + r_meas_swds - q_swds_ow - self.stor_swds_cap + 0)
+                so_swds = max(
+                    0,
+                    self.prev_stor_swds
+                    + sum_r_swds
+                    + r_meas_swds
+                    - q_swds_ow
+                    - self.stor_swds_cap
+                    + 0,
+                )
 
-                stor_swds = max(0, self.prev_stor_swds + sum_r_swds + r_meas_swds - q_swds_ow - so_swds)
+                stor_swds = max(
+                    0,
+                    self.prev_stor_swds
+                    + sum_r_swds
+                    + r_meas_swds
+                    - q_swds_ow
+                    - so_swds,
+                )
 
             # update state
             self.prev_stor_swds = stor_swds
@@ -87,36 +149,99 @@ class SewerSystem:
             sum_r_mss = r_meas_mss = q_mss_out = q_mss_ow = so_mss = stor_mss = 0
 
         else:
-            sum_r_mss = (pr_no_meas_area * r_pr_mss + cp_no_meas_area * r_cp_mss + op_no_meas_area * r_op_mss) \
-                        / self.mss_no_meas_area
+            sum_r_mss = (
+                pr_no_meas_area * r_pr_mss
+                + cp_no_meas_area * r_cp_mss
+                + op_no_meas_area * r_op_mss
+            ) / self.mss_no_meas_area
             r_meas_mss = meas_mss * tot_meas_area / self.mss_no_meas_area
 
             if ow_no_meas_area == 0:
-                q_mss_out = min(self.prev_stor_mss + sum_r_mss + r_meas_mss + self.prev_so_mss, self.q_mss_out_cap)
+                q_mss_out = min(
+                    self.prev_stor_mss + sum_r_mss + r_meas_mss + self.prev_so_mss,
+                    self.q_mss_out_cap,
+                )
 
-                q_mss_ow = max(0, min(self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out + self.prev_so_mss,
-                                      self.q_mss_ow_cap - self.q_mss_out_cap))
+                q_mss_ow = max(
+                    0,
+                    min(
+                        self.prev_stor_mss
+                        + sum_r_mss
+                        + r_meas_mss
+                        - q_mss_out
+                        + self.prev_so_mss,
+                        self.q_mss_ow_cap - self.q_mss_out_cap,
+                    ),
+                )
 
-                so_mss = max(0, self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out - q_mss_ow - self.stor_mss_cap
-                             + self.prev_so_mss)
+                so_mss = max(
+                    0,
+                    self.prev_stor_mss
+                    + sum_r_mss
+                    + r_meas_mss
+                    - q_mss_out
+                    - q_mss_ow
+                    - self.stor_mss_cap
+                    + self.prev_so_mss,
+                )
 
-                stor_mss = max(0, self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out - q_mss_ow -
-                               (so_mss - self.prev_so_mss))
+                stor_mss = max(
+                    0,
+                    self.prev_stor_mss
+                    + sum_r_mss
+                    + r_meas_mss
+                    - q_mss_out
+                    - q_mss_ow
+                    - (so_mss - self.prev_so_mss),
+                )
 
             else:
-                q_mss_out = min(self.prev_stor_mss + sum_r_mss + r_meas_mss + 0, self.q_mss_out_cap)
+                q_mss_out = min(
+                    self.prev_stor_mss + sum_r_mss + r_meas_mss + 0, self.q_mss_out_cap
+                )
 
-                q_mss_ow = max(0, min(self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out + 0,
-                                      self.q_mss_ow_cap - self.q_mss_out_cap))
+                q_mss_ow = max(
+                    0,
+                    min(
+                        self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out + 0,
+                        self.q_mss_ow_cap - self.q_mss_out_cap,
+                    ),
+                )
 
-                so_mss = max(0, self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out - q_mss_ow - self.stor_mss_cap
-                             + 0)
+                so_mss = max(
+                    0,
+                    self.prev_stor_mss
+                    + sum_r_mss
+                    + r_meas_mss
+                    - q_mss_out
+                    - q_mss_ow
+                    - self.stor_mss_cap
+                    + 0,
+                )
 
-                stor_mss = max(0, self.prev_stor_mss + sum_r_mss + r_meas_mss - q_mss_out - q_mss_ow - so_mss)
+                stor_mss = max(
+                    0,
+                    self.prev_stor_mss
+                    + sum_r_mss
+                    + r_meas_mss
+                    - q_mss_out
+                    - q_mss_ow
+                    - so_mss,
+                )
 
             # update state
             self.prev_stor_mss = stor_mss
             self.prev_so_mss = so_mss
-        return {'sum_r_swds': sum_r_swds, 'r_meas_swds': r_meas_swds, 'sum_r_mss': sum_r_mss, 'r_meas_mss': r_meas_mss,
-                'q_swds_ow': q_swds_ow, 'q_mss_out': q_mss_out, 'q_mss_ow': q_mss_ow, 'so_swds_ow': so_swds,
-                'so_mss_ow': so_mss, 'stor_swds': stor_swds, 'stor_mss': stor_mss}
+        return {
+            "sum_r_swds": sum_r_swds,
+            "r_meas_swds": r_meas_swds,
+            "sum_r_mss": sum_r_mss,
+            "r_meas_mss": r_meas_mss,
+            "q_swds_ow": q_swds_ow,
+            "q_mss_out": q_mss_out,
+            "q_mss_ow": q_mss_ow,
+            "so_swds_ow": so_swds,
+            "so_mss_ow": so_mss,
+            "stor_swds": stor_swds,
+            "stor_mss": stor_mss,
+        }
