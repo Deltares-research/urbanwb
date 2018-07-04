@@ -55,25 +55,12 @@ def validate(a, b, c, d, e, Dec, Num):
 
 
 class TestOpenPaved(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """runs the code before every single test"""
-        print('Setup')
         # added here. (theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1)
         self.uz_1 = UnsaturatedZone(194.1, 6855, 0, soiltype=2, croptype=1)
         # self.uz_2 = Unpaved()
         # not applicable for now.
-
-    def tearDown(self):
-        """runs the code after every single test"""
-        print('tearDown\n')
 
     def test_sol(self):
         """test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the

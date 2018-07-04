@@ -62,27 +62,12 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
 
 
 class TestOpenPaved(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """
         runs the code before every single test
         """
-        print('Setup')
         self.ss_1 = SewerSystem(2845, 0, 0, 0, 0, 0, q_swds_ow_cap=55.1, q_mss_out_cap=26.3, q_mss_ow_cap=48.1,
                                 stor_swds_cap=2, stor_mss_cap=9)
-
-    def tearDown(self):
-        """
-        runs the code after every single test
-        """
-        print('tearDown\n')
 
     def test_sol(self):
         """

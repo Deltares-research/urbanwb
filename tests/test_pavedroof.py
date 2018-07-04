@@ -50,22 +50,9 @@ def validate(a, b, c, d, e, f, Dec, Num):
 
 
 class TestPavedRoof(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """runs the code before every single test"""
-        print('Setup')
         self.pr_1 = PavedRoof(0, 1560, 0, 0, intstorcap_pr=1.6, stormfrac_pr=1.0, discfrac_pr=0.0)
-
-    def tearDown(self):
-        """runs the code after every single test"""
-        print('tearDown\n')
 
     def test_inflowfac(self):
         """tests the 'inflowfac' in the PavedRoof class"""

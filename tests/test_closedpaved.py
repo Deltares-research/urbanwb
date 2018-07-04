@@ -48,26 +48,11 @@ def validate(a, b, c, d, e, f, Dec, Num):
 
 
 class TestClosedPaved(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """
         runs the code before every single test
         """
-        print('Setup')
         self.cp_1 = ClosedPaved(0, 803.3906406, 0, 0, intstorcap_cp=1.6, stormfrac_cp=1.0, discfrac_cp=0.0)
-
-    def tearDown(self):
-        """
-        runs the code after every single test
-        """
-        print('tearDown\n')
 
     def test_inflowfac(self):
         """

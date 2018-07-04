@@ -58,26 +58,11 @@ def validate(a, b, c, Dec, Num):
 
 
 class TestOpenPaved(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """
         runs the code before every single test
         """
-        print('Setup')
         self.ow_1 = OpenWater(300, 1.5, q_ow_out_cap=200)
-
-    def tearDown(self):
-        """
-        runs the code after every single test
-        """
-        print('tearDown\n')
 
     def test_sol(self):
         """
