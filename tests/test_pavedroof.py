@@ -6,10 +6,10 @@ import numpy.testing as npt
 from urbanwb.pavedroof import PavedRoof
 
 path = urbanwb.urbanwbdir / ".." / "input"
-InputData = pd.read_csv(path / "integration_test" / 'input_csv.csv')
-date = InputData['date']
-P_atm = InputData['P_atm']
-E_pot_OW = InputData['E_pot_OW']
+InputData = pd.read_csv(path / "integration_test" / "input_csv.csv")
+date = InputData["date"]
+P_atm = InputData["P_atm"]
+E_pot_OW = InputData["E_pot_OW"]
 iters = np.shape(date)[0]
 
 
@@ -28,21 +28,41 @@ def validate(a, b, c, d, e, f, Dec, Num):
     # Dec --- Desired precision, default is 6.
     # Num --- No. of test to locate excel file.
 
-    m = PavedRoof(init_intstor_pr_t0=0, pr_no_meas_area=a, pr_meas_area=b, pr_meas_inflow_area=c,
-                  intstorcap_pr=d, stormfrac_pr=e, discfrac_pr=f)
-    data_py = [{'int_pr': 0, 'e_atm_pr': 0, 'intstor_pr': 0, 'r_pr_meas': 0, 'r_pr_swds': 0,
-                'r_pr_mss': 0, 'r_pr_up': 0}]  # initial condition (first row)
+    m = PavedRoof(
+        init_intstor_pr_t0=0,
+        pr_no_meas_area=a,
+        pr_meas_area=b,
+        pr_meas_inflow_area=c,
+        intstorcap_pr=d,
+        stormfrac_pr=e,
+        discfrac_pr=f,
+    )
+    data_py = [
+        {
+            "int_pr": 0,
+            "e_atm_pr": 0,
+            "intstor_pr": 0,
+            "r_pr_meas": 0,
+            "r_pr_swds": 0,
+            "r_pr_mss": 0,
+            "r_pr_up": 0,
+        }
+    ]  # initial condition (first row)
     t = 1
     while t <= iters - 1:
         data_py.append(m.sol(P_atm[t], E_pot_OW[t]))
         t += 1
     data_py = pd.DataFrame(data_py)
-    filename_excel = 'pr_it_exsol_' + str(Num) + '.csv'
+    filename_excel = "pr_it_exsol_" + str(Num) + ".csv"
     data_ex = pd.read_csv(path / "integration_test" / filename_excel)
     keys = data_py.keys()
     none_list = []
     for key in keys:
-        none_list.append(npt.assert_array_almost_equal(data_py[key][1:], data_ex[key][1:], decimal=Dec))
+        none_list.append(
+            npt.assert_array_almost_equal(
+                data_py[key][1:], data_ex[key][1:], decimal=Dec
+            )
+        )
         # assert_array_almost_equal is used to compare two arrays. If true, it returns None.
         # default decimal is 6.
         # comparison excludes first row (where there are NaNs in excel)
@@ -50,22 +70,11 @@ def validate(a, b, c, d, e, f, Dec, Num):
 
 
 class TestPavedRoof(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
-
     def setUp(self):
         """runs the code before every single test"""
-        print('Setup')
-        self.pr_1 = PavedRoof(0, 1560, 0, 0, intstorcap_pr=1.6, stormfrac_pr=1.0, discfrac_pr=0.0)
-
-    def tearDown(self):
-        """runs the code after every single test"""
-        print('tearDown\n')
+        self.pr_1 = PavedRoof(
+            0, 1560, 0, 0, intstorcap_pr=1.6, stormfrac_pr=1.0, discfrac_pr=0.0
+        )
 
     def test_inflowfac(self):
         """tests the 'inflowfac' in the PavedRoof class"""
@@ -75,17 +84,23 @@ class TestPavedRoof(unittest.TestCase):
         """tests the 'sol' in the PavedRoof class"""
         # time level t = 4/20/1990 15:00
         self.pr_1.init_intstor_pr = 0  # update state
-        self.assertAlmostEqual(self.pr_1.sol(0.508, 0.215938697)['int_pr'], 0.508, places=7)
+        self.assertAlmostEqual(
+            self.pr_1.sol(0.508, 0.215938697)["int_pr"], 0.508, places=7
+        )
 
         # time level t = 4/20/1990 16:00
         self.pr_1.init_intstor_pr = 0.292061303  # update state
-        self.assertAlmostEqual(self.pr_1.sol(20.32, 0.215938697)['int_pr'], 1.6, places=7)
+        self.assertAlmostEqual(
+            self.pr_1.sol(20.32, 0.215938697)["int_pr"], 1.6, places=7
+        )
 
     def test_integration(self):
         """runs integration tests (validate with excel using different coefficient sets for all time steps)"""
         for n in validate(1560, 0, 0, 1.6, 1, 0, Dec=8, Num=0):  # default
             self.assertIsNone(n)
-        for n in validate(0, 1560, 0, 1.6, 1.0, 0.0, Dec=10, Num=1):  # pr_no_meas_area = 0
+        for n in validate(
+            0, 1560, 0, 1.6, 1.0, 0.0, Dec=10, Num=1
+        ):  # pr_no_meas_area = 0
             self.assertIsNone(n)
         for n in validate(1560, 0, 0, 0, 1, 0, Dec=10, Num=2):  # intstorcap_pr = 0
             self.assertIsNone(n)
@@ -101,5 +116,5 @@ class TestPavedRoof(unittest.TestCase):
             self.assertIsNone(n)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -2,8 +2,18 @@ class OpenPaved:
     """
     creates an instance of open paved class with given states and properties, iterates sol function at each time step.
     """
-    def __init__(self, init_intstor_op_t0, op_no_meas_area, op_meas_area, op_meas_inflow_area,
-                 intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0, infilcap_op=1.0):
+
+    def __init__(
+        self,
+        init_intstor_op_t0,
+        op_no_meas_area,
+        op_meas_area,
+        op_meas_inflow_area,
+        intstorcap_op=1.6,
+        stormfrac_op=1.0,
+        discfrac_op=0.0,
+        infilcap_op=1.0,
+    ):
 
         # state
         # init_intstor_op --- initial interception storage on open paved [mm].
@@ -45,7 +55,9 @@ class OpenPaved:
         # r_op_up --- Runoff from open paved to unpaved area [mm].
 
         if self.op_no_meas_area == 0:
-            int_op = e_atm_op = intstor_op = p_op_gw = r_op_meas = r_op_swds = r_op_mss = r_op_up = 0
+            int_op = (
+                e_atm_op
+            ) = intstor_op = p_op_gw = r_op_meas = r_op_swds = r_op_mss = r_op_up = 0
 
         else:
             int_op = min(self.intstorcap, max(0, p_atm + self.init_intstor_op))
@@ -54,22 +66,63 @@ class OpenPaved:
 
             intstor_op = int_op - e_atm_op
 
-            p_op_gw = max(0, min(p_atm - (self.intstorcap - self.init_intstor_op),
-                                 self.infilcap * delta_t))  # infiltration capacity (mm/d) * time step size (hr to d)
+            p_op_gw = max(
+                0,
+                min(
+                    p_atm - (self.intstorcap - self.init_intstor_op),
+                    self.infilcap * delta_t,
+                ),
+            )  # infiltration capacity (mm/d) * time step size (hr to d)
 
-            r_op_meas = self.inflowfac() * max(0, p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw)
+            r_op_meas = self.inflowfac() * max(
+                0, p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw
+            )
 
-            r_op_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_op - (
-                        intstor_op - self.init_intstor_op) - p_op_gw - r_op_meas)
+            r_op_swds = (
+                self.stormfrac
+                * (1 - self.discfrac)
+                * max(
+                    0,
+                    p_atm
+                    - e_atm_op
+                    - (intstor_op - self.init_intstor_op)
+                    - p_op_gw
+                    - r_op_meas,
+                )
+            )
 
-            r_op_mss = self.mxdfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_op - (
-                        intstor_op - self.init_intstor_op) - p_op_gw - r_op_meas)
+            r_op_mss = (
+                self.mxdfrac
+                * (1 - self.discfrac)
+                * max(
+                    0,
+                    p_atm
+                    - e_atm_op
+                    - (intstor_op - self.init_intstor_op)
+                    - p_op_gw
+                    - r_op_meas,
+                )
+            )
 
-            r_op_up = self.discfrac * max(0,
-                                          p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw - r_op_meas)
+            r_op_up = self.discfrac * max(
+                0,
+                p_atm
+                - e_atm_op
+                - (intstor_op - self.init_intstor_op)
+                - p_op_gw
+                - r_op_meas,
+            )
 
             # update state
             self.init_intstor_op = intstor_op
 
-        return {'int_op': int_op, 'e_atm_op': e_atm_op, 'intstor_op': intstor_op, 'p_op_gw': p_op_gw,
-                'r_op_meas': r_op_meas, 'r_op_swds': r_op_swds, 'r_op_mss': r_op_mss, 'r_op_up': r_op_up}
+        return {
+            "int_op": int_op,
+            "e_atm_op": e_atm_op,
+            "intstor_op": intstor_op,
+            "p_op_gw": p_op_gw,
+            "r_op_meas": r_op_meas,
+            "r_op_swds": r_op_swds,
+            "r_op_mss": r_op_mss,
+            "r_op_up": r_op_up,
+        }

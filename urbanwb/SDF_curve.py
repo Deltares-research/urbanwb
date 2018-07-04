@@ -6,6 +6,7 @@ import urbanwb
 import matplotlib.pyplot as plt
 
 
+<<<<<<< HEAD
 class OWL(object):
     """creates an instance of open water level series and analyses it"""
     def __init__(self, owl_data, num_year, ow_level):
@@ -19,6 +20,19 @@ class OWL(object):
         # return_time_list --- return time of the rank
 
         self.owl = np.ones(len(owl_data)) * ow_level - owl_data
+=======
+start = time.time()
+data = pd.read_csv("pysol/owl_sdf.csv")
+iters = np.shape(data["date"])[0]
+owl = data["owl"]
+# owl_level --- target owl, as well as the initial owl.
+owl_level = 1.6
+
+
+class OWL(object):
+    def __init__(self, owl_data):
+        self.owl = owl_data
+>>>>>>> 55d77f455be2621db16d1a5f9cca37019ae5a4c0
         self.event_list = self.event_partition()
         self.max_storage = self.max_stor()
         self.rank = self.ranking()
@@ -59,6 +73,7 @@ class OWL(object):
         """
         calculates the return period of event extremes by formula : return time = number of years / rank No.
         """
+<<<<<<< HEAD
         rt = []
         for m in range(50):
             rt.append(self.num_year/(1 + m))
@@ -101,6 +116,15 @@ if __name__ == '__main__':
     path = urbanwb.urbanwbdir / ".." / "input"
     data = pd.read_csv(path / 'owl.csv')
 
+=======
+        rp = []
+        for m in range(self.num_event):
+            rp.append(self.num_event / (1 + m))
+        return rp
+
+
+if __name__ == "__main__":
+>>>>>>> 55d77f455be2621db16d1a5f9cca37019ae5a4c0
     # validation --- discharge = 5/3
     start = time.time()
     iters = np.shape(data['owl_11'])[0]
@@ -109,14 +133,66 @@ if __name__ == '__main__':
     ow_level = 1.5
     k = OWL(owl, 30, ow_level)
 
-    print('max', max(k.max_stor()), 'min', min(k.max_stor()))
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
     print(k.rank)
     print(k.return_time())
     print(k.required_storage_capacity())
 
     end = time.time()
-    print(f'Model runtime: {end - start:.4f}s')
-    print('-----'*6)
+    print(f"Model runtime: {end - start:.4f}s")
+    print("-----" * 6)
+
+<<<<<<< HEAD
 
 
+=======
+    # series 2 --- discharge = 10/3
+    print("discharge", 10 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl2"])
+    k = OWL(my_lst)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
+    print(k.rank)
+    print(k.return_time())
+    print("-----" * 6)
 
+    # series 3 --- discharge = 20/3
+    print("discharge", 20 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl3"])
+    k = OWL(my_lst)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
+    print(k.rank)
+    print(k.return_time())
+    print("-----" * 6)
+
+    # series 4 --- discharge = 40/3
+    print("discharge", 40 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl4"])
+    k = OWL(my_lst)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
+    print(k.rank)
+    print(k.return_time())
+    print("-----" * 6)
+
+    # series 5 --- discharge = 80/3
+    print("discharge", 80 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl5"])
+    k = OWL(my_lst)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print("number of events", k.num_event)
+    print(k.rank)
+    print(k.return_time())
+    print("-----" * 6)
+
+    # series 5 --- discharge = 160/3
+    print("discharge", 160 / 3)
+    my_lst = np.ones(iters) * 1.6 - pd.Series.tolist(data["owl6"])
+    k = OWL(my_lst)
+    print(k.max_stor())
+    print("number of events", k.num_event)
+    print(k.rank)
+    print(k.return_time())
+    print("-----" * 6)
+>>>>>>> 55d77f455be2621db16d1a5f9cca37019ae5a4c0

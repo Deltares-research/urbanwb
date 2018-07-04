@@ -2,8 +2,17 @@ class ClosedPaved:
     """
     creates an instance of closed paved class with given states and properties, iterates sol function at each time step.
     """
-    def __init__(self, init_intstor_cp_t0, cp_no_meas_area, cp_meas_area, cp_meas_inflow_area, intstorcap_cp=1.6,
-                 stormfrac_cp=1.0, discfrac_cp=0.0):
+
+    def __init__(
+        self,
+        init_intstor_cp_t0,
+        cp_no_meas_area,
+        cp_meas_area,
+        cp_meas_inflow_area,
+        intstorcap_cp=1.6,
+        stormfrac_cp=1.0,
+        discfrac_cp=0.0,
+    ):
 
         # state
         # init_intstor_cp --- initial interception storage on closed paved area [mm].
@@ -42,7 +51,9 @@ class ClosedPaved:
         # r_cp_up --- Runoff from closed paved to unpaved area [mm].
 
         if self.cp_no_meas_area == 0:
-            int_cp = e_atm_cp = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0
+            int_cp = (
+                e_atm_cp
+            ) = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0
 
         else:
             int_cp = min(self.intstorcap, max(0, self.init_intstor_cp + p_atm))
@@ -51,18 +62,41 @@ class ClosedPaved:
 
             intstor_cp = int_cp - e_atm_cp
 
-            r_cp_meas = self.inflowfac() * max(0, (p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp)))
+            r_cp_meas = self.inflowfac() * max(
+                0, (p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp))
+            )
 
-            r_cp_swds = self.stormfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_cp - (
-                        intstor_cp - self.init_intstor_cp) - r_cp_meas)
+            r_cp_swds = (
+                self.stormfrac
+                * (1 - self.discfrac)
+                * max(
+                    0,
+                    p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas,
+                )
+            )
 
-            r_cp_mss = self.mxdfrac * (1 - self.discfrac) * max(0, p_atm - e_atm_cp - (
-                        intstor_cp - self.init_intstor_cp) - r_cp_meas)
+            r_cp_mss = (
+                self.mxdfrac
+                * (1 - self.discfrac)
+                * max(
+                    0,
+                    p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas,
+                )
+            )
 
-            r_cp_up = self.discfrac * max(0, p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas)
+            r_cp_up = self.discfrac * max(
+                0, p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas
+            )
 
             # update state
             self.init_intstor_cp = intstor_cp
 
-        return {'int_cp': int_cp, 'e_atm_cp': e_atm_cp, 'intstor_cp': intstor_cp, 'r_cp_meas': r_cp_meas,
-                'r_cp_swds': r_cp_swds, 'r_cp_mss': r_cp_mss, 'r_cp_up': r_cp_up}
+        return {
+            "int_cp": int_cp,
+            "e_atm_cp": e_atm_cp,
+            "intstor_cp": intstor_cp,
+            "r_cp_meas": r_cp_meas,
+            "r_cp_swds": r_cp_swds,
+            "r_cp_mss": r_cp_mss,
+            "r_cp_up": r_cp_up,
+        }
