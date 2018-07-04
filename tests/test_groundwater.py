@@ -61,23 +61,11 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
 
 
 class TestOpenPaved(unittest.TestCase):
-    @ classmethod
-    def setUpClass(cls):
-        print('setupClass')
-
-    @ classmethod
-    def tearDownClass(cls):
-        print('teardownClass')
 
     def setUp(self):
         """runs the code before every single test"""
-        print('Setup')
         self.gw_1 = Groundwater(1.5, 8140, 0, seep_def=0, w=100, vc=20000, h_deepgw=21.5, flux=1,
                                 soiltype=2, croptype=1)
-
-    def tearDown(self):
-        """runs the code after every single test"""
-        print('tearDown\n')
 
     def test_sol(self):
         """test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the
