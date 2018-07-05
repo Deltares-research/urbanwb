@@ -3,10 +3,11 @@ import toml
 import urbanwb
 
 
-def read_parameter():
-    """reads parameters from the static form in TOML format."""
+def read_parameter_base():
+    """
+    reads parameters from the TOML-formated static form.
+    """
     path = urbanwb.urbanwbdir / ".." / "input"
-
     cf = toml.load(str(path) + "\\static_form.ini", _dict=dict)
     delta_t = cf["timestep"] / 86400  # delta_t, converted from second to day
     tot_area = cf["tot_area"]  # total area
@@ -30,7 +31,7 @@ def read_parameter():
             frac_ow_aboveGW = cf["frac_ow_aboveGW"]  # part of open water above GW [-]
             tot_uz_area = (
                 tot_up_area
-            )  # total area of unsaturated zone [m^2] (Assumed to be equal to unpaved area)
+            )  # total area of unsaturated zone [m^2] (Assumed to be equal to area of unpaved)
             gw_frac = (
                 pr_frac * frac_pr_aboveGW
                 + cp_frac
@@ -186,7 +187,7 @@ def read_parameter():
         tot_area,
         soiltype,
         croptype,
-        type,
+        choice,
         tot_pr_area,
         tot_cp_area,
         tot_op_area,
@@ -269,6 +270,7 @@ def read_parameter():
         "tot_mss_area": tot_mss_area,
         "storcap_swds": storcap_swds,
         "storcap_mss": storcap_mss,
+        "pump_cap": pump_cap,
         "intstorcap_pr": intstorcap_pr,
         "intstorcap_cp": intstorcap_cp,
         "intstorcap_op": intstorcap_op,
@@ -290,4 +292,4 @@ def read_parameter():
 
 
 if __name__ == "__main__":
-    print(read_parameter())
+    print(read_parameter_base()["init_gwl"])
