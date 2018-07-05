@@ -13,6 +13,7 @@ setup(
     test_suite="tests",
     python_requires=">=3.6",
     install_requires=["numpy", "pandas"],
+    extras_require={"dev": ["sphinx"]},
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 3 - Alpha",
