@@ -86,15 +86,17 @@ def validate(a, b, c, d, e, Dec, Num):
 
 class TestOpenPaved(unittest.TestCase):
     def setUp(self):
-        """runs the code before every single test"""
-        # added here. (theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1)
+        """
+        runs the code before every single test
+        """
         self.uz_1 = UnsaturatedZone(194.1, 6855, 0, soiltype=2, croptype=1)
-        # self.uz_2 = Unpaved()
-        # not applicable for now.
+
 
     def test_sol(self):
-        """test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the
-        process threshold"""
+        """
+        test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the
+        process threshold
+        """
         # uz_1 --- default setting
         # uz_2 --- setting 2
 

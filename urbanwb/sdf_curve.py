@@ -1,0 +1,128 @@
+import numpy as np
+import pandas as pd
+import time
+from functools import reduce
+import urbanwb
+import matplotlib.pyplot as plt
+
+
+class SDF_Curve(object):
+    def __init__(self, owl_data, num_year, ow_level):
+        """
+        creates an instance of open water level series and analyses it
+        """
+        # owl_data --- series of open water level
+        # ow_level --- target open water level as well as the inital open water level
+        # event_list --- list of events which are separated by zeros
+        # max_storage --- list of maximums of each event
+        # rank --- rank of max storage which is sorted from highest to lowest
+        # num_event --- total number of events
+        # num_year --- number of years of given time series
+        # return_time_list --- return time of the rank
+
+        self.owl = np.ones(len(owl_data)) * ow_level - owl_data
+        self.event_list = self.event_partition()
+        self.max_storage = self.max_stor()
+        self.rank = self.ranking()
+        self.num_event = len(self.rank)
+        self.num_year = num_year
+        self.return_time_list = self.return_time()
+        self.trendline = self.plot_trendline()
+
+    def event_partition(self):
+        """
+        differentiates events (segment events by zeros first, then remove empty lists[])
+        """
+        rt = []
+        n = 0
+        for i in range(len(self.owl)):
+            if self.owl[i] == 0:
+                rt.append(self.owl[n:i])
+                n = i + 1
+        return [value for value in rt if len(value) != 0]
+
+    def max_stor(self):
+        """
+        calculates event maximums and stores in a list.
+        """
+        storage = []
+        for event in self.event_list:
+            storage.append(reduce(lambda x, y: x if (x > y) else y, event))
+        return storage
+
+    def ranking(self):
+        """
+        sorts the max_storage list, ranks the event maximum from highest to lowest.
+        """
+        rank = sorted(self.max_storage, reverse=True)
+        return rank
+
+    def return_time(self):
+        """
+        calculates the return period of event extremes by formula : return time = number of years / rank No.
+        """
+        rt = []
+        for m in range(len(self.rank)):
+            rt.append(self.num_year / (1 + m))
+        return rt
+
+    def plot_trendline(self):
+        """
+        plots the trend line of return time(year) and maximum open water level above target water level(owl)
+        """
+        plt.figure()
+        # plot the log-scaled rank - return time relationship
+        plt.semilogx(self.return_time_list, self.rank, "b.")
+
+        # ployfit to get the formula of trend line
+        coe = np.polyfit(np.log(self.return_time_list), self.rank, 1)
+        plt.plot(
+            self.return_time_list,
+            coe[0] * np.log(self.return_time_list) + coe[1],
+            "r--",
+            label=str("y=%.4flnx+%.4f" % (coe[0], coe[1])),
+        )
+        plt.xlabel("Return time (year)")
+        plt.ylabel("Maximum open water level above target water level (m)")
+        plt.legend(loc="best")
+        plt.title("Events and return period " + str(self.rank[0]))
+        # plt.show()
+        return coe[0], coe[1]
+
+    def required_storage_capacity(self):
+        """
+        calculates required storage capacity using formula obtained from plot_trendline() for return period ranging
+        from 1 year to 100 year
+        """
+        # a, b --- corresponding coefficients of formula
+        a, b = self.trendline[0], self.trendline[1]
+        # rqd_stor_cap --- list of required storage capacity
+        rqd_stor_cap = []
+        for t in [
+            1,
+            2,
+            5,
+            10,
+            20,
+            50,
+            100,
+        ]:  # for return period of 1, 2, 5, 10, 20, 50, 100 year
+            rqd_stor_cap.append(a * np.log(t) + b)
+        return rqd_stor_cap
+
+
+if __name__ == "__main__":
+    start = time.time()
+    path = urbanwb.urbanwbdir / ".." / "input"
+    data = pd.read_csv(path / "integration_test" / "owl.csv")
+    iters = np.shape(data["owl_11"])[0]
+    owl = pd.Series.tolist(data["owl_11"])
+    ow_level = 1.5
+    k = SDF_Curve(owl, 30, ow_level)
+    print("max", max(k.max_stor()), "min", min(k.max_stor()))
+    print(k.rank)
+    print(k.return_time())
+    print(k.required_storage_capacity())
+    end = time.time()
+    print(f"Model runtime: {end - start:.4f}s")
+    print("-----" * 6)
