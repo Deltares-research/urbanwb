@@ -19,7 +19,6 @@ from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
-import matplotlib.pyplot as plt
 
 
 class Model(object):
