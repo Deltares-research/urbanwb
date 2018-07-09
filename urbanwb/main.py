@@ -103,7 +103,8 @@ class Model(object):
         )
         self.openwater = OpenWater(
             ow_no_meas_area=self.para["tot_ow_area"] - self.para["ow_meas_area"], ow_level=self.para["ow_level"],
-            q_ow_out_cap=self.para["pump_cap"] * 8.64
+            q_ow_out_cap=self.para["pump_cap"] * 8.64   # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
+                                                        # may need modifications later.
         )
 
     def __iter__(self):
@@ -264,8 +265,8 @@ def running(dict_para):
             "q_swds_ow": 0,
             "q_mss_out": 0,
             "q_mss_ow": 0,
-            "so_swds": 0,  # prev_so_swds_t0
-            "so_mss": 0,  # prev_so_mss_t0
+            "so_swds_ow": 0,  # prev_so_swds_t0
+            "so_mss_ow": 0,  # prev_so_mss_t0
             "stor_swds": 0,  # prev_stor_swds_t0
             "stor_mss": 0,  # prev_stor_mss_t0
             "prec_ow": P_atm[0],
@@ -313,125 +314,23 @@ def savecsv(filename, dict_para):
     df.to_csv(outdir / filename, index=True)
 
 
-
-# def batch_run(overridedict):  # can make into args here
-#     para = read_parameter()
-#     para.update(overridedict)
-#     running(para)
-#     start = time.time()
-#     owl_database = []
-#     for q in Q:
-#         q_ow_out_cap = q * 8.64
-#         lst = [
-#             {
-#                 "int_pr": 0,
-#                 "e_atm_pr": 0,
-#                 "intstor_pr": init_intstor_pr_t0,
-#                 "r_pr_meas": 0,
-#                 "r_pr_swds": 0,
-#                 "r_pr_mss": 0,
-#                 "r_pr_up": 0,
-#                 "int_cp": 0,
-#                 "e_atm_cp": 0,
-#                 "intstor_cp": init_intstor_cp_t0,
-#                 "r_cp_meas": 0,
-#                 "r_cp_swds": 0,
-#                 "r_cp_mss": 0,
-#                 "r_cp_up": 0,
-#                 "int_op": 0,
-#                 "e_atm_op": 0,
-#                 "intstor_op": init_intstor_op_t0,
-#                 "p_op_gw": 0,
-#                 "r_op_meas": 0,
-#                 "r_op_swds": 00,
-#                 "r_op_mss": 0.0,
-#                 "r_op_up": 0.0,
-#                 "sum_r_up": 0,
-#                 "init_stor_up": 0,
-#                 "act_infilcap_up": 0,
-#                 "tfac_up": 0,
-#                 "e_atm_up": 0,
-#                 "i_up_uz": 0,
-#                 "fin_stor_up": fin_stor_up_t0,
-#                 "r_up_meas": 0,
-#                 "r_up_ow": 0,
-#                 # theta_uz_t0 could be written as soil_selector(2, 1)[gwlcal(init_gwl_t0)[2]]['moist_cont_eq_rz[mm]']
-#                 "sum_i_uz": 0,
-#                 "r_meas_uz": 0,
-#                 "theta_h3_uz": 0,
-#                 "t_alpha_uz": 0,
-#                 "t_atm_uz": 0,
-#                 "gwl_up": 0,
-#                 "gwl_low": 0,
-#                 "theta_eq_uz": 0,
-#                 "capris_max_uz": 0,
-#                 "p_uz_gw": 0,
-#                 "theta_uz": theta_uz_t0,
-#                 "sum_p_gw": 0,
-#                 "r_meas_gw": 0,
-#                 "gwl_up_1": 0,
-#                 "gwl_low_1": 0,
-#                 "sc_gw": soil_selector(soiltype, croptype)[gwlcal(init_gwl_t0)[2]][
-#                     "stor_coef"
-#                 ],
-#                 "h_gw": 0,
-#                 "s_gw_out": 0,
-#                 "d_gw_ow": 0,
-#                 "gwl": init_gwl_t0,
-#                 "gwl_sl": 0,
-#                 "sum_r_swds": 0,
-#                 "r_meas_swds": 0,
-#                 "sum_r_mss": 0,
-#                 "r_meas_mss": 0,
-#                 "q_swds_ow": 0,
-#                 "q_mss_out": 0,
-#                 "q_mss_ow": 0,
-#                 "so_swds": prev_so_swds_t0,
-#                 "so_mss": prev_so_mss_t0,
-#                 "stor_swds": prev_stor_swds_t0,
-#                 "stor_mss": prev_stor_mss_t0,
-#                 "prec_ow": P_atm[0],
-#                 "e_atm_ow": E_pot_OW[0],
-#                 "sum_r_ow": 0,
-#                 "sum_d_ow": 0,
-#                 "sum_q_ow": 0,
-#                 "sum_so_ow": 0,
-#                 "r_meas_ow": 0,
-#                 "q_ow_out": 0,
-#                 "owl": ow_level,
-#             }
-#         ]
-#         k = Model()
-#         t = 1
-#         while t <= iters - 1:
-#             lst.append(
-#                 k.__next__(
-#                     P_atm[t],
-#                     E_pot_OW[t],
-#                     Ref_grass[t],
-#                     lst[t - 1],
-#                     meas_uz[t],
-#                     meas_gw[t],
-#                     meas_swds[t],
-#                     meas_mss[t],
-#                     meas_ow[t],
-#                 )
-#             )
-#             if t % 10000 == 0:
-#                 print(f"timestep {t} / {iters}")
-#             t += 1
-#         df = pd.DataFrame(lst)
-#         df.insert(0, "Date", date)
-#         owl_database.append(df["owl"])
-#     end = time.time()
-#     print(end - start)
-#     return owl_database
+def batch_run(overridedict, dict_para, Q, num_year, ow_level):  # can make into args here
+    from urbanwb.sdf_curve import SDF_Curve
+    para = dict_para
+    rank_database = []
+    for q in Q:
+        para.update({overridedict: q})
+        owl_data = pd.DataFrame(running(para))["owl"]
+        k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
+        rank_database.append(k.rank)
+    df = pd.DataFrame(rank_database, index=[str(int(q*8.64)) for q in Q])
+    return df.T
 
 
 if __name__ == "__main__":
     # read time series of precipitation and evaporation from input.csv file
     path = urbanwb.urbanwbdir / ".." / "input"
-    InputData = pd.read_csv(path / "input_csv.csv")
+    InputData = pd.read_csv(path / "input_csv_30yr.csv")  # can change to input_csv_30yr
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -447,42 +346,15 @@ if __name__ == "__main__":
     )
 
     # test
-
     dict_para = {**read_parameter_base(), **read_parameter_measure()}  # One large dictionary of parameters
+    # test running()
     running(dict_para)
-    savecsv("results.csv", dict_para)
 
+    # test savecsv()
+    # savecsv("results.csv", dict_para)
 
-    # # plot SDF curve using batch_run()
-    # Q = np.linspace(0.1, 1, 10)
-    # results = []
-    # for q in Q:
-    #     overridedict = {"pump_capacity": q}
-    #     lst = batch_run(overridedict)
-    #     results.append(lst)
-    #
-    # from urbanwb.sdf_curve import SDF_Curve
-    # storage_database = []
-    # for result in results:
-    #     k = OWL(result, 5, 1.5)
-    #     print('max', max(k.max_stor()), 'min', min(k.max_stor()))
-    #     print('number of events', k.num_event)
-    #     print(k.rank)
-    #     print(k.return_time())
-    #     storage_database.append(k.required_storage_capacity())
-    #     print('-----' * 6)
-    #
-    # # print(storage_database)
-    # # print(np.shape(storage_database))
-    # # plot SDF-curve
-    # f = 1  # for unit conversion
-    # labels = ['T=1', 'T=2', 'T=5', 'T=10', 'T=20', 'T=50', 'T=100']
-    # plt.figure()
-    # for i in range(7):
-    #     plt.plot(Q * f, [storage[i] for storage in storage_database], label=labels[i])
-    # plt.legend(loc='best')
-    # plt.xlabel('Discharge capacity')
-    # plt.ylabel('storage capacity')
-    # plt.title('SDF-curve')
-    # plt.grid(True)
-    # plt.show()
+    # test batch_run()
+    m = batch_run("pump_cap", dict_para, np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
+    print(m)
+    print(np.shape(m))
+
