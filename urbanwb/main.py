@@ -19,6 +19,7 @@ from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
+from urbanwb.sdf_curve import SDF_Curve
 
 
 class Model(object):
@@ -314,7 +315,6 @@ def savecsv(filename, dict_para):
 
 
 def batch_run(overridedict, dict_para, Q, num_year, ow_level):  # can make into args here
-    from urbanwb.sdf_curve import SDF_Curve
     para = dict_para
     rank_database = []
     for q in Q:
