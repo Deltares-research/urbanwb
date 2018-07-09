@@ -314,11 +314,10 @@ def savecsv(filename, dict_para):
     df.to_csv(outdir / filename, index=True)
 
 
-def batch_run(overridedict, dict_para, Q, num_year, ow_level):  # can make into args here
-    para = dict_para
+def batch_run(para, varkey, vararr, num_year, ow_level):  # can make into args here
     rank_database = []
-    for q in Q:
-        para.update({overridedict: q})
+    for varval in vararr:
+        para["varkey"] = varval
         owl_data = pd.DataFrame(running(para))["owl"]
         k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
         rank_database.append(k.rank)
@@ -353,7 +352,7 @@ if __name__ == "__main__":
     # savecsv("results.csv", dict_para)
 
     # test batch_run()
-    m = batch_run("pump_cap", dict_para, np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
+    m = batch_run(dict_para, "pump_cap", np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
     print(m)
     print(np.shape(m))
 
