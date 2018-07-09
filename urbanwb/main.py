@@ -321,7 +321,7 @@ def batch_run(para, varkey, vararr, num_year, ow_level):  # can make into args h
         owl_data = pd.DataFrame(running(para))["owl"]
         k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
         rank_database.append(k.rank)
-    df = pd.DataFrame(rank_database, index=[str(int(q*8.64)) for q in Q])
+    df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])
     return df.T
 
 
