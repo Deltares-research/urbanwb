@@ -199,6 +199,13 @@ class Model(object):
 
 
 def running(inputfileName, fileName1, fileName2):
+    """
+
+    takes input data from input file and parameters from configuration file to run one calculation
+    # inputfileName --- the filename of the inputdata of precipitation and evaporation
+    # fileName1 --- the filename of the static form of general parameters
+    # fileName2 --- the filename of the static form of measure parameters
+    """
     start = time.time()
     # read inputdata(P, Ep and Er) from inputfile
     path = urbanwb.urbanwbdir / ".." / "input"
@@ -326,12 +333,24 @@ def running(inputfileName, fileName1, fileName2):
 
 
 def savecsv(inputfileName, fileName1, fileName2, outputfileName):
+    """
+    takes input args to run running function and saves results into the specified outputfile under the 'pysol' folder
+    # inputfileName --- the filename of the inputdata of precipitation and evaporation
+    # fileName1 --- the filename of the static form of general parameters
+    # fileName2 --- the filename of the static form of measure parameters
+    # outputfileName --- the filename of the output file of solutions
+    """
     df = running(inputfileName, fileName1, fileName2)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(outdir / outputfileName, index=True)
 
+
 def run(para, inputfileName):
+    """
+    This function is only used when the batch_run() function is called, repetition of running function,
+    may needs further modifications
+    """
     start = time.time()
     path = urbanwb.urbanwbdir / ".." / "input"
     InputData = pd.read_csv(path / inputfileName)  # can change to input_csv_30yr
@@ -457,7 +476,19 @@ def run(para, inputfileName):
     return df
 
 
-def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_level):  # can make into args here/ this func() is mainly for sdf-curve
+def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_level, outputfileName):
+    """
+    this batch_run function is mainly for get the database for sdf_curve
+    # inputfileName --- the filename of the inputdata of precipitation and evaporation
+    # fileName1 --- the filename of the static form of general parameters
+    # fileName2 --- the filename of the static form of measure parameters
+    # varkey --- the parameter that needs to be updated in the batch run. For SDF-curve it should be pump_cap
+    # outputfileName --- the filename of the output file of solutions
+    # vararr --- the list of values to update varkey. For SDF-curve it should be e.g. [1,3,5]
+    # num_year --- the number of years of the give time series
+    # ow_level --- the target open water level. This variable can be endogenous. Need modifications.
+    # outputfileName --- the filename of the output file of solutions
+    """
     rank_database = []
     para = {**read_parameter_base(fileName1), **read_parameter_measure(fileName2)}
     for varval in vararr:
@@ -468,11 +499,13 @@ def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_
         rank_database.append(k.rank)
         print(k.rank[0])
     df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])  # need modifications here.
-    return df.T
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(outdir / outputfileName, index=True)
 
 
 if __name__ == "__main__":
     fire.Fire()
     # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "pump_cap", [1, 2, 3], 30, 1.5)
-
+    # savecsv("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry.csv")
 

@@ -6,6 +6,7 @@ import fire
 def read_parameter_measure(fileName):
     """
     reads parameters from the TOML-formated static form for measure.
+    # filename --- filename of the static form of general parameters
     """
     path = urbanwb.urbanwbdir / ".." / "input"
     cf = toml.load(str(path) + "\\" + fileName, _dict=dict)
