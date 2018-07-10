@@ -19,7 +19,7 @@ from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
-import matplotlib.pyplot as plt
+from urbanwb.sdf_curve import SDF_Curve
 
 
 class Model(object):
@@ -314,16 +314,14 @@ def savecsv(filename, dict_para):
     df.to_csv(outdir / filename, index=True)
 
 
-def batch_run(overridedict, dict_para, Q, num_year, ow_level):  # can make into args here
-    from urbanwb.sdf_curve import SDF_Curve
-    para = dict_para
+def batch_run(para, varkey, vararr, num_year, ow_level):  # can make into args here
     rank_database = []
-    for q in Q:
-        para.update({overridedict: q})
+    for varval in vararr:
+        para["varkey"] = varval
         owl_data = pd.DataFrame(running(para))["owl"]
         k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
         rank_database.append(k.rank)
-    df = pd.DataFrame(rank_database, index=[str(int(q*8.64)) for q in Q])
+    df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])
     return df.T
 
 
@@ -354,7 +352,7 @@ if __name__ == "__main__":
     # savecsv("results.csv", dict_para)
 
     # test batch_run()
-    m = batch_run("pump_cap", dict_para, np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
+    m = batch_run(dict_para, "pump_cap", np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
     print(m)
     print(np.shape(m))
 
