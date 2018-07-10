@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 import urbanwb
+import fire
 from pathlib import Path
 from collections import OrderedDict
 from urbanwb.pavedroof import PavedRoof
@@ -197,9 +198,26 @@ class Model(object):
         return dictmerged
 
 
-def running(dict_para):
+def running(inputfileName, fileName1, fileName2):
     start = time.time()
+    # read inputdata(P, Ep and Er) from inputfile
+    path = urbanwb.urbanwbdir / ".." / "input"
+    InputData = pd.read_csv(path / inputfileName)  # can change to input_csv_30yr
+    date = InputData["date"]
+    P_atm = InputData["P_atm"]
+    Ref_grass = InputData["Ref.grass"]
+    E_pot_OW = InputData["E_pot_OW"]
+    iters = np.shape(date)[0]
+    # measure fluxes are all zeros for the time being
+    meas_uz, meas_gw, meas_swds, meas_mss, meas_ow = (
+        np.zeros(iters),
+        np.zeros(iters),
+        np.zeros(iters),
+        np.zeros(iters),
+        np.zeros(iters),
+    )
     # read general parameter and parameters for measure from static forms.
+    dict_para = {**read_parameter_base(fileName1), **read_parameter_measure(fileName2)}  # One large dictionary of parameters
     k = Model(dict_para)
     lst = [
         {
@@ -300,35 +318,23 @@ def running(dict_para):
         if t % 10000 == 0:
             print(f"timestep {t} / {iters}")
         t += 1
-    end = time.time()
-    print(end - start)
-    return lst
-
-
-def savecsv(filename, dict_para):
-    lst = running(dict_para)
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
+    end = time.time()
+    print(f'Model runtime: {end - start:.1f}s')
+    return df
+
+
+def savecsv(inputfileName, fileName1, fileName2, outputfileName):
+    df = running(inputfileName, fileName1, fileName2)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(outdir / filename, index=True)
+    df.to_csv(outdir / outputfileName, index=True)
 
-
-def batch_run(para, varkey, vararr, num_year, ow_level):  # can make into args here
-    rank_database = []
-    for varval in vararr:
-        para["varkey"] = varval
-        owl_data = pd.DataFrame(running(para))["owl"]
-        k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
-        rank_database.append(k.rank)
-    df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])
-    return df.T
-
-
-if __name__ == "__main__":
-    # read time series of precipitation and evaporation from input.csv file
+def run(para, inputfileName):
+    start = time.time()
     path = urbanwb.urbanwbdir / ".." / "input"
-    InputData = pd.read_csv(path / "input_csv_30yr.csv")  # can change to input_csv_30yr
+    InputData = pd.read_csv(path / inputfileName)  # can change to input_csv_30yr
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -342,17 +348,131 @@ if __name__ == "__main__":
         np.zeros(iters),
         np.zeros(iters),
     )
+    # read general parameter and parameters for measure from static forms.
+    dict_para = para  # One large dictionary of parameters
+    k = Model(dict_para)
+    lst = [
+        {
+            "int_pr": 0,
+            "e_atm_pr": 0,
+            "intstor_pr": 0,  # init_intstor_pr_t0
+            "r_pr_meas": 0,
+            "r_pr_swds": 0,
+            "r_pr_mss": 0,
+            "r_pr_up": 0,
+            "int_cp": 0,
+            "e_atm_cp": 0,
+            "intstor_cp": 0,  # init_intstor_cp_t0
+            "r_cp_meas": 0,
+            "r_cp_swds": 0,
+            "r_cp_mss": 0,
+            "r_cp_up": 0,
+            "int_op": 0,
+            "e_atm_op": 0,
+            "intstor_op": 0,  # init_intstor_op_t0
+            "p_op_gw": 0,
+            "r_op_meas": 0,
+            "r_op_swds": 0,
+            "r_op_mss": 0.0,
+            "r_op_up": 0.0,
+            "sum_r_up": 0,
+            "init_stor_up": 0,
+            "act_infilcap_up": 0,
+            "tfac_up": 0,
+            "e_atm_up": 0,
+            "i_up_uz": 0,
+            "fin_stor_up": 0,  # fin_stor_up_t0
+            "r_up_meas": 0,
+            "r_up_ow": 0,
+            "sum_i_uz": 0,
+            "r_meas_uz": 0,
+            "theta_h3_uz": 0,
+            "t_alpha_uz": 0,
+            "t_atm_uz": 0,
+            "gwl_up": 0,
+            "gwl_low": 0,
+            "theta_eq_uz": 0,
+            "capris_max_uz": 0,
+            "p_uz_gw": 0,
+            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])
+            [gwlcal(dict_para["init_gwl"])[2]]["moist_cont_eq_rz[mm]"],
+            "sum_p_gw": 0,
+            "r_meas_gw": 0,
+            "gwl_up_1": 0,
+            "gwl_low_1": 0,
+            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[gwlcal(dict_para["init_gwl"])[2]][
+                "stor_coef"
+            ],
+            "h_gw": 0,
+            "s_gw_out": 0,
+            "d_gw_ow": 0,
+            "gwl": dict_para["init_gwl"],
+            "gwl_sl": 0,
+            "sum_r_swds": 0,
+            "r_meas_swds": 0,
+            "sum_r_mss": 0,
+            "r_meas_mss": 0,
+            "q_swds_ow": 0,
+            "q_mss_out": 0,
+            "q_mss_ow": 0,
+            "so_swds_ow": 0,  # prev_so_swds_t0
+            "so_mss_ow": 0,  # prev_so_mss_t0
+            "stor_swds": 0,  # prev_stor_swds_t0
+            "stor_mss": 0,  # prev_stor_mss_t0
+            "prec_ow": P_atm[0],
+            "e_atm_ow": E_pot_OW[0],
+            "sum_r_ow": 0,
+            "sum_d_ow": 0,
+            "sum_q_ow": 0,
+            "sum_so_ow": 0,
+            "r_meas_ow": 0,
+            "q_ow_out": 0,
+            "owl": dict_para["ow_level"],
+        }
+    ]
 
-    # test
-    dict_para = {**read_parameter_base(), **read_parameter_measure()}  # One large dictionary of parameters
-    # test running()
-    running(dict_para)
+    t = 1
+    while t <= iters - 1:
+        lst.append(
+            k.__next__(
+                P_atm[t],
+                E_pot_OW[t],
+                Ref_grass[t],
+                lst[t - 1],
+                meas_uz[t],
+                meas_gw[t],
+                meas_swds[t],
+                meas_mss[t],
+                meas_ow[t],
+            )
+        )
 
-    # test savecsv()
-    # savecsv("results.csv", dict_para)
+        if t % 10000 == 0:
+            print(f"timestep {t} / {iters}")
+        t += 1
+    df = pd.DataFrame(lst)
+    df.insert(0, "Date", date)
+    end = time.time()
+    print(f'Model runtime: {end - start:.1f}s')
+    return df
 
-    # test batch_run()
-    m = batch_run(dict_para, "pump_cap", np.arange(10, 21, 10)/8.64, num_year=30, ow_level=1.5)
-    print(m)
-    print(np.shape(m))
+
+def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_level):  # can make into args here/ this func() is mainly for sdf-curve
+    rank_database = []
+    para = {**read_parameter_base(fileName1), **read_parameter_measure(fileName2)}
+    for varval in vararr:
+        para[str(varkey)] = varval
+        owl_data = pd.DataFrame(run(para, inputfileName))["owl"]
+        print(str(varkey) + "=", varval)
+        k = SDF_Curve(owl_data, num_year=num_year, ow_level=ow_level)
+        rank_database.append(k.rank)
+        print(k.rank[0])
+    df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])  # need modifications here.
+    return df.T
+
+
+if __name__ == "__main__":
+    fire.Fire()
+    # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "pump_cap", [1, 2, 3], 30, 1.5)
+
 
