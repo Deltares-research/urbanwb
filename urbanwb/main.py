@@ -200,7 +200,6 @@ class Model(object):
 
 def running(inputfileName, fileName1, fileName2):
     """
-
     takes input data from input file and parameters from configuration file to run one calculation
     # inputfileName --- the filename of the inputdata of precipitation and evaporation
     # fileName1 --- the filename of the static form of general parameters
@@ -501,7 +500,7 @@ def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_
     df = pd.DataFrame(rank_database, index=[str(int(v*8.64)) for v in vararr])  # need modifications here.
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(outdir / outputfileName, index=True)
+    df.T.to_csv(outdir / outputfileName, index=True)
 
 
 if __name__ == "__main__":
