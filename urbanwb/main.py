@@ -358,18 +358,17 @@ def savecsv(dyn_inp, stat1_inp, stat2_inp, dyn_out):
 
 def saverun(dyn_inp, stat1_inp, stat2_inp, dyn_out, *args, saveall=True):
     """
-    saverun function can save all(by default) results or selected results to the outputfile
+    saverun function can save all (by default) results or selected results to the outputfile
     """
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
-    if saveall is False:
-        df = running(dyn_inp, stat1_inp, stat2_inp)
+    df = running(dyn_inp, stat1_inp, stat2_inp)
+    if saveall:
+        df.to_csv(outdir / dyn_out, index=True)
+    else:
         header = ["Date"]
         header.extend([arg for arg in args])
         df.to_csv(outdir / dyn_out, index=True, columns=header)
-    else:
-        df = running(dyn_inp, stat1_inp, stat2_inp)
-        df.to_csv(outdir / dyn_out, index=True)
 
 
 def run(para, dyn_inp):
