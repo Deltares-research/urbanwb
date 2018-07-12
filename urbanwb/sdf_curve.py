@@ -3,7 +3,6 @@ import pandas as pd
 import time
 from functools import reduce
 import urbanwb
-import matplotlib.pyplot as plt
 
 
 class SDF_Curve(object):
@@ -27,7 +26,7 @@ class SDF_Curve(object):
         self.num_event = len(self.rank)
         self.num_year = num_year
         self.return_time_list = self.return_time()
-        self.trendline = self.plot_trendline()
+        self.trendline = self.trendline()
 
     def event_partition(self):
         """
@@ -66,27 +65,12 @@ class SDF_Curve(object):
             rt.append(self.num_year / (1 + m))
         return rt
 
-    def plot_trendline(self):
+    def trendline(self):
         """
-        plots the trend line of return time(year) and maximum open water level above target water level(owl)
+        get the coefficient k and b of the trend line of return time(year) and maximum open water level above target
+        water level(owl) (y = kln(x)+b)
         """
-        plt.figure()
-        # plot the log-scaled rank - return time relationship
-        plt.semilogx(self.return_time_list, self.rank, "b.")
-
-        # ployfit to get the formula of trend line
         coe = np.polyfit(np.log(self.return_time_list), self.rank, 1)
-        plt.plot(
-            self.return_time_list,
-            coe[0] * np.log(self.return_time_list) + coe[1],
-            "r--",
-            label=str("y=%.4flnx+%.4f" % (coe[0], coe[1])),
-        )
-        plt.xlabel("Return time (year)")
-        plt.ylabel("Maximum open water level above target water level (m)")
-        plt.legend(loc="best")
-        plt.title("Events and return period " + str(self.rank[0]))
-        # plt.show()
         return coe[0], coe[1]
 
     def required_storage_capacity(self):

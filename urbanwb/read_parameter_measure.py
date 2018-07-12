@@ -1,13 +1,15 @@
 import toml
 import urbanwb
+import fire
 
 
-def read_parameter_measure():
+def read_parameter_measure(fileName):
     """
     reads parameters from the TOML-formated static form for measure.
+    # filename --- filename of the static form of general parameters
     """
     path = urbanwb.urbanwbdir / ".." / "input"
-    cf = toml.load(str(path) + "\\static_form_measure.ini", _dict=dict)
+    cf = toml.load(str(path) + "\\" + fileName, _dict=dict)
     choice = cf["choice"]
     validinput = False
     while not validinput:
@@ -49,7 +51,4 @@ def read_parameter_measure():
 
 
 if __name__ == "__main__":
-    print(read_parameter_measure())
-    a= {"foo": 10, "bar": 20}
-    print(read_parameter_measure().update(a))
-    print("This is we need", {**a, **read_parameter_measure()})
+    fire.Fire(read_parameter_measure)
