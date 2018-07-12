@@ -467,6 +467,7 @@ def run(para, inputfileName):
 
         if t % 10000 == 0:
             print(f"timestep {t} / {iters}")
+            print('Complete {:.2%}'.format(t/iters))
         t += 1
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
@@ -486,7 +487,8 @@ def batch_run(inputfileName, fileName1, fileName2, varkey, vararr, num_year, ow_
     # vararr --- the list of values to update varkey. For SDF-curve it should be e.g. [1,3,5]
     # num_year --- the number of years of the give time series
     # ow_level --- the target open water level. This variable can be endogenous. Need modifications.
-    # outputfileName --- the filename of the output file of solutions
+    # outputfileName --- th\
+    e filename of the output file of solutions
     """
     rank_database = []
     para = {**read_parameter_base(fileName1), **read_parameter_measure(fileName2)}
