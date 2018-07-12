@@ -12,7 +12,7 @@
 
 :: run function: save-run
 :: sequence of input: -1.DYN.INP -2. STAT1.INP -3.STAT2.INP -4 DYN.OUT [optional] selected output variable + saveall=False
-python -m urbanwb.main saverun input_csv.csv static_form.ini static_form_measure.ini resultstest.csv [int_pr int_cp] [saveall=False]
+python -m urbanwb.main saverun input_csv.csv static_form.ini static_form_measure.ini resultstest.csv int_pr int_cp --saveall=False
 
 pause
 
