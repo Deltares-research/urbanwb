@@ -334,15 +334,31 @@ def running(dyn_inp, stat1_inp, stat2_inp):
 def savecsv(dyn_inp, stat1_inp, stat2_inp, dyn_out):
     """
     takes input args to run running function and saves results into the specified outputfile under the 'pysol' folder
-    # inputfileName --- the filename of the inputdata of precipitation and evaporation
-    # fileName1 --- the filename of the static form of general parameters
-    # fileName2 --- the filename of the static form of measure parameters
-    # outputfileName --- the filename of the output file of solutions
+    # dyn_inp --- the filename of the dynamic input data of precipitation and evaporation
+    # stat1_inp --- the filename of the static form of general parameters
+    # stat2_inp --- the filename of the static form of measure parameters
+    # dyn_out --- the filename of the output file of solutions
     """
     df = running(dyn_inp, stat1_inp, stat2_inp)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(outdir / dyn_out, index=True)
+
+
+def saverun(dyn_inp, stat1_inp, stat2_inp, dyn_out, *args, saveall=True):
+    """
+    saverun function can save all(by default) results or selected results to the outputfile
+    """
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+    if saveall is False:
+        df = running(dyn_inp, stat1_inp, stat2_inp)
+        header = ["Date"]
+        header.extend([arg for arg in args])
+        df.to_csv(outdir / dyn_out, index=True, columns=header)
+    else:
+        df = running(dyn_inp, stat1_inp, stat2_inp)
+        df.to_csv(outdir / dyn_out, index=True)
 
 
 def run(para, dyn_inp):
@@ -506,6 +522,9 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, num_year, varkey, *vararr)
 
 if __name__ == "__main__":
     fire.Fire()
-    # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "myresults.csv", 30, "pump_cap", 1 ,2 ,3, 4)
+    # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "myresults.csv", 30, "pump_cap", 1)
     # savecsv("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry.csv")
+    saverun("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry0.csv", "int_pr", "int_cp", saveall=False)
+     # saverun("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry1.csv")
+
 
