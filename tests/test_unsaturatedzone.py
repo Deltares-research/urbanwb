@@ -91,7 +91,6 @@ class TestOpenPaved(unittest.TestCase):
         """
         self.uz_1 = UnsaturatedZone(194.1, 6855, 0, soiltype=2, croptype=1)
 
-
     def test_sol(self):
         """
         test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the

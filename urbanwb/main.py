@@ -29,6 +29,7 @@ class Model(object):
     groundwater, sewersystem and openwater module. Inputdata and parameters are read from the 'input.csv' and
     'static_form.ini' under the \\UWM\\input folder.
     """
+
     def __init__(self, dict):
         self.para = dict  # get one large dictionary of parameters
         self.pavedroof = PavedRoof(
@@ -70,8 +71,9 @@ class Model(object):
             croptype=self.para["croptype"],
         )
         self.unsaturatedzone = UnsaturatedZone(
-            theta_uz_t0=soil_selector(self.para["soiltype"], self.para["croptype"])
-                        [gwlcal(self.para["init_gwl"])[2]]["moist_cont_eq_rz[mm]"],
+            theta_uz_t0=soil_selector(self.para["soiltype"], self.para["croptype"])[
+                gwlcal(self.para["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
             uz_no_meas_area=self.para["tot_uz_area"] - self.para["uz_meas_area"],
             uz_meas_area=self.para["uz_meas_area"],
             soiltype=self.para["soiltype"],
@@ -103,9 +105,11 @@ class Model(object):
             stor_mss_cap=self.para["storcap_mss"],
         )
         self.openwater = OpenWater(
-            ow_no_meas_area=self.para["tot_ow_area"] - self.para["ow_meas_area"], ow_level=self.para["ow_level"],
-            q_ow_out_cap=self.para["pump_cap"] * 8.64   # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
-                                                        # may need modifications later.
+            ow_no_meas_area=self.para["tot_ow_area"] - self.para["ow_meas_area"],
+            ow_level=self.para["ow_level"],
+            q_ow_out_cap=self.para["pump_cap"]
+            * 8.64  # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
+            # may need modifications later.
         )
 
     def __iter__(self):
@@ -127,7 +131,9 @@ class Model(object):
             # empty dictionary
             a = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             b = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
-            c = self.openpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, delta_t=self.para["delta_t"])
+            c = self.openpaved.sol(
+                p_atm=p_atm, e_pot_ow=e_pot_ow, delta_t=self.para["delta_t"]
+            )
             d = self.unpaved.sol(
                 p_atm=p_atm,
                 e_pot_ow=e_pot_ow,
@@ -135,10 +141,10 @@ class Model(object):
                 r_cp_up=b["r_cp_up"],
                 r_op_up=c["r_op_up"],
                 prev_mois_uz=prev_lst["theta_uz"],
-                pr_no_meas_area=self.para["tot_pr_area"]-self.para["pr_meas_area"],
-                cp_no_meas_area=self.para["tot_cp_area"]-self.para["cp_meas_area"],
-                op_no_meas_area=self.para["tot_op_area"]-self.para["op_meas_area"],
-                ow_no_meas_area=self.para["tot_ow_area"]-self.para["ow_meas_area"],
+                pr_no_meas_area=self.para["tot_pr_area"] - self.para["pr_meas_area"],
+                cp_no_meas_area=self.para["tot_cp_area"] - self.para["cp_meas_area"],
+                op_no_meas_area=self.para["tot_op_area"] - self.para["op_meas_area"],
+                ow_no_meas_area=self.para["tot_ow_area"] - self.para["ow_meas_area"],
                 delta_t=self.para["delta_t"],
             )
             e = self.unsaturatedzone.sol(
@@ -186,8 +192,9 @@ class Model(object):
                 meas_ow=meas_ow,
                 up_no_meas_area=self.para["tot_up_area"] - self.para["up_meas_area"],
                 gw_no_meas_area=self.para["tot_gw_area"] - self.para["gw_meas_area"],
-                swds_no_meas_area=self.para["tot_swds_area"] - self.para["swds_meas_area"],
-                mss_no_meas_area=self.para["tot_mss_area"] - self.para['mss_meas_area'],
+                swds_no_meas_area=self.para["tot_swds_area"]
+                - self.para["swds_meas_area"],
+                mss_no_meas_area=self.para["tot_mss_area"] - self.para["mss_meas_area"],
                 tot_meas_area=self.para["tot_meas_area"],
                 total_area=self.para["tot_area"],
                 delta_t=self.para["delta_t"],
@@ -223,7 +230,10 @@ def running(dyn_inp, stat1_inp, stat2_inp):
         np.zeros(iters),
     )
     # read general parameter and parameters for measure from static forms.
-    dict_para = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}  # One large dictionary of parameters
+    dict_para = {
+        **read_parameter_base(stat1_inp),
+        **read_parameter_measure(stat2_inp),
+    }  # One large dictionary of parameters
     k = Model(dict_para)
     lst = [
         {
@@ -255,7 +265,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
             "tfac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,
-            "fin_stor_up": 0, # fin_stor_up_t0
+            "fin_stor_up": 0,  # fin_stor_up_t0
             "r_up_meas": 0,
             "r_up_ow": 0,
             "sum_i_uz": 0,
@@ -268,15 +278,16 @@ def running(dyn_inp, stat1_inp, stat2_inp):
             "theta_eq_uz": 0,
             "capris_max_uz": 0,
             "p_uz_gw": 0,
-            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])
-                        [gwlcal(dict_para["init_gwl"])[2]]["moist_cont_eq_rz[mm]"],
+            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
             "r_meas_gw": 0,
             "gwl_up_1": 0,
             "gwl_low_1": 0,
-            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[gwlcal(dict_para["init_gwl"])[2]][
-                "stor_coef"
-            ],
+            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["stor_coef"],
             "h_gw": 0,
             "s_gw_out": 0,
             "d_gw_ow": 0,
@@ -327,7 +338,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     end = time.time()
-    print(f'Model runtime: {end - start:.1f}s')
+    print(f"Model runtime: {end - start:.1f}s")
     return df
 
 
@@ -428,15 +439,16 @@ def run(para, dyn_inp):
             "theta_eq_uz": 0,
             "capris_max_uz": 0,
             "p_uz_gw": 0,
-            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])
-            [gwlcal(dict_para["init_gwl"])[2]]["moist_cont_eq_rz[mm]"],
+            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
             "r_meas_gw": 0,
             "gwl_up_1": 0,
             "gwl_low_1": 0,
-            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[gwlcal(dict_para["init_gwl"])[2]][
-                "stor_coef"
-            ],
+            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["stor_coef"],
             "h_gw": 0,
             "s_gw_out": 0,
             "d_gw_ow": 0,
@@ -488,7 +500,7 @@ def run(para, dyn_inp):
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     end = time.time()
-    print(f'Model runtime: {end - start:.1f}s')
+    print(f"Model runtime: {end - start:.1f}s")
     return df
 
 
@@ -511,7 +523,7 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, num_year, varkey, *vararr)
         para[str(varkey)] = varval
         owl_data = pd.DataFrame(run(para, dyn_inp))["owl"]
         print(f"{varkey} = {varval}")
-        k = SDF_Curve(owl_data, num_year=num_year, ow_level=para['ow_level'])
+        k = SDF_Curve(owl_data, num_year=num_year, ow_level=para["ow_level"])
         rank_database.append(k.rank)
         print(f"Maximum height above target water level is {k.rank[0]}")
     df = pd.DataFrame(rank_database, index=[f"{v*8.64}" for v in vararr])
@@ -524,7 +536,13 @@ if __name__ == "__main__":
     fire.Fire()
     # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "myresults.csv", 30, "pump_cap", 1)
     # savecsv("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry.csv")
-    saverun("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry0.csv", "int_pr", "int_cp", saveall=False)
-     # saverun("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry1.csv")
-
-
+    saverun(
+        "input_csv.csv",
+        "static_form.ini",
+        "static_form_measure.ini",
+        "resultstry0.csv",
+        "int_pr",
+        "int_cp",
+        saveall=False,
+    )
+    # saverun("input_csv.csv", "static_form.ini", "static_form_measure.ini", "resultstry1.csv")
