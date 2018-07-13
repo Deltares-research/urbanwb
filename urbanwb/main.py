@@ -8,6 +8,7 @@ import urbanwb
 import fire
 from pathlib import Path
 from collections import OrderedDict
+from tqdm import trange
 from urbanwb.pavedroof import PavedRoof
 from urbanwb.closedpaved import ClosedPaved
 from urbanwb.openpaved import OpenPaved
@@ -317,7 +318,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     ]
 
     t = 1
-    while t <= iters - 1:
+    for t in trange(1, iters):
         lst.append(
             k.__next__(
                 P_atm[t],
@@ -332,9 +333,6 @@ def running(dyn_inp, stat1_inp, stat2_inp):
             )
         )
 
-        if t % 10000 == 0:
-            print(f"timestep {t} / {iters}")
-        t += 1
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     end = time.time()
@@ -477,7 +475,7 @@ def run(param, dyn_inp):
     ]
 
     t = 1
-    while t <= iters - 1:
+    for t in trange(1, iters):
         lst.append(
             k.__next__(
                 P_atm[t],
@@ -492,10 +490,6 @@ def run(param, dyn_inp):
             )
         )
 
-        if t % 10000 == 0:
-            print(f"timestep {t} / {iters}")
-            # print(f"{(t/iters):.2%} completed.")
-        t += 1
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     end = time.time()
