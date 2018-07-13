@@ -1,16 +1,16 @@
 import math
 import toml
-import urbanwb
 import fire
+from pathlib import Path
 
 
-def read_parameter_base(fileName):
+def read_parameter_base(stat1_inp):
     """
     reads parameters from the TOML-formated static form.
-    # filename --- filename of the static form of parameters for measures.
+    # stat1_inp --- filename of the static form of parameters for measures.
     """
-    path = urbanwb.urbanwbdir / ".." / "input"
-    cf = toml.load(str(path) + "\\" + fileName, _dict=dict)
+    path = Path.cwd() / ".." / "input"
+    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
     delta_t = cf["timestep"] / 86400  # delta_t, converted from second to day
     tot_area = cf["tot_area"]  # total area
     soiltype = cf["soiltype"]  # soil type
@@ -294,4 +294,6 @@ def read_parameter_base(fileName):
 
 
 if __name__ == "__main__":
+    # print(read_parameter_base("static_form.ini"))
     fire.Fire(read_parameter_base)
+
