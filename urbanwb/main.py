@@ -96,7 +96,8 @@ class Model(object):
             croptype=self.param["croptype"],
         )
         self.sewersystem = SewerSystem(
-            swds_no_meas_area=self.param["tot_swds_area"] - self.param["swds_meas_area"],
+            swds_no_meas_area=self.param["tot_swds_area"]
+            - self.param["swds_meas_area"],
             mss_no_meas_area=self.param["tot_mss_area"] - self.param["mss_meas_area"],
             prev_stor_swds_t0=0,
             prev_so_swds_t0=0,
@@ -201,7 +202,8 @@ class Model(object):
                 gw_no_meas_area=self.param["tot_gw_area"] - self.param["gw_meas_area"],
                 swds_no_meas_area=self.param["tot_swds_area"]
                 - self.param["swds_meas_area"],
-                mss_no_meas_area=self.param["tot_mss_area"] - self.param["mss_meas_area"],
+                mss_no_meas_area=self.param["tot_mss_area"]
+                - self.param["mss_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
                 total_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
@@ -519,25 +521,30 @@ def run(param, dyn_inp):
     return df
 
 
-def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, num_year, varkey, *vararr):
+def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
     """
-    this batch_run function is mainly for get the database for sdf_curve.
+    this batch_run function is mainly for getting the database for sdf_curve.
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
         stat1_inp (string): the filename of the static form of general parameters
         stat2_inp (string): the filename of the static form of measure parameters
         dyn_out (string): the filename of the output file of solutions
-        num_year (int): the number of years of the given time series
-        varkey (string): the parameter that needs to be updated in the batch run. For SDF-curve it should be pump_cap
-        vararr (float): the list of values to update varkey. For SDF-curve it should be e.g. [1,3,5]
+        vararr (float): the list of values to update "pump_cap".
     """
     rank_database = []
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+    path = Path.cwd() / ".." / "input"
+    InputData = pd.read_csv(path / dyn_inp)
+    date = InputData["date"]
+    iters = np.shape(date)[0]
+    dt = param["delta_t"]
+    num_year = round((dt * iters) / 365)
+    print(f"The number of year of the input time series is {num_year} year")
     for varval in vararr:
-        param[str(varkey)] = varval
+        param["pump_cap"] = varval
         owl_data = pd.DataFrame(run(param, dyn_inp))["owl"]
-        print(f"{varkey} = {varval}")
+        print(f"pump_capacity = {varval}")
         k = SDF_Curve(owl_data, num_year=num_year, ow_level=param["ow_level"])
         rank_database.append(k.rank)
         print(f"Maximum height above target water level is {k.rank[0]}")
@@ -545,6 +552,32 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, num_year, varkey, *vararr)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.T.to_csv(outdir / dyn_out, index=True)
+
+
+def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
+    """
+    this batch_run function is to batch-run specified parameter with a set of parameters and save all results in csv
+    for every case.
+
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the general filename of the output file of solutions
+        varkey (string): the parameter that needs to be updated in the batch run.
+        vararr (float): values to update varkey.
+    """
+    import os
+
+    param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+    for varval in vararr:
+        param[str(varkey)] = varval
+        df = run(param, dyn_inp)
+        new_dyn_out = f"{varkey}={varval}_" + dyn_out
+        fullname = os.path.join(outdir, new_dyn_out)
+        df.to_csv(fullname, index=True)
 
 
 if __name__ == "__main__":

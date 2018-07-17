@@ -17,7 +17,6 @@ def gwlcal(x):
         * **index2** -- index of gwl_low value in the database.
     """
 
-
     gwl_up = float(x)
     if 0 <= gwl_up <= 2.5:
         gwl_up = math.floor(gwl_up * 10) / 10.0

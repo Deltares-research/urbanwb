@@ -93,7 +93,6 @@ class Groundwater:
 
         """
 
-
         # parameter
         if self.gw_no_meas_area == 0:
             sum_p_gw = (

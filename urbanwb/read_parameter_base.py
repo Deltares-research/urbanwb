@@ -301,4 +301,3 @@ def read_parameter_base(stat1_inp):
 if __name__ == "__main__":
     # print(read_parameter_base("static_form.ini"))
     fire.Fire(read_parameter_base)
-

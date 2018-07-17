@@ -120,12 +120,5 @@ selector
     :undoc-members:
     :show-inheritance:
 
-test_sphinx
-~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: urbanwb.Sphinx_tutorial
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 
