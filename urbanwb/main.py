@@ -4,7 +4,6 @@
 import numpy as np
 import pandas as pd
 import time
-import urbanwb
 import fire
 from pathlib import Path
 from collections import OrderedDict
@@ -26,9 +25,13 @@ from urbanwb.sdf_curve import SDF_Curve
 
 class Model(object):
     """
-    A model consists of all eight components namely pavedroof, closedpaved, openpaved, unpaved, unsaturatedzone,
-    groundwater, sewersystem and openwater module. Inputdata and parameters are read from the 'input.csv' and
-    'static_form.ini' under the \\UWM\\input folder.
+    Creates an instance of Model class which consists of consists of all eight components namely pavedroof, closedpaved,
+    openpaved, unpaved, unsaturatedzone, groundwater, sewersystem and openwater module. Iterates __next__() over time
+    steps to get solutions at each time step.
+
+    Args:
+        dict (dictionary): A dictionary of general parameters and parameters for measure which are read from dynamic
+        input (.csv) and configuration file (.ini)
     """
 
     def __init__(self, dict):
@@ -128,6 +131,9 @@ class Model(object):
         meas_mss,
         meas_ow,
     ):
+        """
+        Calculates storage, fluxes, coefficients and other required outcomes at current time step.
+        """
         try:
             # empty dictionary
             a = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
@@ -209,10 +215,16 @@ class Model(object):
 def running(dyn_inp, stat1_inp, stat2_inp):
     """
     takes input data from input file and parameters from configuration file to run one calculation
-    # dyn_inp --- the filename of the inputdata of precipitation and evaporation
-    # stat1_inp --- the filename of the static form of general parameters
-    # stat2_inp --- the filename of the static form of measure parameters
+
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+
+    Returns:
+        (dataframe): A dataframe of all desired results for all time steps
     """
+
     start = time.time()
     # read inputdata(P, Ep and Er) from dyn_inp
     path = Path.cwd() / ".." / "input"
@@ -343,10 +355,12 @@ def running(dyn_inp, stat1_inp, stat2_inp):
 def savecsv(dyn_inp, stat1_inp, stat2_inp, dyn_out):
     """
     takes input args to run running function and saves results into the specified outputfile under the 'pysol' folder
-    # dyn_inp --- the filename of the dynamic input data of precipitation and evaporation
-    # stat1_inp --- the filename of the static form of general parameters
-    # stat2_inp --- the filename of the static form of measure parameters
-    # dyn_out --- the filename of the output file of solutions
+
+    Args:
+        dyn_inp (string): the filename of the dynamic input data of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the filename of the output file of solutions
     """
     df = running(dyn_inp, stat1_inp, stat2_inp)
     outdir = Path("pysol")
@@ -357,6 +371,14 @@ def savecsv(dyn_inp, stat1_inp, stat2_inp, dyn_out):
 def saverun(dyn_inp, stat1_inp, stat2_inp, dyn_out, *args, saveall=True):
     """
     saverun function can save all (by default) results or selected results to the outputfile
+
+    Args:
+        dyn_inp (string): the filename of the dynamic input data of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the filename of the output file of solutions
+        *args (string): the name(s) of column(s) to be saved
+        saveall (bool): whether to save all results or part of results
     """
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -499,14 +521,16 @@ def run(param, dyn_inp):
 
 def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, num_year, varkey, *vararr):
     """
-    this batch_run function is mainly for get the database for sdf_curve
-    # dyn_inp --- the filename of the inputdata of precipitation and evaporation
-    # stat1_inp --- the filename of the static form of general parameters
-    # stat2_inp --- the filename of the static form of measure parameters
-    # dyn_out --- the filename of the output file of solutions
-    # num_year --- the number of years of the given time series
-    # varkey --- the parameter that needs to be updated in the batch run. For SDF-curve it should be pump_cap
-    # vararr --- the list of values to update varkey. For SDF-curve it should be e.g. [1,3,5]
+    this batch_run function is mainly for get the database for sdf_curve.
+
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the filename of the output file of solutions
+        num_year (int): the number of years of the given time series
+        varkey (string): the parameter that needs to be updated in the batch run. For SDF-curve it should be pump_cap
+        vararr (float): the list of values to update varkey. For SDF-curve it should be e.g. [1,3,5]
     """
     rank_database = []
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}

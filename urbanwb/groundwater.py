@@ -5,7 +5,21 @@ from urbanwb.gwlcalculator import gwlcal
 
 class Groundwater:
     """
-    creates an instance of groundwater class with given states and properties, iterates sol function at each time step.
+    creates an instance of Groundwater class with given states and properties, iterates sol() function at each time step
+    .
+
+    Args:
+        self.prev_gwl (float): groundwater level at previous time step [m-SL]
+        self.prev_gwl_sl (float): groundwater level above surface level at previous time step [m-SL]
+        self.gw_no_meas_area (float): groundwater area (without a measure) [m^2]
+        self.gw_meas_area (float): groundwater area (with a measure) [m^2]
+        self.seep_def (float): seepage defined by deep groundwater level and flow resistance [0=flux; 1=level]
+        self.w (float): groundwater drainage resistance [d]
+        self.vc (float): flow resistance between deep and shallow groundwater [d]
+        self.h_deepgw (float): defined hydraulic head of deep groundwater [m-SL]
+        self.flux (float): defined constant downward seepage flux [mm/d]
+        self.soiltype (int): soil type
+        self.croptype (int): crop type
     """
 
     def __init__(
@@ -23,24 +37,11 @@ class Groundwater:
     ):
 
         # state
-        # prev_gwl --- groundwater level at previous time step [m-SL].
-        # prev_gwl_sl --- groundwater level above surface level at previous time step [m-SL].
-
         self.prev_gwl = init_gwl_t0
         self.prev_gwl_sl = 0
 
         # properties
-        # gw_no_meas_area --- groundwater area (without a measure) [m^2].
-        # gw_meas_area --- groundwater area (with a measure) [m^2].
-        # seep_def --- seepage defined by deep groundwater level and flow resistance [0=flux; 1=level].
-        # w --- groundwater drainage resistance [d].
-        # vc --- flow resistance between deep and shallow groundwater [d].
-        # h_deepgw --- defined hydraulic head of deep groundwater [m-SL].
-        # flux --- defined constant downward seepage flux [mm/d]
-        # soiltype --- soil type
-        # croptype --- crop type
         # soil_prm --- soil parameter database determined by soil type and crop type.
-
         self.gw_no_meas_area = gw_no_meas_area
         self.gw_meas_area = gw_meas_area
         self.seep_def = seep_def
@@ -63,19 +64,37 @@ class Groundwater:
         prev_owl,
         delta_t=1 / 24,
     ):
+        """
+        Calculates storage and fluxes during current time step.
+
+        Args:
+            p_uz_gw (float): percolation from unsaturated zone to groundwater [mm]
+            uz_no_meas_area (float): area of unsaturated zone (without a measure) [m^2]
+            p_op_gw (float): percolation from open paved are to groundwater [mm]
+            op_no_meas_area (float): area of open paved (without a measure) [m^2]
+            tot_meas_area (float): total measure area [m^2]
+            meas_gw (float): measure inflow to groundwater [mm]
+            prev_owl (float): open water level at the previous time step [m-SL]
+            delta_t (float): time step size [d]
+
+        Returns:
+            (dictionary): A dictionary of storage and fluxes during current time step:
+
+            * **sum_p_gw** -- Total percolation from unsaturated zone and from open paved area to groundwater during the current time step [mm]
+            * **r_meas_gw** -- Inflow from measure area (if applicable) during current time step [mm]
+            * **gwl_up** --
+            * **gwl_low** --
+            * **sc_gw** -- Storage coefficient of the groundwater for the current time step [-]
+            * **h_gw** -- Groundwater level at the end of the current time step [m-SL]
+            * **s_gw_out** -- downward seepage flux to deep groundwater during current time step [mm]
+            * **d_gw_ow**  -- Groundwater drainage to the open water for the current time step [mm]
+            * **gwl** -- Groundwater level below surface level at the end of the current time step [m-SL]
+            * **gwl_sl** -- Groundwater level above surface level at the end of the current time step [m-SL]
+
+        """
+
 
         # parameter
-        # sum_p_gw --- Total percolation from unsaturated zone and from open paved area to groundwater
-        # during the current time step [mm].
-        # r_meas_gw --- Inflow from measure area (if applicable) during current time step [mm]
-        # sc_gw --- Storage coefficient of the groundwater for the current time step [-].
-        # h_gw --- Groundwater level at the end of the current time step [m-SL].
-        # prev_owl --- Open water level at the previous time step [m-SL].
-        # s_gw_out --- downward seepage flux to deep groundwater during current time step [mm].
-        # d_gw_ow  --- Groundwater drainage to the open water for the current time step [mm].
-        # gwl --- Groundwater level below surface level at the end of the current time step [m-SL].
-        # gwl_sl --- Groundwater level above surface level at the end of the current time step [m-SL].
-
         if self.gw_no_meas_area == 0:
             sum_p_gw = (
                 r_meas_gw

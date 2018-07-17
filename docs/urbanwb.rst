@@ -1,34 +1,12 @@
 urbanwb package
 ===============
 
-Submodules
-----------
+Introduction
+-------------
+Dynamic Urban Water Balance Model is proposed and invented by Toine Vergroesen at Deltares. The first version of UWB model is in excel.
+In 2018 July, the model is reprogrammed in Python by Wenxing Zhang and Martijn Visser.
 
-urbanwb.closedpaved module
---------------------------
-
-.. automodule:: urbanwb.closedpaved
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.groundwater module
---------------------------
-
-.. automodule:: urbanwb.groundwater
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.gwlcalculator module
-----------------------------
-
-.. automodule:: urbanwb.gwlcalculator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.main module
+Main module
 -------------------
 
 .. automodule:: urbanwb.main
@@ -36,99 +14,118 @@ urbanwb.main module
     :undoc-members:
     :show-inheritance:
 
-urbanwb.openpaved module
-------------------------
+Sub modules
+------------
 
-.. automodule:: urbanwb.openpaved
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.openwater module
-------------------------
-
-.. automodule:: urbanwb.openwater
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.pavedroof module
-------------------------
+Pavedroof
+~~~~~~~~~~~~~
 
 .. automodule:: urbanwb.pavedroof
     :members:
     :undoc-members:
     :show-inheritance:
 
-urbanwb.read\_parameter\_base module
-------------------------------------
+Closedpaved
+~~~~~~~~~~~~~~
 
-.. automodule:: urbanwb.read_parameter_base
+.. automodule:: urbanwb.closedpaved
     :members:
     :undoc-members:
     :show-inheritance:
 
-urbanwb.read\_parameter\_measure module
----------------------------------------
+Openpaved
+~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: urbanwb.read_parameter_measure
+.. automodule:: urbanwb.openpaved
     :members:
     :undoc-members:
     :show-inheritance:
 
-urbanwb.sdf\_curve module
--------------------------
-
-.. automodule:: urbanwb.sdf_curve
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.selector module
------------------------
-
-.. automodule:: urbanwb.selector
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.sewersystem module
---------------------------
-
-.. automodule:: urbanwb.sewersystem
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.test module
--------------------
-
-.. automodule:: urbanwb.test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-urbanwb.unpaved module
-----------------------
+Unpaved
+~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: urbanwb.unpaved
     :members:
     :undoc-members:
     :show-inheritance:
 
-urbanwb.unsaturatedzone module
-------------------------------
+Unsaturatedzone
+~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: urbanwb.unsaturatedzone
     :members:
     :undoc-members:
     :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: urbanwb
+Groundwater
+~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: urbanwb.groundwater
     :members:
     :undoc-members:
     :show-inheritance:
+
+Sewersystem
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.sewersystem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Openwater
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.openwater
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Gwlcalculator
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.gwlcalculator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+read\_parameter\_base
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.read_parameter_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+read\_parameter\_measure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.read_parameter_measure
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sdf\_curve
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.sdf_curve
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+selector
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.selector
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+test_sphinx
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: urbanwb.Sphinx_tutorial
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+

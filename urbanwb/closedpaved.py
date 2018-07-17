@@ -1,6 +1,17 @@
 class ClosedPaved:
     """
-    creates an instance of closed paved class with given states and properties, iterates sol function at each time step.
+    Creates an instance of ClosedPaved class with given states and properties, iterates sol() function at each time step
+    .
+
+    Args:
+        self.init_intstor_cp (float): initial interception storage on closed paved area [mm]
+        self.cp_no_meas_area (float): closed paved area (without a measure) [m^2]
+        self.cp_meas_area (float): closed paved area (with a measure) [m^2]
+        self.cp_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
+        self.intstorcap (float): predefined storage capacity on closed paved area [mm]
+        self.stormfrac (float): part of urban area with storm water drainage system [-]
+        self.mxdfrac (float): part of urban area with mixed sewer system [-]
+        self.discfrac (float): part of closed paved area that is disconnected [-]
     """
 
     def __init__(
@@ -13,20 +24,14 @@ class ClosedPaved:
         stormfrac_cp=1.0,
         discfrac_cp=0.0,
     ):
+        """
+        Creates an instance of ClosedPaved class.
+        """
 
         # state
-        # init_intstor_cp --- initial interception storage on closed paved area [mm].
         self.init_intstor_cp = init_intstor_cp_t0
 
         # properties
-        # cp_no_meas_area --- closed paved area (without a measure) [m^2].
-        # cp_meas_area --- closed paved area (with a measure) [m^2].
-        # cp_meas_inflow_area --- measure inflow area (>= measure area and <= total area) [m^2].
-        # intstorcap_cp --- predefined storage capacity on closed paved area [mm].
-        # stormfrac_cp --- part of urban area with storm water drainage system [-].
-        # mxdfrac --- part of urban area with mixed sewer system [-].
-        # discfrac_cp --- part of closed paved area that is disconnected [-].
-
         self.cp_no_meas_area = cp_no_meas_area
         self.cp_meas_area = cp_meas_area
         self.cp_meas_inflow_area = cp_meas_inflow_area
@@ -36,19 +41,33 @@ class ClosedPaved:
         self.discfrac = discfrac_cp
 
     def inflowfac(self):
+        """
+        Calculates measure inflow factor.
+
+        Returns:
+            (float): measure inflow factor of closed paved area
+        """
         return (self.cp_meas_inflow_area - self.cp_meas_area) / self.cp_no_meas_area
 
     def sol(self, p_atm, e_pot_ow):
+        """
+        Calculates storage and fluxes during current time step.
 
-        # parameters
-        # int_cp --- Interception on closed paved after rainfall during current time step [mm].
-        # e_atm_cp --- Evaporation from interception storage on closed paved during current time step [mm].
-        # intstor_cp --- Remaining interception storage on closed paved at the end of the current time step [mm].
-        # r_cp_meas --- Runoff from closed paved to an area with a drainage measure
-        # (not necessarily on the closed paved area itself) [mm].
-        # r_cp_swds --- Runoff from closed paved to the storm water drainage system [mm].
-        # r_cp_mss --- Runoff from closed paved to the mixed sewer system [mm].
-        # r_cp_up --- Runoff from closed paved to unpaved area [mm].
+        Args:
+            p_atm (float): precipitation during current time step
+            e_pot_ow (float): potential evaporation during current time step
+
+        Returns:
+            (dictionary): A dictionary of storage and fluxes during current time step:
+
+            * **int_cp** -- Interception on closed paved after rainfall during current time step [mm]
+            * **e_atm_cp** -- Evaporation from interception storage on closed paved during current time step [mm]
+            * **intstor_cp** -- Remaining interception storage on closed paved at the end of the current time step [mm]
+            * **r_cp_meas** -- Runoff from closed paved to an area with a drainage measure (not necessarily on the closed paved area itself) [mm]
+            * **r_cp_swds** -- Runoff from closed paved to the storm water drainage system [mm]
+            * **r_cp_mss** -- Runoff from closed paved to the mixed sewer system [mm]
+            * **r_cp_up** -- Runoff from closed paved to unpaved area [mm]
+        """
 
         if self.cp_no_meas_area == 0:
             int_cp = (

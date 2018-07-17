@@ -1,6 +1,17 @@
 class OpenPaved:
     """
-    creates an instance of open paved class with given states and properties, iterates sol function at each time step.
+    Creates an instance of OpenPaved class with given states and properties, iterates sol() function at each time step.
+
+    Args:
+        self.init_intstor_op (float): initial interception storage on open paved [mm]
+        self.op_no_meas_area (float): open paved area (without a measure) [m^2]
+        self.op_meas_area (float): open paved area (with a measure) [m^2]
+        self.op_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
+        self.intstorcap (float): predefined storage capacity on open paved [mm]
+        self.stormfrac (float): part of urban area with storm water drainage system [-]
+        self.mxdfrac (float): part of urban area with mixed sewer system [-]
+        self.discfrac (float): part of open paved area that is disconnected [-]
+        self.infilcap (float): predefined infiltration capacity on open paved area [mm/d]
     """
 
     def __init__(
@@ -14,21 +25,14 @@ class OpenPaved:
         discfrac_op=0.0,
         infilcap_op=1.0,
     ):
+        """
+        Creates an instance of OpenPaved class
+        """
 
         # state
-        # init_intstor_op --- initial interception storage on open paved [mm].
         self.init_intstor_op = init_intstor_op_t0
 
         # properties
-        # op_no_meas_area --- open paved area (without a measure) [m^2].
-        # op_meas_area --- open paved area (with a measure) [m^2].
-        # op_meas_inflow_area --- measure inflow area (>= measure area and <= total area) [m^2].
-        # intstorcap_op --- predefined storage capacity on open paved [mm].
-        # stormfrac_op --- part of urban area with storm water drainage system [-].
-        # mxdfrac--- part of urban area with mixed sewer system [-].
-        # discfrac_op --- part of open paved area that is disconnected [-].
-        # infilcap_op --- predefined infiltration capacity on open paved area [mm/d].
-
         self.op_no_meas_area = op_no_meas_area
         self.op_meas_area = op_meas_area
         self.op_meas_inflow_area = op_meas_inflow_area
@@ -39,20 +43,36 @@ class OpenPaved:
         self.infilcap = infilcap_op
 
     def inflowfac(self):
+        """
+        Calculates measure inflow factor.
+
+        Returns:
+            (float): measure inflow factor of open paved area
+        """
         return (self.op_meas_inflow_area - self.op_meas_area) / self.op_no_meas_area
 
     def sol(self, p_atm, e_pot_ow, delta_t):
+        """
+        Calculates storage and fluxes during current time step.
 
-        # parameters
-        # int_op --- Interception on open paved after rainfall during current time step [mm].
-        # e_atm_op --- Evaporation from interception storage on open paved during current time step [mm].
-        # intstor_op --- Remaining interception storage on open paved at the end of the current time step [mm].
-        # p_op_gw --- Percolation of interception storage on open paved to groundwater during current time step [mm].
-        # r_op_meas --- Runoff from open paved to an area with a drainage measure
-        # (not necessarily on the open paved area itself) [mm].
-        # r_op_swds --- Runoff from open paved to the storm water drainage system [mm].
-        # r_op_mss --- Runoff from open paved to the mixed sewer system [mm].
-        # r_op_up --- Runoff from open paved to unpaved area [mm].
+        Args:
+            p_atm (float): precipitation during current time step [mm]
+            e_pot_ow (float): potential evaporation during current time step [mm]
+            delta_t (float): size of time step [d]
+
+        Returns:
+            (dictionary): A dictionary of storage and fluxes during current time step:
+
+            * **int_op** -- Interception on open paved after rainfall during current time step [mm]
+            * **e_atm_op** -- Evaporation from interception storage on open paved during current time step [mm]
+            * **intstor_op** -- Remaining interception storage on open paved at the end of the current time step [mm]
+            * **p_op_gw** -- Percolation of interception storage on open paved to groundwater during current time step [mm]
+            * **r_op_meas** -- Runoff from open paved to an area with a drainage measure (not necessarily on the open paved area itself) [mm]
+            * **r_op_swds** -- Runoff from open paved to the storm water drainage system [mm]
+            * **r_op_mss** -- Runoff from open paved to the mixed sewer system [mm]
+            * **r_op_up** -- Runoff from open paved to unpaved area [mm]
+
+        """
 
         if self.op_no_meas_area == 0:
             int_op = (
@@ -67,7 +87,7 @@ class OpenPaved:
             intstor_op = int_op - e_atm_op
 
             p_op_gw = max(
-                0,
+                0.0,
                 min(
                     p_atm - (self.intstorcap - self.init_intstor_op),
                     self.infilcap * delta_t,

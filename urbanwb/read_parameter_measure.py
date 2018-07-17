@@ -6,7 +6,12 @@ from pathlib import Path
 def read_parameter_measure(stat2_inp):
     """
     reads parameters from the TOML-formated static form for measure.
-    # stat2_inp --- filename of the static form of general parameters
+
+    Args:
+        stat2_inp (string): filename of the static form of general parameters
+
+    Returns:
+        (dictionary): A dictionary of parameters for measure.
     """
     path = Path.cwd() / ".." / "input"
     cf = toml.load(str(path) + "\\" + stat2_inp, _dict=dict)
