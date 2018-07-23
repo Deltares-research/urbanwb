@@ -1,7 +1,6 @@
 class ClosedPaved:
     """
-    Creates an instance of ClosedPaved class with given states and properties, iterates sol() function at each time step
-    .
+    Creates an instance of ClosedPaved class with given states and properties, iterates sol() function at each time step.
 
     Args:
         self.init_intstor_cp (float): initial interception storage on closed paved area [mm]
@@ -10,7 +9,6 @@ class ClosedPaved:
         self.cp_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
         self.intstorcap (float): predefined storage capacity on closed paved area [mm]
         self.stormfrac (float): part of urban area with storm water drainage system [-]
-        self.mxdfrac (float): part of urban area with mixed sewer system [-]
         self.discfrac (float): part of closed paved area that is disconnected [-]
     """
 
@@ -29,6 +27,7 @@ class ClosedPaved:
         """
 
         # state
+        # init_intstor_cp_t0 (float): initial interception on closed paved at t=0
         self.init_intstor_cp = init_intstor_cp_t0
 
         # properties
@@ -37,12 +36,13 @@ class ClosedPaved:
         self.cp_meas_inflow_area = cp_meas_inflow_area
         self.intstorcap = intstorcap_cp
         self.stormfrac = stormfrac_cp
+        # self.mxdfrac (float): part of urban area with mixed sewer system [-]
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_cp
 
     def inflowfac(self):
         """
-        Calculates measure inflow factor.
+        Calculates measure inflow factor of closed paved area.
 
         Returns:
             (float): measure inflow factor of closed paved area
@@ -51,14 +51,14 @@ class ClosedPaved:
 
     def sol(self, p_atm, e_pot_ow):
         """
-        Calculates storage and fluxes during current time step.
+        Calculates states and fluxes during current time step.
 
         Args:
-            p_atm (float): precipitation during current time step
-            e_pot_ow (float): potential evaporation during current time step
+            p_atm (float): rainfall during current time step [mm]
+            e_pot_ow (float): potential evaporation of open water during current time step [mm]
 
         Returns:
-            (dictionary): A dictionary of storage and fluxes during current time step:
+            (dictionary): A dictionary of states and fluxes during current time step:
 
             * **int_cp** -- Interception on closed paved after rainfall during current time step [mm]
             * **e_atm_cp** -- Evaporation from interception storage on closed paved during current time step [mm]

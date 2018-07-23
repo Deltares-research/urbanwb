@@ -4,13 +4,12 @@ class PavedRoof:
 
     Args:
         self.init_intstor_pr (float): initial interception storage on paved roof area [mm]
-        self.pr_no_meas_area (float): paved roof area (without a measure) [m^2]
-        self.pr_meas_area (float): paved roof area (with a measure) [m^2]
+        self.pr_no_meas_area (float): area of paved roof (without a measure) [m^2]
+        self.pr_meas_area (float): area of paved roof (with a measure) [m^2]
         self.pr_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
-        self.intstorcap (float): predefined storage capacity on paved roof area [mm]
+        self.intstorcap (float): predefined interception storage capacity on paved roof area [mm]
         self.stormfrac (float): part of urban area with storm water drainage system [-]
-        self.mxdfrac (float): part of urban area with mixed sewer system [-]
-        self.discfrac (float): part of paved roof area that is disconnected [-]
+        self.discfrac (float): part of paved roof area that is disconnected from the sewer system[-]
     """
 
     def __init__(
@@ -28,6 +27,7 @@ class PavedRoof:
         """
 
         # state
+        # init_intstor_pr_t0 (float): initial interception on paved roof at t=0
         self.init_intstor_pr = init_intstor_pr_t0
 
         # properties
@@ -36,12 +36,13 @@ class PavedRoof:
         self.pr_meas_inflow_area = pr_meas_inflow_area
         self.intstorcap = intstorcap_pr
         self.stormfrac = stormfrac_pr
+        # self.mxdfrac (float): part of urban area with mixed sewer system [-]
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_pr
 
     def inflowfac(self):
         """
-        Calculates measure inflow factor.
+        Calculates measure inflow factor of paved roof area.
 
         Returns:
             (float): measure inflow factor of paved roof area
@@ -50,14 +51,14 @@ class PavedRoof:
 
     def sol(self, p_atm, e_pot_ow):
         """
-        Calculates storage and fluxes during current time step.
+        Calculates states and fluxes during current time step.
 
         Args:
-            p_atm (float): precipitation during current time step
-            e_pot_ow (float): potential evaporation during current time step
+            p_atm (float): rainfall during current time step [mm]
+            e_pot_ow (float): potential evaporation of open water during current time step [mm]
 
         Returns:
-            (dictionary): A dictionary of storage and fluxes during current time step:
+            (dictionary): A dictionary of states and fluxes during current time step:
 
             * **int_pr** -- Interception on paved roof after rainfall during current time step [mm]
             * **e_atm_pr** -- Evaporation from interception storage on paved roof during current time step [mm]

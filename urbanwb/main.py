@@ -531,6 +531,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
         stat2_inp (string): the filename of the static form of measure parameters
         dyn_out (string): the filename of the output file of solutions
         vararr (float): the list of values to update "pump_cap".
+
     """
     rank_database = []
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
@@ -568,7 +569,6 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
         vararr (float): values to update varkey.
     """
     import os
-
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -578,6 +578,30 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
         new_dyn_out = f"{varkey}={varval}_" + dyn_out
         fullname = os.path.join(outdir, new_dyn_out)
         df.to_csv(fullname, index=True)
+
+# def batch_run2(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr, *col, saveall=True):
+#     """
+#     this batch_run function is to batch-run specified parameter with a set of parameters and save all results in csv
+#     for every case.
+#
+#     Args:
+#         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+#         stat1_inp (string): the filename of the static form of general parameters
+#         stat2_inp (string): the filename of the static form of measure parameters
+#         dyn_out (string): the general filename of the output file of solutions
+#         varkey (string): the parameter that needs to be updated in the batch run.
+#         vararr (float): values to update varkey.
+#     """
+#     import os
+#     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#     for varval in vararr:
+#         param[str(varkey)] = varval
+#         df = run(param, dyn_inp)
+#         new_dyn_out = f"{varkey}={varval}_" + dyn_out
+#         fullname = os.path.join(outdir, new_dyn_out)
+#         df.to_csv(fullname, index=True)
 
 
 if __name__ == "__main__":
