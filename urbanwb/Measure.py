@@ -25,7 +25,7 @@ class Measure:
 
         bs_area_meas --- predefined area of bottom layer storage area of measure [m^2]
         Button_CL21 --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
-        Button_CL17 --- predefined connection from measure to groundwater (1 = yes. 0 = no)
+        Button_CL17 --- predefined connection from measure to groundwater (1 = yes. 0 = no) (=Button_BW18)
         gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
         k_sat_uz --- saturation permeability of soil [mm/d]
         b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
@@ -34,27 +34,29 @@ class Measure:
         bdl_meas --- predefined discharge level from bottom layer of measure [mm]
         bdr_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
 
-        button_BW25 --- predefined definition of surface runoff from measure to open water (0 = no, 1 = yes)
-        button_BW26 --- predefined definition of controlled runoff from measure to open water (0 = no, 1 = yes)
-        button_BW27 --- predefined definition of overflow from measure to open water (0 = no, 1 = yes)
-        button_BX25 --- predefined definition of surface runoff from measure to unsaturated zone (0 = no, 1 = yes)
-        button_BX26 --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
-        button_BX27 --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
-        button_BY25 --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
-        button_BY26 --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
-        button_BY27 --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
-        button_BZ25 --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        button_BZ26 --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        button_BZ27 --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
-        button_CA25 --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
-        button_CA26 --- predefined definition of controlled runoff from measure to mixed sewer system (0 = no, 1 = yes)
-        button_CA27 --- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
-        button_CB25 --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
-        button_CB26 --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
-        button_CB27 --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
-
+        Button_BW25 --- predefined definition of surface runoff from measure to open water (0 = no, 1 = yes)
+        Button_BW26 --- predefined definition of controlled runoff from measure to open water (0 = no, 1 = yes)
+        Button_BW27 --- predefined definition of overflow from measure to open water (0 = no, 1 = yes)
+        Button_BX25 --- predefined definition of surface runoff from measure to unsaturated zone (0 = no, 1 = yes)
+        Button_BX26 --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
+        Button_BX27 --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
+        Button_BY25 --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
+        Button_BY26 --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
+        Button_BY27 --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
+        Button_BZ25 --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        Button_BZ26 --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        Button_BZ27 --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
+        Button_CA25 --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
+        Button_CA26 --- predefined definition of controlledrunoff from measure to mixed sewer system (0 = no, 1 = yes)
+        Button_CA27 --- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
+        Button_CB25 --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
+        Button_CB26 --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
+        Button_CB27 --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
+        # Several buttons are not applied yet in the current measure. They will be added at later stage (other measures). (for e.g Button_BQ22)
     Returns:
         A dictionary of output variables
+
+
     """
     def __init__(self, meas_area, Button_BW17, intstor_meas_t0, Button_BQ19, Button_BQ18, infil_cap_meas,
                 top_storcap_meas, bot_storcap_meas, top_stor_meas_t0, bot_stor_meas_t0, int_cap_meas, ts_area_meas,
