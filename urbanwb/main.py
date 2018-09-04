@@ -21,6 +21,7 @@ from urbanwb.gwlcalculator import gwlcal
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.sdf_curve import SDF_Curve
+from urbanwb.measure import Measure
 
 
 class Model(object):
@@ -37,7 +38,7 @@ class Model(object):
     def __init__(self, dict):
         self.param = dict  # get one large dictionary of parameters
         self.pavedroof = PavedRoof(
-            init_intstor_pr_t0=0,
+            init_intstor_pr_t0=0,  # This initial value can be thrown into ini.file later.
             pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
             pr_meas_area=self.param["pr_meas_area"],
             pr_meas_inflow_area=self.param["pr_meas_inflow_area"],
@@ -116,6 +117,8 @@ class Model(object):
             * 8.64  # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
             # may need modifications later.
         )
+        # it takes too many parameters to initialise a measure instance.
+        # self.measure = Measure()
 
     def __iter__(self):
         return self
@@ -208,6 +211,7 @@ class Model(object):
                 total_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
+            # i = self.measure.sol() Add measure here.
             dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h))
         except IndexError:
             raise StopIteration
@@ -231,6 +235,10 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     # read inputdata(P, Ep and Er) from dyn_inp
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(str(path) + "\\" + dyn_inp)
+    # check if there is NaN in dynamic input.
+    NoNaN = InputData.isnull().sum().sum()
+    if NoNaN != 0:
+        raise SystemExit(SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.'''))
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -401,6 +409,9 @@ def run(param, dyn_inp):
     start = time.time()
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(path / dyn_inp)  # can change to input_csv_30yr
+    NoNaN = InputData.isnull().sum().sum()
+    if NoNaN != 0:
+        raise SystemExit(SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.'''))
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -545,7 +556,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
     for varval in vararr:
         param["pump_cap"] = varval
         owl_data = pd.DataFrame(run(param, dyn_inp))["owl"]
-        print(f"pump_capacity = {varval}")
+        print(f"pump_capacity = {varval} l/s/ha")
         k = SDF_Curve(owl_data, num_year=num_year, ow_level=param["ow_level"])
         rank_database.append(k.rank)
         print(f"Maximum height above target water level is {k.rank[0]}")
