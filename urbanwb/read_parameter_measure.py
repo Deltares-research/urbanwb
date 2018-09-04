@@ -111,6 +111,7 @@ def read_parameter_measure(stat2_inp):
     ts_area_meas = cf["ts_area_meas"]
     Button_BQ20 = cf["Button_BQ20"]
     e_fac_meas = cf["e_frac_meas"]
+    Button_BQ21 = cf["Button_BQ21"]
     tinf_cap_meas = cf["tinf_cap_meas"]
     bs_area_meas = cf["bs_area_meas"]
     Button_CL21 = cf["Button_CL21"]
@@ -204,6 +205,7 @@ def read_parameter_measure(stat2_inp):
         "ts_area_meas": ts_area_meas,
         "Button_BQ20": Button_BQ20,
         "e_fac_meas": e_fac_meas,
+        "Button_BQ21": Button_BQ21,
         "tinf_cap_meas": tinf_cap_meas,
         "bs_area_meas": bs_area_meas,
         "Button_CL21": Button_CL21,
@@ -237,5 +239,5 @@ def read_parameter_measure(stat2_inp):
 
 
 if __name__ == "__main__":
-    print(read_parameter_measure("static_form_measure.ini"))
+    print(read_parameter_measure("static_form_measure_for_measure.ini"))
     # fire.Fire(read_parameter_measure)

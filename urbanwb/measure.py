@@ -21,13 +21,14 @@ class Measure:
         ts_area_meas --- predefined area of top layer storage area of measure [m^2]
         Button_BQ20 --- predefined selection if transpiration from measure is possible (1) or not (0)
         e_fac_meas --- predefined evaporation factor of measure [-]
+        Button_BQ21 --- predefined selection if infiltration from measure is possible (1) or not (0)
         tinf_cap_meas --- predefined infiltration capacity of top layer of measure [mm/d] (480mm/d)
 
         bs_area_meas --- predefined area of bottom layer storage area of measure [m^2]
         Button_CL21 --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
         Button_CL17 --- predefined connection from measure to groundwater (1 = yes. 0 = no) (=Button_BW18)
         gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
-        k_sat_uz --- saturation permeability of soil [mm/d]
+        k_sat_uz --- saturation permeability of soil [mm/d] (this parameter will be put into the paramter matrix of static_base.ini which is linked with soil type)
         b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
         Button_CP14 --- predefined definition of discharge type from bottom layer of measure (0 = flux limited, 1 = level difference over resistance)
         br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (flux=15mm/d)
@@ -60,7 +61,7 @@ class Measure:
     """
     def __init__(self, meas_area, Button_BW17, intstor_meas_t0, Button_BQ19, Button_BQ18, infil_cap_meas,
                 top_storcap_meas, bot_storcap_meas, top_stor_meas_t0, bot_stor_meas_t0, int_cap_meas, ts_area_meas,
-                Button_BQ20, e_fac_meas, tinf_cap_meas, bs_area_meas, Button_CL21, Button_CL17, gwl_limit_meas,
+                Button_BQ20, e_fac_meas, Button_BQ21, tinf_cap_meas, bs_area_meas, Button_CL21, Button_CL17, gwl_limit_meas,
                 k_sat_uz, b_level_meas, Button_CP14, br_cap_meas, bdl_meas, bdr_meas, Button_BW25, Button_BW26,
                 Button_BW27, Button_BX25, Button_BX26, Button_BX27, Button_BY25, Button_BY26, Button_BY27, Button_BZ25,
                 Button_BZ26, Button_BZ27, Button_CA25, Button_CA26, Button_CA27, Button_CB25, Button_CB26, Button_CB27):
@@ -83,6 +84,7 @@ class Measure:
         self.ts_area_meas = ts_area_meas
         self.Button_BQ20 = Button_BQ20
         self.e_fac_meas = e_fac_meas
+        self.Button_BQ21 = Button_BQ21
         self.tinf_cap_meas = tinf_cap_meas
 
         self.bs_area_meas = bs_area_meas
@@ -168,7 +170,6 @@ class Measure:
                             bot_stor_meas = bo_meas = q_meas_ow = q_meas_uz = q_meas_gw = q_meas_swds = q_meas_mss = \
                             q_meas_out = 0
             else:
-
                 prec_meas = p_atm
 
                 sum_r_meas = (r_pr_meas * pr_no_meas_area + r_cp_meas * cp_no_meas_area + r_op_meas * op_no_meas_area + r_up_meas * up_no_meas_area) / self.meas_area
@@ -194,8 +195,8 @@ class Measure:
                     ts_ini_meas = 0 if self.ts_area_meas == 0 else self.prev_top_stor_meas + int_down_meas * (self.meas_area / self.ts_area_meas)
 
                 tt_atm_meas = 0 if self.Button_BQ18 < 2.5 else self.Button_BQ20 * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
-
-                pt_meas = 0 if self.Button_BQ18 < 2.5 else max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+                # May need further check on pt_meas. (I forgot to add Button_BQ21 in the beginning).
+                pt_meas = 0 if self.Button_BQ18 < 2.5 else self.Button_BQ21 * max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
 
                 top_stor_meas = min(self.top_storcap_meas, ts_ini_meas - tt_atm_meas - pt_meas)
 
@@ -253,7 +254,7 @@ class Measure:
                 q_meas_out = self.Button_CB25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_CB26 * br_meas + self.Button_CB27 * bo_meas) * self.meas_area / self.bs_area_meas)
 
                 # update state:
-
+                # update interception storage
                 self.prev_top_stor_meas = top_stor_meas
                 self.prev_bot_stor_meas = bot_stor_meas
                 self.prev_intstor_meas = intstor_meas
