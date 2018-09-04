@@ -26,14 +26,17 @@ class SDF_Curve(object):
         self.num_event = len(self.rank)
         self.num_year = num_year
         self.return_time_list = self.return_time()
-        self.trendline = self.trendline()
+        # self.trendline = self.trendline()
 
     def event_partition(self):
         """
         differentiates events (segment events by zeros first, then remove empty lists[])
         """
+        # needs update: last event does not end with zeros
         rt = []
         n = 0
+        # update owl by add 0 to the end so the last event will end with zero.
+        self.owl = np.append(self.owl, [0])
         for i in range(len(self.owl)):
             if self.owl[i] == 0:
                 rt.append(self.owl[n:i])
@@ -65,34 +68,34 @@ class SDF_Curve(object):
             rt.append(self.num_year / (1 + m))
         return rt
 
-    def trendline(self):
-        """
-        get the coefficient k and b of the trend line of return time(year) and maximum open water level above target
-        water level(owl) (y = kln(x)+b)
-        """
-        coe = np.polyfit(np.log(self.return_time_list), self.rank, 1)
-        return coe[0], coe[1]
+    # def trendline(self):
+    #     """
+    #     get the coefficient k and b of the trend line of return time(year) and maximum open water level above target
+    #     water level(owl) (y = kln(x)+b)
+    #     """
+    #     coe = np.polyfit(np.log(self.return_time_list), self.rank, 1)
+    #     return coe[0], coe[1]
 
-    def required_storage_capacity(self):
-        """
-        calculates required storage capacity using formula obtained from plot_trendline() for return period ranging
-        from 1 year to 100 year
-        """
-        # a, b --- corresponding coefficients of formula
-        a, b = self.trendline[0], self.trendline[1]
-        # rqd_stor_cap --- list of required storage capacity
-        rqd_stor_cap = []
-        for t in [
-            1,
-            2,
-            5,
-            10,
-            20,
-            50,
-            100,
-        ]:  # for return period of 1, 2, 5, 10, 20, 50, 100 year
-            rqd_stor_cap.append(a * np.log(t) + b)
-        return rqd_stor_cap
+    # def required_storage_capacity(self):
+    #     """
+    #     calculates required storage capacity using formula obtained from plot_trendline() for return period ranging
+    #     from 1 year to 100 year
+    #     """
+    #     # a, b --- corresponding coefficients of formula
+    #     a, b = self.trendline[0], self.trendline[1]
+    #     # rqd_stor_cap --- list of required storage capacity
+    #     rqd_stor_cap = []
+    #     for t in [
+    #         1,
+    #         2,
+    #         5,
+    #         10,
+    #         20,
+    #         50,
+    #         100,
+    #     ]:  # for return period of 1, 2, 5, 10, 20, 50, 100 year
+    #         rqd_stor_cap.append(a * np.log(t) + b)
+    #     return rqd_stor_cap
 
 
 if __name__ == "__main__":
