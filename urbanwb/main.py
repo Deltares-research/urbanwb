@@ -238,7 +238,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     # check if there is NaN in dynamic input.
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
-        raise SystemExit(SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.'''))
+        raise SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.''')
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -411,7 +411,7 @@ def run(param, dyn_inp):
     InputData = pd.read_csv(path / dyn_inp)  # can change to input_csv_30yr
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
-        raise SystemExit(SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.'''))
+        raise SystemExit(f'''The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.''')
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
