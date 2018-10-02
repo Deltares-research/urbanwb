@@ -1,6 +1,6 @@
 class PavedRoof:
     """
-    Creates an instance of PavedRoof class with given states and properties, iterates sol() function at each time step.
+    Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function at each time step.
 
     Args:
         self.init_intstor_pr (float): initial interception storage on paved roof area [mm]
@@ -27,7 +27,7 @@ class PavedRoof:
         """
 
         # state
-        # init_intstor_pr_t0 (float): initial interception on paved roof at t=0
+        # init_intstor_pr_t0 (float): initial interception storage on paved roof at t=0 [mm]
         self.init_intstor_pr = init_intstor_pr_t0
 
         # properties
@@ -51,7 +51,7 @@ class PavedRoof:
 
     def sol(self, p_atm, e_pot_ow):
         """
-        Calculates states and fluxes during current time step.
+        Calculates states and fluxes on paved roof during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -60,12 +60,12 @@ class PavedRoof:
         Returns:
             (dictionary): A dictionary of states and fluxes during current time step:
 
-            * **int_pr** -- Interception on paved roof after rainfall during current time step [mm]
+            * **int_pr** -- Initial Interception storage on paved roof after rainfall at the beginning of the current time step [mm]
             * **e_atm_pr** -- Evaporation from interception storage on paved roof during current time step [mm]
             * **intstor_pr** -- Remaining interception storage on paved roof at the end of the current time step [mm]
             * **r_pr_meas** -- Runoff from paved roof to an area with a drainage measure (not necessarily on the paved roof itself) [mm]
             * **r_pr_swds** -- Runoff from paved roof to the storm water drainage system [mm]
-            * **r_pr_mss** -- Runoff from paved roof to the mixed sewer system [mm]
+            * **r_pr_mss** -- Runoff from paved roof to the combined sewer system [mm]
             * **r_pr_up** -- Runoff from paved roof to unpaved area [mm]
         """
 

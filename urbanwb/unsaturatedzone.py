@@ -4,7 +4,7 @@ from urbanwb.gwlcalculator import gwlcal
 
 class UnsaturatedZone:
     """
-    Creates an instance of unsaturated zone class with given states and properties, iterates sol() function at each time
+    Creates an instance of unsaturated zone class with given initial states and properties, iterates sol() function at each time
     step.
 
     Args:
@@ -25,8 +25,8 @@ class UnsaturatedZone:
         self.init_theta_uz = theta_uz_t0
 
         # properties
-        # self.theta_h3l (float): Equilibrium moisture content in rootzone, at which transpiration(Epot≤ 1 mm/d) reduction starts
-        # self.theta_h3h (float): Equilibrium moisture content in rootzone, at which transpiration(Epot≥ 5 mm/d) reduction starts
+        # self.theta_h3l (float): Equilibrium moisture content in rootzone, at which transpiration (Epot≤ 1 mm/d) reduction starts
+        # self.theta_h3h (float): Equilibrium moisture content in rootzone, at which transpiration (Epot≥ 5 mm/d) reduction starts
         # self.theta_h1 (float): Equilibrium moisture content in rootzone with groundwater level at surface level i.e. top root zone (complete saturation)
         # self.theta_h2 (float): Equilibrium moisture content in rootzone with groundwater level at bottom root zone (field capacity)
         # self.theta_h4 (float): Equilibrium moisture content in rootzone, at which transpiration = 0 (wilting point)
@@ -44,19 +44,19 @@ class UnsaturatedZone:
         self.theta_h4 = et["theta_h4_mm"].values[0]
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
         self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
-        # Note here the predefined index 0 does not affect K_sat_uz, which is only dependent on soiltype.
+        # Note here saturated permeability of soil K_sat_uz is only dependent on soil type thus index 0 is taken here.
 
     def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1 / 24):
         """
         Calculates storage, factor and fluxes during current time step.
 
         Args:
-            i_up_uz (float): Infiltration from storage on the surface of the unpaved area to the unsaturated zone during the current time step [mm]
+            i_up_uz (float): Infiltration from interception storage on the surface of the unpaved area to the unsaturated zone during the current time step [mm]
             meas_uz (float): Inflow flux from measure to unsaturated zone during current time step [mm]
             tot_meas_area (float): total area of measure [m^2]
             e_ref (float): Potential evapotranspiration for reference crop (grass) during current time step [mm]
             prev_gwl (float): groundwater level at previous time step [m-SL]
-            delta_t (float): size of time step [d]
+            delta_t (float): timestep length [d]
 
         Returns:
             (dictionary): A dictionary of storage and fluxes during current time step:
@@ -87,7 +87,7 @@ class UnsaturatedZone:
             ) = gwl_up = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0
 
         else:
-            sum_i_uz = i_up_uz  # It is assumed that UP and UZ areas area equal.
+            sum_i_uz = i_up_uz  # It is assumed that UP and UZ areas area equal, thus flux is the same.
 
             r_meas_uz = meas_uz * tot_meas_area / self.uz_no_meas_area
 
@@ -117,6 +117,9 @@ class UnsaturatedZone:
 
             t_atm_uz = e_ref * t_alpha_uz
 
+            # using index "id" to locate the groundwater levels above and below previous timestep gwl in the database.
+            # Hence, if the database needs extension, the additional data should have same indexing structure as original data,
+            # Or codes needs modifications.
             gwl_sol = gwlcal(prev_gwl)
             gwl_up = gwl_sol[0]
             gwl_low = gwl_sol[1]

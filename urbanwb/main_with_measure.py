@@ -639,7 +639,7 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
 
 
 if __name__ == "__main__":
-    # fire.Fire()
+    fire.Fire()
     # batch_run("input_csv.csv", "static_form.ini", "static_form_measure.ini", "myresults.csv", 30, "pump_cap", 1)
-    savecsv("input_csv_for_build_measure.csv", "static_form_base_for_measure.ini", "static_form_measure_for_measure.ini", "results_measure_build.csv")
+    # savecsv("input_csv_for_build_measure.csv", "static_form_base_for_measure.ini", "static_form_measure_for_measure.ini", "results_measure_build.csv")
 

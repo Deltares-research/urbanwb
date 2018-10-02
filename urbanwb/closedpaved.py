@@ -1,6 +1,6 @@
 class ClosedPaved:
     """
-    Creates an instance of ClosedPaved class with given states and properties, iterates sol() function at each time step.
+    Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function at each time step.
 
     Args:
         self.init_intstor_cp (float): initial interception storage on closed paved area [mm]

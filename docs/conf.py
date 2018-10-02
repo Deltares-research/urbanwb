@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "urbanwb"
-copyright = "2018, Wenxing Zhang"
+copyright = "2018, Deltares/Wenxing Zhang"
 author = "Wenxing Zhang"
 
 # The short X.Y version
@@ -43,6 +43,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.napoleon",
+    "sphinx.ext.mathjax",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

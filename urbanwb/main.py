@@ -114,11 +114,9 @@ class Model(object):
             ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
             ow_level=self.param["ow_level"],
             q_ow_out_cap=self.param["pump_cap"]
-            * 8.64  # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
-            # may need modifications later.
+            * 8.64  # using "pump_cap" [liter/s/ha] instead of q_ow_out_cap [mm/d]"
+            # may need modifications later, or provide choices
         )
-        # it takes too many parameters to initialise a measure instance.
-        # self.measure = Measure()
 
     def __iter__(self):
         return self
@@ -211,7 +209,6 @@ class Model(object):
                 total_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
-            # i = self.measure.sol() Add measure here.
             dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h))
         except IndexError:
             raise StopIteration
@@ -235,7 +232,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     # read inputdata(P, Ep and Er) from dyn_inp
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(str(path) + "\\" + dyn_inp)
-    # check if there is NaN in dynamic input.
+    # check if there is NaN in dynamic input. or replace it with automatically changing data for user?
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
         raise SystemExit(f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.")
@@ -244,7 +241,7 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     Ref_grass = InputData["Ref.grass"]
     E_pot_OW = InputData["E_pot_OW"]
     iters = np.shape(date)[0]
-    # measure fluxes are all zeros for the time being
+    # measure fluxes are all zeros if measure excluded
     meas_uz, meas_gw, meas_swds, meas_mss, meas_ow = (
         np.zeros(iters),
         np.zeros(iters),
@@ -534,7 +531,7 @@ def run(param, dyn_inp):
 
 def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
     """
-    this batch_run function is mainly for getting the database for sdf_curve.
+    this batch_run function is mainly designed for getting the database for sdf_curve.
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -552,7 +549,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
     iters = np.shape(date)[0]
     dt = param["delta_t"]
     num_year = round((dt * iters) / 365)
-    print(f"The number of year of the input time series is {num_year} year")
+    print(f"The number of year of the input time series is around {num_year} year")
     for varval in vararr:
         param["pump_cap"] = varval
         owl_data = pd.DataFrame(run(param, dyn_inp))["owl"]

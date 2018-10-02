@@ -5,19 +5,18 @@ from urbanwb.gwlcalculator import gwlcal
 
 class Groundwater:
     """
-    creates an instance of Groundwater class with given states and properties, iterates sol() function at each time step
-    .
+    creates an instance of Groundwater class with given initial states and properties, iterates sol() function at each time step.
 
     Args:
         self.prev_gwl (float): groundwater level at previous time step [m-SL]
         self.prev_gwl_sl (float): groundwater level above surface level at previous time step [m-SL]
         self.gw_no_meas_area (float): groundwater area (without a measure) [m^2]
         self.gw_meas_area (float): groundwater area (with a measure) [m^2]
-        self.seep_def (float): seepage defined by deep groundwater level and flow resistance [0=flux; 1=level]
+        self.seep_def (float): seepage defined as constant flux (0) or dynamic calculated flux (1) [0=flux; 1=level]
         self.w (float): groundwater drainage resistance [d]
         self.vc (float): flow resistance between deep and shallow groundwater [d]
-        self.h_deepgw (float): defined hydraulic head of deep groundwater [m-SL]
-        self.flux (float): defined constant downward seepage flux [mm/d]
+        self.h_deepgw (float): predefined hydraulic head of deep groundwater [m-SL]
+        self.flux (float): predefined constant downward seepage flux [mm/d]
         self.soiltype (int): soil type
         self.croptype (int): crop type
     """
@@ -70,7 +69,7 @@ class Groundwater:
         Args:
             p_uz_gw (float): percolation from unsaturated zone to groundwater [mm]
             uz_no_meas_area (float): area of unsaturated zone (without a measure) [m^2]
-            p_op_gw (float): percolation from open paved are to groundwater [mm]
+            p_op_gw (float): percolation from open paved area to groundwater [mm]
             op_no_meas_area (float): area of open paved (without a measure) [m^2]
             tot_meas_area (float): total measure area [m^2]
             meas_gw (float): measure inflow to groundwater [mm]
@@ -82,8 +81,8 @@ class Groundwater:
 
             * **sum_p_gw** -- Total percolation from unsaturated zone and from open paved area to groundwater during the current time step [mm]
             * **r_meas_gw** -- Inflow from measure area (if applicable) during current time step [mm]
-            * **gwl_up** --
-            * **gwl_low** --
+            * **gwl_up** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
+            * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
             * **sc_gw** -- Storage coefficient of the groundwater for the current time step [-]
             * **h_gw** -- Groundwater level at the end of the current time step [m-SL]
             * **s_gw_out** -- downward seepage flux to deep groundwater during current time step [mm]

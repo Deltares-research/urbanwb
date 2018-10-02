@@ -1,6 +1,6 @@
 class OpenPaved:
     """
-    Creates an instance of OpenPaved class with given states and properties, iterates sol() function at each time step.
+    Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function at each time step.
 
     Args:
         self.init_intstor_op (float): initial interception storage on open paved [mm]
@@ -9,7 +9,6 @@ class OpenPaved:
         self.op_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
         self.intstorcap (float): predefined storage capacity on open paved [mm]
         self.stormfrac (float): part of urban area with storm water drainage system [-]
-        self.mxdfrac (float): part of urban area with mixed sewer system [-]
         self.discfrac (float): part of open paved area that is disconnected [-]
         self.infilcap (float): predefined infiltration capacity on open paved area [mm/d]
     """
@@ -38,6 +37,7 @@ class OpenPaved:
         self.op_meas_inflow_area = op_meas_inflow_area
         self.intstorcap = intstorcap_op
         self.stormfrac = stormfrac_op
+        # self.mxdfrac (float): part of urban area with mixed sewer system [-]
         self.mxdfrac = 1 - self.stormfrac
         self.discfrac = discfrac_op
         self.infilcap = infilcap_op
@@ -92,7 +92,7 @@ class OpenPaved:
                     p_atm - (self.intstorcap - self.init_intstor_op),
                     self.infilcap * delta_t,
                 ),
-            )  # infiltration capacity (mm/d) * time step size (hr to d)
+            )  # limited by infiltration capacity (mm/d) * timestep length (d)
 
             r_op_meas = self.inflowfac() * max(
                 0, p_atm - e_atm_op - (intstor_op - self.init_intstor_op) - p_op_gw

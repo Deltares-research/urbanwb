@@ -3,7 +3,7 @@ from urbanwb.selector import soil_selector
 
 class Unpaved:
     """
-    creates an instance of unpaved class with given states and properties, iterates sol() function at each time step.
+    creates an instance of unpaved class with given initial states and properties, iterates sol() function at each time step.
 
     Args:
         self.prev_fin_stor_up (float): final storage on the surface of the unpaved area at previous time step [mm]

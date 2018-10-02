@@ -1,15 +1,15 @@
 class SewerSystem:
     """
-    creates an instance of SewerSystem class with given states and properties,
+    creates an instance of SewerSystem class with given initial states and properties,
     iterates sol() function at each time step.
 
     Args:
         self.swds_no_meas_area (float): area of storm water drainage system (without a measure) [m^2]
         self.mss_no_meas_area (float): area of mixed sewer system (without a measure) [m^2]
-        self.prev_stor_swds (float): Storage in the storm water drainage system at the end of the previous time step [mm]
-        self.prev_so_swds (float): Overflow of storm water drainage system during the previous time step [mm]
-        self.prev_stor_mss (float): Storage in the mixed sewer system at the end of the previous time step [mm]
-        self.prev_so_mss (float): Overflow of mixed sewer system during the previous time step [mm]
+        self.prev_stor_swds (float): storage in the storm water drainage system at the end of the previous time step [mm]
+        self.prev_so_swds (float): overflow of storm water drainage system during the previous time step [mm]
+        self.prev_stor_mss (float): storage in the mixed sewer system at the end of the previous time step [mm]
+        self.prev_so_mss (float): overflow of mixed sewer system during the previous time step [mm]
         self.q_swds_ow_cap (float): predefined discharge capacity of storm water drainage system [mm/hr]
         self.q_mss_out_cap (float): predefined discharge capacity of mixed sewer system to WWTP [mm/hr]
         self.q_mss_ow_cap (float): predefined discharge capacity of mixed sewer system to open water [mm/hr]
