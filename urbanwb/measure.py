@@ -4,11 +4,11 @@ class Measure:
 
     Args:
         meas_area -- predefined measure area [m^2]
-        Button_BW17 --- predefined selection at which measure layer runoff from other areas is stored (1 or 3), Inflow from other areas can only take place at interception level (1) or at the bottom storage level (3).
+        runoff_to_stor_layer --- predefined selection at which measure layer runoff from other areas is stored (1 or 3), Inflow from other areas can only take place at interception level (1) or at the bottom storage level (3).
         * prev_intstor_meas --- interception storage on the measure at previous time step [mm]
         intstor_meas_t0 --- predefined interception storage on the measure at t=0 [mm]
-        Button_BQ19 --- predefined selection if evaporation from measure is possible (1) or not (0)
-        Button_BQ18 --- predefined number of storage levels (1, 2 or 3)
+        ev_evaporation --- predefined selection if evaporation from measure is possible (1) or not (0)
+        num_stor_lvl --- predefined number of storage levels (1, 2 or 3)
         infil_cap_meas --- predefined infiltration capacity of measure [mm/d] (4800mm/d)
         top_storcap_meas --- predefined storage capacity in top layer of measure (76.2mm)
         bot_storcap_meas --- predefined storage capacity in bottom layer of measure (182.88mm)
@@ -19,61 +19,61 @@ class Measure:
 
         int_cap_meas --- predefined interception storage capacity of measure [mm] (20mm)
         ts_area_meas --- predefined area of top layer storage area of measure [m^2]
-        Button_BQ20 --- predefined selection if transpiration from measure is possible (1) or not (0)
+        et_transpiration --- predefined selection if evapotranspiration from measure is possible (1) or not (0)
         e_fac_meas --- predefined evaporation factor of measure [-]
-        Button_BQ21 --- predefined selection if infiltration from measure is possible (1) or not (0)
+        in_infiltration --- predefined selection if infiltration from measure is possible (1) or not (0)
         tinf_cap_meas --- predefined infiltration capacity of top layer of measure [mm/d] (480mm/d)
 
         bs_area_meas --- predefined area of bottom layer storage area of measure [m^2]
-        Button_CL21 --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
-        Button_CL17 --- predefined connection from measure to groundwater (1 = yes. 0 = no) (=Button_BW18)
+        btm_et_transpiration --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
+        connection_to_gw --- predefined percolation (connection) from measure to groundwater is possible (1) or not (0)
         gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
         k_sat_uz --- saturation permeability of soil [mm/d] (this parameter will be put into the paramter matrix of static_base.ini which is linked with soil type)
         b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
-        Button_CP14 --- predefined definition of discharge type from bottom layer of measure (0 = flux limited, 1 = level difference over resistance)
+        btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = flux limited, 1 = level difference over resistance)
         br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (flux=15mm/d)
         bdl_meas --- predefined discharge level from bottom layer of measure [mm]
         bdr_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
 
-        Button_BW25 --- predefined definition of surface runoff from measure to open water (0 = no, 1 = yes)
-        Button_BW26 --- predefined definition of controlled runoff from measure to open water (0 = no, 1 = yes)
-        Button_BW27 --- predefined definition of overflow from measure to open water (0 = no, 1 = yes)
-        Button_BX25 --- predefined definition of surface runoff from measure to unsaturated zone (0 = no, 1 = yes)
-        Button_BX26 --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
-        Button_BX27 --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
-        Button_BY25 --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
-        Button_BY26 --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
-        Button_BY27 --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
-        Button_BZ25 --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        Button_BZ26 --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        Button_BZ27 --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
-        Button_CA25 --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
-        Button_CA26 --- predefined definition of controlledrunoff from measure to mixed sewer system (0 = no, 1 = yes)
-        Button_CA27 --- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
-        Button_CB25 --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
-        Button_CB26 --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
-        Button_CB27 --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
+        surf_runoff_meas_ow --- predefined definition of surface runoff from measure storage 1 (interception level) to open water (0 = no, 1 = yes)
+        ctrl_runoff_meas_ow --- predefined definition of controlled runoff from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
+        overflow_meas_ow --- predefined definition of overflow from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
+        surf_runoff_meas_uz --- predefined definition of surface runoff from measure storage 1 (interception level) to unsaturated zone (0 = no, 1 = yes)
+        ctrl_runoff_meas_uz --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
+        overflow_meas_uz --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
+        surf_runoff_meas_gw --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
+        ctrl_runoff_meas_gw --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
+        overflow_meas_gw --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
+        surf_runoff_meas_swds --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        ctrl_runoff_meas_swds --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        overflow_meas_swds --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
+        surf_runoff_meas_mss --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
+        ctrl_runoff_meas_mss --- predefined definition of controlledrunoff from measure to mixed sewer system (0 = no, 1 = yes)
+        overflow_meas_mss --- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
+        surf_runoff_meas_out --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
+        ctrl_runoff_meas_out --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
+        overflow_meas_out --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
         # Several buttons are not applied yet in the current measure. They will be added at later stage (other measures). (for e.g Button_BQ22)
     Returns:
         A dictionary of output variables
 
 
     """
-    def __init__(self, meas_area, Button_BW17, intstor_meas_t0, Button_BQ19, Button_BQ18, infil_cap_meas,
+    def __init__(self, meas_area, runoff_to_stor_layer, intstor_meas_t0, ev_evaporation, num_stor_lvl, infil_cap_meas,
                 top_storcap_meas, bot_storcap_meas, top_stor_meas_t0, bot_stor_meas_t0, int_cap_meas, ts_area_meas,
-                Button_BQ20, e_fac_meas, Button_BQ21, tinf_cap_meas, bs_area_meas, Button_CL21, Button_CL17, gwl_limit_meas,
-                k_sat_uz, b_level_meas, Button_CP14, br_cap_meas, bdl_meas, bdr_meas, Button_BW25, Button_BW26,
-                Button_BW27, Button_BX25, Button_BX26, Button_BX27, Button_BY25, Button_BY26, Button_BY27, Button_BZ25,
-                Button_BZ26, Button_BZ27, Button_CA25, Button_CA26, Button_CA27, Button_CB25, Button_CB26, Button_CB27):
+                et_transpiration, e_fac_meas, in_infiltration, tinf_cap_meas, bs_area_meas, btm_et_transpiration, connection_to_gw, gwl_limit_meas,
+                k_sat_uz, b_level_meas, btm_discharge_type, br_cap_meas, bdl_meas, bdr_meas, surf_runoff_meas_ow, ctrl_runoff_meas_ow,
+                overflow_meas_ow, surf_runoff_meas_uz, ctrl_runoff_meas_uz, overflow_meas_uz, surf_runoff_meas_gw, ctrl_runoff_meas_gw, overflow_meas_gw, surf_runoff_meas_swds,
+                ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out):
         """
         Creates an instance of Measure class.
         """
 
         self.meas_area = meas_area
-        self.Button_BW17 = Button_BW17
+        self.runoff_to_stor_layer = runoff_to_stor_layer
         self.prev_intstor_meas = intstor_meas_t0
-        self.Button_BQ19 = Button_BQ19
-        self.Button_BQ18 = Button_BQ18
+        self.ev_evaporation = ev_evaporation
+        self.num_stor_lvl = num_stor_lvl
         self.infil_cap_meas = infil_cap_meas
         self.top_storcap_meas = top_storcap_meas
         self.bot_storcap_meas = bot_storcap_meas
@@ -82,40 +82,40 @@ class Measure:
 
         self.int_cap_meas = int_cap_meas
         self.ts_area_meas = ts_area_meas
-        self.Button_BQ20 = Button_BQ20
+        self.et_transpiration = et_transpiration
         self.e_fac_meas = e_fac_meas
-        self.Button_BQ21 = Button_BQ21
+        self.in_infiltration = in_infiltration
         self.tinf_cap_meas = tinf_cap_meas
 
         self.bs_area_meas = bs_area_meas
-        self.Button_CL21 = Button_CL21
-        self.Button_CL17 = Button_CL17
+        self.btm_et_transpiration = btm_et_transpiration
+        self.connection_to_gw = connection_to_gw
         self.gwl_limit_meas = gwl_limit_meas
         self.k_sat_uz = k_sat_uz
         self.b_level_meas = b_level_meas
-        self.Button_CP14 = Button_CP14
+        self.btm_discharge_type = btm_discharge_type
         self.br_cap_meas = br_cap_meas
         self.bdl_meas = bdl_meas
         self.bdr_meas = bdr_meas
 
-        self.Button_BW25 = Button_BW25
-        self.Button_BW26 = Button_BW26
-        self.Button_BW27 = Button_BW27
-        self.Button_BX25 = Button_BX25
-        self.Button_BX26 = Button_BX26
-        self.Button_BX27 = Button_BX27
-        self.Button_BY25 = Button_BY25
-        self.Button_BY26 = Button_BY26
-        self.Button_BY27 = Button_BY27
-        self.Button_BZ25 = Button_BZ25
-        self.Button_BZ26 = Button_BZ26
-        self.Button_BZ27 = Button_BZ27
-        self.Button_CA25 = Button_CA25
-        self.Button_CA26 = Button_CA26
-        self.Button_CA27 = Button_CA27
-        self.Button_CB25 = Button_CB25
-        self.Button_CB26 = Button_CB26
-        self.Button_CB27 = Button_CB27
+        self.surf_runoff_meas_ow = surf_runoff_meas_ow
+        self.ctrl_runoff_meas_ow = ctrl_runoff_meas_ow
+        self.overflow_meas_ow = overflow_meas_ow
+        self.surf_runoff_meas_uz = surf_runoff_meas_uz
+        self.ctrl_runoff_meas_uz = ctrl_runoff_meas_uz
+        self.overflow_meas_uz = overflow_meas_uz
+        self.surf_runoff_meas_gw = surf_runoff_meas_gw
+        self.ctrl_runoff_meas_gw = ctrl_runoff_meas_gw
+        self.overflow_meas_gw = overflow_meas_gw
+        self.surf_runoff_meas_swds = surf_runoff_meas_swds
+        self.ctrl_runoff_meas_swds = ctrl_runoff_meas_swds
+        self.overflow_meas_swds = overflow_meas_swds
+        self.surf_runoff_meas_mss = surf_runoff_meas_mss
+        self.ctrl_runoff_meas_mss = ctrl_runoff_meas_mss
+        self.overflow_meas_mss = overflow_meas_mss
+        self.surf_runoff_meas_out = surf_runoff_meas_out
+        self.ctrl_runoff_meas_out = ctrl_runoff_meas_out
+        self.overflow_meas_out = overflow_meas_out
 
     def sol(self, p_atm, e_pot_ow, r_pr_meas, r_cp_meas, r_op_meas, r_up_meas, pr_no_meas_area, cp_no_meas_area,
             op_no_meas_area, up_no_meas_area, gw_no_meas_area, prev_gwl_gw, delta_t,
@@ -174,13 +174,13 @@ class Measure:
 
                 sum_r_meas = (r_pr_meas * pr_no_meas_area + r_cp_meas * cp_no_meas_area + r_op_meas * op_no_meas_area + r_up_meas * up_no_meas_area) / self.meas_area
 
-                int_meas = self.prev_intstor_meas + prec_meas + (sum_r_meas if self.Button_BW17 == 1 else 0)
+                int_meas = self.prev_intstor_meas + prec_meas + (sum_r_meas if self.runoff_to_stor_layer == 1 else 0)
 
-                e_atm_meas = self.Button_BQ19 * min(int_meas, e_pot_ow)
+                e_atm_meas = self.ev_evaporation * min(int_meas, e_pot_ow)
 
-                if self.Button_BQ18 > 1.5:  # needs update state here.
+                if self.num_stor_lvl > 1.5:  # needs update state here.
                     int_down_meas = max(0, min(int_meas - e_atm_meas, delta_t * self.infil_cap_meas,
-                                        ((self.top_storcap_meas - self.prev_top_stor_meas) if self.Button_BQ18 > 2.5 else
+                                        ((self.top_storcap_meas - self.prev_top_stor_meas) if self.num_stor_lvl > 2.5 else
                                          (self.bot_storcap_meas - self.prev_bot_stor_meas))))
                 else:
                     int_down_meas = 0
@@ -189,36 +189,36 @@ class Measure:
 
                 intstor_meas = max(0, int_meas - e_atm_meas - int_down_meas - sr_meas)
 
-                if self.Button_BQ18 < 2.5:
+                if self.num_stor_lvl < 2.5:
                     ts_ini_meas = 0
                 else:
                     ts_ini_meas = 0 if self.ts_area_meas == 0 else self.prev_top_stor_meas + int_down_meas * (self.meas_area / self.ts_area_meas)
 
-                tt_atm_meas = 0 if self.Button_BQ18 < 2.5 else self.Button_BQ20 * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
-                # May need further check on pt_meas. (I forgot to add Button_BQ21 in the beginning).
-                pt_meas = 0 if self.Button_BQ18 < 2.5 else self.Button_BQ21 * max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+                tt_atm_meas = 0 if self.num_stor_lvl < 2.5 else self.et_transpiration * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
+
+                pt_meas = 0 if self.num_stor_lvl < 2.5 else self.in_infiltration * max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
 
                 top_stor_meas = min(self.top_storcap_meas, ts_ini_meas - tt_atm_meas - pt_meas)
 
-                if self.Button_BQ18 < 1.5:
+                if self.num_stor_lvl < 1.5:
                     bs_ini_meas = 0
                 else:
                     if self.bs_area_meas == 0:
                         bs_ini_meas = 0
                     else:
                         bs_ini_meas = self.prev_bot_stor_meas + \
-                                      (0 if self.Button_BW17 == 1 else sum_r_meas) + \
-                                      ((int_down_meas * (self.meas_area / self.bs_area_meas)) if self.Button_BQ18 < 2.5 else (pt_meas * (self.ts_area_meas / self.bs_area_meas)))
+                                      (0 if self.runoff_to_stor_layer == 1 else sum_r_meas) + \
+                                      ((int_down_meas * (self.meas_area / self.bs_area_meas)) if self.num_stor_lvl < 2.5 else (pt_meas * (self.ts_area_meas / self.bs_area_meas)))
 
-                if self.Button_CL21 < 0.5:
+                if self.btm_et_transpiration < 0.5:
                     tb_atm_meas = 0
                 else:
-                    if self.Button_BQ18 < 2.5:
-                        tb_atm_meas = self.Button_BQ20 * min(bs_ini_meas, self.e_fac_meas * e_pot_ow)
+                    if self.num_stor_lvl < 2.5:
+                        tb_atm_meas = self.et_transpiration * min(bs_ini_meas, self.e_fac_meas * e_pot_ow)
                     else:
-                        tb_atm_meas = self.Button_BQ20 * min(bs_ini_meas, self.e_fac_meas * e_pot_ow - tt_atm_meas)
+                        tb_atm_meas = self.et_transpiration * min(bs_ini_meas, self.e_fac_meas * e_pot_ow - tt_atm_meas)
 
-                if self.Button_CL17 < 0.5:
+                if self.connection_to_gw < 0.5:
                     pb_meas_gw = 0
                 else:
                     if self.gwl_limit_meas < 0.5:
@@ -229,7 +229,7 @@ class Measure:
                         else:
                             pb_meas_gw = min(0 if self.bs_area_meas == 0 else 1000*(prev_gwl_gw - self.b_level_meas) * (gw_no_meas_area / self.bs_area_meas), max(0, min(bs_ini_meas - tb_atm_meas, delta_t * self.k_sat_uz)))
 
-                if self.Button_CP14 < 0.5:
+                if self.btm_discharge_type < 0.5:
                     br_meas = min(delta_t * self.br_cap_meas, bs_ini_meas - tb_atm_meas - pb_meas_gw)
                 else:
                     if self.bdr_meas == 0:
@@ -241,17 +241,17 @@ class Measure:
 
                 bo_meas = max(0, bs_ini_meas - tb_atm_meas - pb_meas_gw - br_meas - bot_stor_meas)
 
-                q_meas_ow = self.Button_BW25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_BW26 * br_meas + self.Button_BW27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_ow = self.surf_runoff_meas_ow * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_ow * br_meas + self.overflow_meas_ow * bo_meas) * self.meas_area / self.bs_area_meas)
 
-                q_meas_uz = self.Button_BX25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_BX26 * br_meas + self.Button_BX27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_uz = self.surf_runoff_meas_uz * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_uz * br_meas + self.overflow_meas_uz * bo_meas) * self.meas_area / self.bs_area_meas)
 
-                q_meas_gw = self.Button_BY25 * sr_meas + (0 if self.bs_area_meas == 0 else (pb_meas_gw + self.Button_BY26 * br_meas + self.Button_BY27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_gw = self.surf_runoff_meas_gw * sr_meas + (0 if self.bs_area_meas == 0 else (pb_meas_gw + self.ctrl_runoff_meas_gw * br_meas + self.overflow_meas_gw * bo_meas) * self.meas_area / self.bs_area_meas)
 
-                q_meas_swds = self.Button_BZ25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_BZ26 * br_meas + self.Button_BZ27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_swds = self.surf_runoff_meas_swds * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_swds * br_meas + self.overflow_meas_swds * bo_meas) * self.meas_area / self.bs_area_meas)
 
-                q_meas_mss = self.Button_CA25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_CA26 * br_meas + self.Button_CA27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_mss = self.surf_runoff_meas_mss * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_mss * br_meas + self.overflow_meas_mss * bo_meas) * self.meas_area / self.bs_area_meas)
 
-                q_meas_out = self.Button_CB25 * sr_meas + (0 if self.bs_area_meas == 0 else (self.Button_CB26 * br_meas + self.Button_CB27 * bo_meas) * self.meas_area / self.bs_area_meas)
+                q_meas_out = self.surf_runoff_meas_out * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_out * br_meas + self.overflow_meas_out * bo_meas) * self.meas_area / self.bs_area_meas)
 
                 # update state:
                 # update interception storage

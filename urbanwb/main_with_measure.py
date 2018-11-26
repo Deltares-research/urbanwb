@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 import fire
+import math  # isclose
 from pathlib import Path
 from collections import OrderedDict
 from tqdm import trange
@@ -22,6 +23,7 @@ from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.sdf_curve import SDF_Curve
 from urbanwb.measure import Measure
+from urbanwb.waterbalance_checker import WaterBalanceChecker
 
 
 class Model(object):
@@ -59,8 +61,8 @@ class Model(object):
             init_intstor_op_t0=0,
             op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
             op_meas_area=self.param["op_meas_area"],
-            op_meas_inflow_area=self.param["tot_op_area"],  # need to change this for other cases. current equal to tot_op_area.
-            intstorcap_op=self.param["intstorcap_op"],
+            op_meas_inflow_area=self.param["op_meas_inflow_area"],  # need to change this for other cases. current equal to tot_op_area., inflow area >= measure area <= total component area
+            intstorcap_op=self.param["intstorcap_op"],  # needs to differentiate clearly the measure inflow area, measure area, area with measure and area without measure, total area.
             stormfrac_op=self.param["swds_frac"],
             discfrac_op=self.param["discfrac_op"],
             infilcap_op=self.param["infilcap_op"],
@@ -118,28 +120,33 @@ class Model(object):
             # may need modifications later.
         )
         # it takes too many parameters to initialise a measure instance.
-        self.measure = Measure(meas_area=self.param["meas_area"], Button_BW17=self.param["Button_BW17"],
-                               intstor_meas_t0=self.param["intstor_meas_t0"], Button_BQ19=self.param["Button_BQ19"],
-                               Button_BQ18=self.param["Button_BQ18"], infil_cap_meas=self.param["infil_cap_meas"],
+        self.measure = Measure(meas_area=self.param["meas_area"], runoff_to_stor_layer=self.param["runoff_to_stor_layer"],
+                               intstor_meas_t0=self.param["intstor_meas_t0"], ev_evaporation=self.param["ev_evaporation"],
+                               num_stor_lvl=self.param["num_stor_lvl"], infil_cap_meas=self.param["infil_cap_meas"],
                                top_storcap_meas=self.param["top_storcap_meas"],
                                bot_storcap_meas=self.param["bot_storcap_meas"],
                                top_stor_meas_t0=self.param["top_stor_meas_t0"],
                                bot_stor_meas_t0=self.param["bot_stor_meas_t0"],
                                int_cap_meas=self.param["int_cap_meas"], ts_area_meas=self.param["ts_area_meas"],
-                               Button_BQ20=self.param["Button_BQ20"], e_fac_meas=self.param["e_fac_meas"],
-                               Button_BQ21=self.param["Button_BQ21"], tinf_cap_meas=self.param["tinf_cap_meas"],
-                               bs_area_meas=self.param["bs_area_meas"], Button_CL21=self.param["Button_CL21"],
-                               Button_CL17=self.param["Button_CL17"], gwl_limit_meas=self.param["gwl_limit_meas"],
+                               et_transpiration=self.param["et_transpiration"], e_fac_meas=self.param["e_fac_meas"],
+                               in_infiltration=self.param["in_infiltration"], tinf_cap_meas=self.param["tinf_cap_meas"],
+                               bs_area_meas=self.param["bs_area_meas"], btm_et_transpiration=self.param["btm_et_transpiration"],
+                               connection_to_gw=self.param["connection_to_gw"], gwl_limit_meas=self.param["gwl_limit_meas"],
                                k_sat_uz=self.param["k_sat_uz"], b_level_meas=self.param["b_level_meas"],
-                               Button_CP14=self.param["Button_CP14"], br_cap_meas=self.param["br_cap_meas"],
+                               btm_discharge_type=self.param["btm_discharge_type"], br_cap_meas=self.param["br_cap_meas"],
                                bdl_meas=self.param["bdl_meas"], bdr_meas=self.param["bdr_meas"],
-                               Button_BW25=self.param["Button_BW25"], Button_BW26=self.param["Button_BW26"], Button_BW27=self.param["Button_BW27"],
-                               Button_BX25=self.param["Button_BX25"], Button_BX26=self.param["Button_BX26"], Button_BX27=self.param["Button_BX27"],
-                               Button_BY25=self.param["Button_BY25"], Button_BY26=self.param["Button_BY26"], Button_BY27=self.param["Button_BY27"],
-                               Button_BZ25=self.param["Button_BZ25"], Button_BZ26=self.param["Button_BZ26"], Button_BZ27=self.param["Button_BZ27"],
-                               Button_CA25=self.param["Button_CA25"], Button_CA26=self.param["Button_CA26"], Button_CA27=self.param["Button_CA27"],
-                               Button_CB25=self.param["Button_CB25"], Button_CB26=self.param["Button_CB26"], Button_CB27=self.param["Button_CB27"])
-
+                               surf_runoff_meas_ow=self.param["surf_runoff_meas_ow"], ctrl_runoff_meas_ow=self.param["ctrl_runoff_meas_ow"], overflow_meas_ow=self.param["overflow_meas_ow"],
+                               surf_runoff_meas_uz=self.param["surf_runoff_meas_uz"], ctrl_runoff_meas_uz=self.param["ctrl_runoff_meas_uz"], overflow_meas_uz=self.param["overflow_meas_uz"],
+                               surf_runoff_meas_gw=self.param["surf_runoff_meas_gw"], ctrl_runoff_meas_gw=self.param["ctrl_runoff_meas_gw"], overflow_meas_gw=self.param["overflow_meas_gw"],
+                               surf_runoff_meas_swds=self.param["surf_runoff_meas_swds"], ctrl_runoff_meas_swds=self.param["ctrl_runoff_meas_swds"], overflow_meas_swds=self.param["overflow_meas_swds"],
+                               surf_runoff_meas_mss=self.param["surf_runoff_meas_mss"], ctrl_runoff_meas_mss=self.param["ctrl_runoff_meas_mss"], overflow_meas_mss=self.param["overflow_meas_mss"],
+                               surf_runoff_meas_out=self.param["surf_runoff_meas_out"], ctrl_runoff_meas_out=self.param["ctrl_runoff_meas_out"], overflow_meas_out=self.param["overflow_meas_out"])
+        self.waterbalancechecker = WaterBalanceChecker(tot_area=self.param["tot_area"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
+                                                       cp_no_meas_area=self.param["tot_cp_area"]-self.param["cp_meas_area"], op_no_meas_area=self.param["tot_op_area"]-self.param["op_meas_area"],
+                                                       up_no_meas_area=self.param["tot_up_area"]-self.param["up_meas_area"], ow_no_meas_area=self.param["tot_ow_area"]-self.param["ow_meas_area"],
+                                                       uz_no_meas_area=self.param["tot_uz_area"]-self.param["uz_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
+                                                       swds_no_meas_area=self.param["tot_swds_area"]-self.param["swds_meas_area"],mss_no_meas_area=self.param["tot_mss_area"]-self.param["mss_meas_area"],
+                                                       meas_area=self.param["meas_area"],meas_top_area=self.param["ts_area_meas"],meas_bot_area=self.param["bs_area_meas"],meas_inflow_area=self.param["op_meas_inflow_area"],inflowareaIsoparea=True)  # need to make this op_meas_inflow_area adaptive, not just open paved but it is applicable to other area.
     def __iter__(self):
         return self
 
@@ -231,7 +238,20 @@ class Model(object):
                 total_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
-            dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h, **M))
+            wbc = self.waterbalancechecker.sol(P_atm=p_atm, e_atm_pr=a["e_atm_pr"],e_atm_cp=b["e_atm_cp"],e_atm_op=c["e_atm_op"],
+                                               e_atm_up=d["e_atm_up"],e_atm_ow=h["e_atm_ow"], t_atm_uz=e["t_atm_uz"],e_atm_meas=M["e_atm_meas"],
+                                               tt_atm_meas=M["tt_atm_meas"],tb_atm_meas=M["tb_atm_meas"],s_gw_out=f["s_gw_out"],d_gw_ow=f["d_gw_ow"],
+                                               q_swds_ow=g["q_swds_ow"],q_mss_ow=g["q_mss_ow"],sum_so_ow=h["sum_so_ow"],q_mss_out=g["q_mss_out"],q_ow_out=h["q_ow_out"],
+                                               q_meas_out=M["q_meas_out"],intstor_pr=a["intstor_pr"],intstor_pr_prevt=prev_lst["intstor_pr"],intstor_cp=b["intstor_cp"],
+                                               intstor_cp_prevt=prev_lst["intstor_cp"],intstor_op=c["intstor_op"],intstor_op_prevt=prev_lst["intstor_op"],
+                                               intstor_up=d["fin_stor_up"],intstor_up_prevt=prev_lst["fin_stor_up"],theta_uz=e["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
+                                               sc_gw=f["sc_gw"],gwl_prevt=prev_lst["gwl"],gwl=f["gwl"],gwl_sl=f["gwl_sl"],gwl_sl_prevt=prev_lst["gwl_sl"],
+                                               so_swds=g["so_swds_ow"],so_swds_prevt=prev_lst["so_swds_ow"],so_mss=g["so_mss_ow"],so_mss_prevt=prev_lst["so_mss_ow"],
+                                               stor_swds=g["stor_swds"],stor_swds_prevt=prev_lst["stor_swds"],stor_mss=g["stor_mss"],stor_mss_prevt=prev_lst["stor_mss"],
+                                               owl_prevt=prev_lst["owl"],owl=h["owl"],intstor_meas=M["intstor_meas"],intstor_meas_prevt=prev_lst["intstor_meas"],top_stor_meas=M["top_stor_meas"],
+                                               top_stor_meas_prevt=prev_lst["top_stor_meas"],bot_stor_meas=M["bot_stor_meas"],bot_stor_meas_prevt=prev_lst["bot_stor_meas"],
+                                               meas_ow=M["q_meas_ow"],meas_gw=M["q_meas_gw"],meas_swds=M["q_meas_swds"]) # the last part about measure should be kindof adapative.
+            dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h, **M, **wbc))
         except IndexError:
             raise StopIteration
         return dictmerged
@@ -367,6 +387,21 @@ def running(dyn_inp, stat1_inp, stat2_inp):
             "q_meas_swds": 0,
             "q_meas_mss": 0,
             "q_meas_out": 0,
+            "rainfall_tot": 0, # waterbalance checker lst from here on
+            "evaporation_tot": 0,
+            "seepage_tot": 0,
+            "drainage_tot": 0,
+            "sewerflow_tot": 0,
+            "toWWTP_tot": 0,
+            "OWtoOut_tot": 0,
+            "StorChange_tot": 0,
+            "BalanceClosed_tot": 0,
+            "rainfall_mia": 0,
+            "evaporation_mia": 0,
+            "storage_mia": 0,
+            "toOW_mia": 0,
+            "toGW_mia": 0,
+            "runofftoSWDS_mia": 0,
         }
     ]
 
@@ -383,6 +418,174 @@ def running(dyn_inp, stat1_inp, stat2_inp):
 
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
+    df.insert(1, "P_atm", P_atm)
+    df.insert(2, "E_pot_OW", E_pot_OW)
+    df.insert(3, "Ref.grass", Ref_grass)
+
+    sum_prec = sum(df["prec_meas"])
+    sum_evap = sum(df["evaporation_mia"])
+    intstor_change = df["storage_mia"].iloc[-1] - df["storage_mia"].iloc[0]
+    ow_recharge = sum(df["toOW_mia"])
+    gw_recharge = sum(df["toGW_mia"])
+    discharge = sum(df["runofftoSWDS_mia"])
+    balance_check = sum_prec - sum_evap - intstor_change - ow_recharge - gw_recharge - discharge
+    stat = {"sum_prec":sum_prec, "sum_evap":sum_evap,"intstor_change":intstor_change,"ow_recharge":ow_recharge,
+            "gw_recharge":gw_recharge,"discharge":discharge,"balance_check":balance_check}
+    print("results statistics", stat)
+    print("Water balance is closed? ", math.isclose(balance_check, 0, abs_tol=0.001))
+
+    end = time.time()
+    print(f"Model runtime: {end - start:.1f}s")
+    return df
+
+def running2(dyn_inp, param):
+    """
+    This is a temporary function, will be modified later. I think running function should neither contain dynamic input file name or static input file name.
+    Just contains parameter matrix, dataframe of dynamic timeseries. So simply a running function.
+    takes input data from input file and parameters from configuration file to run one calculation
+
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        param: One large dictionary of parameters
+
+    Returns:
+        (dataframe): A dataframe of all desired results for all time steps
+    """
+
+    start = time.time()
+    # read inputdata(P, Ep and Er) from dyn_inp
+    path = Path.cwd() / ".." / "input"
+    InputData = pd.read_csv(str(path) + "\\" + dyn_inp)
+    date = InputData["date"]
+    P_atm = InputData["P_atm"]
+    Ref_grass = InputData["Ref.grass"]
+    E_pot_OW = InputData["E_pot_OW"]
+    iters = np.shape(date)[0]
+
+    # read general parameter and parameters for measure from static forms.
+    dict_para = param  # One large dictionary of parameters
+    k = Model(dict_para)
+    lst = [
+        {
+            "int_pr": 0,
+            "e_atm_pr": 0,
+            "intstor_pr": 0,  # init_intstor_pr_t0
+            "r_pr_meas": 0,
+            "r_pr_swds": 0,
+            "r_pr_mss": 0,
+            "r_pr_up": 0,
+            "int_cp": 0,
+            "e_atm_cp": 0,
+            "intstor_cp": 0,  # init_intstor_cp_t0
+            "r_cp_meas": 0,
+            "r_cp_swds": 0,
+            "r_cp_mss": 0,
+            "r_cp_up": 0,
+            "int_op": 0,
+            "e_atm_op": 0,
+            "intstor_op": 0,  # init_intstor_op_t0
+            "p_op_gw": 0,
+            "r_op_meas": 0,
+            "r_op_swds": 0,
+            "r_op_mss": 0.0,
+            "r_op_up": 0.0,
+            "sum_r_up": 0,
+            "init_stor_up": 0,
+            "act_infilcap_up": 0,
+            "tfac_up": 0,
+            "e_atm_up": 0,
+            "i_up_uz": 0,
+            "fin_stor_up": 0,  # fin_stor_up_t0
+            "r_up_meas": 0,
+            "r_up_ow": 0,
+            "sum_i_uz": 0,
+            "r_meas_uz": 0,
+            "theta_h3_uz": 0,
+            "t_alpha_uz": 0,
+            "t_atm_uz": 0,
+            "gwl_up": 0,
+            "gwl_low": 0,
+            "theta_eq_uz": 0,
+            "capris_max_uz": 0,
+            "p_uz_gw": 0,
+            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
+            "sum_p_gw": 0,
+            "r_meas_gw": 0,
+            "gwl_up_1": 0,
+            "gwl_low_1": 0,
+            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["stor_coef"],
+            "h_gw": 0,
+            "s_gw_out": 0,
+            "d_gw_ow": 0,
+            "gwl": dict_para["init_gwl"],
+            "gwl_sl": 0,
+            "sum_r_swds": 0,
+            "r_meas_swds": 0,
+            "sum_r_mss": 0,
+            "r_meas_mss": 0,
+            "q_swds_ow": 0,
+            "q_mss_out": 0,
+            "q_mss_ow": 0,
+            "so_swds_ow": 0,  # prev_so_swds_t0
+            "so_mss_ow": 0,  # prev_so_mss_t0
+            "stor_swds": 0,  # prev_stor_swds_t0
+            "stor_mss": 0,  # prev_stor_mss_t0
+            "prec_ow": P_atm[0],
+            "e_atm_ow": E_pot_OW[0],
+            "sum_r_ow": 0,
+            "sum_d_ow": 0,
+            "sum_q_ow": 0,
+            "sum_so_ow": 0,
+            "r_meas_ow": 0,
+            "q_ow_out": 0,
+            "owl": dict_para["ow_level"],
+            "prec_meas": 0,
+            "sum_r_meas": 0,
+            "int_meas": 0,
+            "e_atm_meas": 0,
+            "int_down_meas": 0,
+            "sr_meas": 0,
+            "intstor_meas": 0,
+            "ts_ini_meas": 0,
+            "tt_atm_meas": 0,
+            "pt_meas": 0,
+            "top_stor_meas": dict_para["top_stor_meas_t0"], # top_stor_meas_t0
+            "bs_ini_meas": 0,
+            "tb_atm_meas": 0,
+            "pb_meas_gw": 0,
+            "br_meas": 0,
+            "bot_stor_meas": dict_para["bot_stor_meas_t0"], # bot_stor_meas_t0
+            "bo_meas": 0,
+            "q_meas_ow": 0,
+            "q_meas_uz": 0,
+            "q_meas_gw": 0,
+            "q_meas_swds": 0,
+            "q_meas_mss": 0,
+            "q_meas_out": 0,
+        }
+    ]
+
+    t = 1
+    for t in trange(1, iters):
+        lst.append(
+            k.__next__(
+                P_atm[t],
+                E_pot_OW[t],
+                Ref_grass[t],
+                lst[t - 1],
+            )
+        )
+
+    df = pd.DataFrame(lst)
+    df.insert(0, "Date", date)
+    df.insert(1, "P_atm", P_atm)
+    df.insert(2, "E_pot_OW", E_pot_OW)
+    df.insert(3, "Ref.grass", Ref_grass)
+
     end = time.time()
     print(f"Model runtime: {end - start:.1f}s")
     return df
@@ -430,7 +633,8 @@ def saverun(dyn_inp, stat1_inp, stat2_inp, dyn_out, *args, saveall=True):
 def run(param, dyn_inp):
     """
     This function is only used when the batch_run() function is called, repetition of running function,
-    may needs further modifications
+    may needs further modifications.
+    It is not relevant in main_with_measure.py
     """
     start = time.time()
     path = Path.cwd() / ".." / "input"
@@ -555,35 +759,45 @@ def run(param, dyn_inp):
     return df
 
 
-def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
+def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararrs, baseline_variable="r_op_meas", variable_to_save="q_meas_swds", inflowfac=10):
     """
-    this batch_run function is mainly for getting the database for sdf_curve.
+    this batch_run function is mainly for getting the database for different values for different parameters.
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
         stat1_inp (string): the filename of the static form of general parameters
         stat2_inp (string): the filename of the static form of measure parameters
         dyn_out (string): the filename of the output file of solutions
-        vararr (float): the list of values to update "pump_cap".
+        varkey (float): the key parameter to be updated
+        vararr (float): values to update varkey.
 
+    Usage:
+        use in the cmd: python -m urbanwb.main_with_measure batch_run_multivalue_for_one_param timeseries.csv stat1.ini stat2.ini results.csv bot_storcap_meas q_meas_swds 200 100 --inflowfac 20
+        For now is is usable.
+    for now doesn't enable the matrix checker cause some parameters are just correlated.
     """
-    rank_database = []
+    database = []
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(path / dyn_inp)
+
+    # can delete this fraction if necessary.
     date = InputData["date"]
     iters = np.shape(date)[0]
     dt = param["delta_t"]
     num_year = round((dt * iters) / 365)
     print(f"The number of year of the input time series is {num_year} year")
-    for varval in vararr:
-        param["pump_cap"] = varval
-        owl_data = pd.DataFrame(run(param, dyn_inp))["owl"]
-        print(f"pump_capacity = {varval} l/s/ha")
-        k = SDF_Curve(owl_data, num_year=num_year, ow_level=param["ow_level"])
-        rank_database.append(k.rank)
-        print(f"Maximum height above target water level is {k.rank[0]}")
-    df = pd.DataFrame(rank_database, index=[f"{v*8.64}" for v in vararr])
+    database = []
+    for varval in vararrs:
+        param[varkey] = varval
+        df2=pd.DataFrame(running2(dyn_inp, param))
+        #database.append(df2[baseline_variable])
+        print(baseline_variable,variable_to_save)
+        database.append(df2[variable_to_save] / inflowfac)
+    # baseline is not this baseline, just ignore it.
+    #ls=[f"storage{v}" for v in vararrs]
+    #index_list = ls.insert(0, "new")
+    df = pd.DataFrame(database,index=[v for v in vararrs])
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.T.to_csv(outdir / dyn_out, index=True)

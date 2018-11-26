@@ -21,24 +21,22 @@ from urbanwb.gwlcalculator import gwlcal
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.sdf_curve import SDF_Curve
-from urbanwb.measure import Measure
 
 
 class Model(object):
     """
-    Creates an instance of Model class which consists of consists of all eight components namely pavedroof, closedpaved,
+    Creates an instance of Model which consists of all eight necessary components namely pavedroof, closedpaved,
     openpaved, unpaved, unsaturatedzone, groundwater, sewersystem and openwater module. Iterates __next__() over time
     steps to get solutions at each time step.
 
     Args:
-        dict (dictionary): A dictionary of general parameters and parameters for measure which are read from dynamic
-        input (.csv) and configuration file (.ini)
+        dict (dictionary): A dictionary of general parameters and parameters for measure, which are read from configuration file (.ini)
     """
 
     def __init__(self, dict):
         self.param = dict  # get one large dictionary of parameters
         self.pavedroof = PavedRoof(
-            init_intstor_pr_t0=0,  # This initial value can be thrown into ini.file later.
+            init_intstor_pr_t0=0,  # This initial value can be thrown into ini.file later or stored in csv for continuation run in the future.
             pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
             pr_meas_area=self.param["pr_meas_area"],
             pr_meas_inflow_area=self.param["pr_meas_inflow_area"],
@@ -232,10 +230,14 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     # read inputdata(P, Ep and Er) from dyn_inp
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(str(path) + "\\" + dyn_inp)
-    # check if there is NaN in dynamic input. or replace it with automatically changing data for user?
+    # InputData = pd.read_csv(str(path) + "\\" + dyn_inp, dtype={"P_atm": np.float64, "E_pot_OW": np.float64, "Ref.grass": np.float64})
+    # check if there is NaN (missing value) in dynamic input. or replace it with automatically changing data for user?
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
         raise SystemExit(f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.")
+    #InputData["date"] = pd.to_datetime(InputData["date"], format="%d/%m/%Y %H:%M")
+    #InputData.set_index("date", inplace=True)
+    #iters = np.shape(InputData["date"])[0]
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -611,6 +613,39 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
 #         fullname = os.path.join(outdir, new_dyn_out)
 #         df.to_csv(fullname, index=True)
 
+
+# For thesis EVT research only.
+def get_timeseries_of_required_storage_height(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
+    """
+    this batch_run function is mainly designed for getting the database for sdf_curve.
+
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the filename of the output file of solutions
+        vararr (float): the list of values to update "pump_cap".
+
+    """
+    rank_database = []
+    param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+    path = Path.cwd() / ".." / "input"
+    InputData = pd.read_csv(path / dyn_inp)
+    date = InputData["date"]
+    iters = np.shape(date)[0]
+    dt = param["delta_t"]
+    num_year = round((dt * iters) / 365)
+    print(f"The number of year of the input time series is around {num_year} year")
+    for varval in vararr:
+        param["pump_cap"] = varval
+        owl_data = pd.DataFrame(run(param, dyn_inp))["owl"]
+        print(f"pump_capacity = {varval} l/s/ha")
+        k = SDF_Curve(owl_data, num_year=num_year, ow_level=param["ow_level"])
+        rank_database.append(np.delete(k.owl, -1))
+    df = pd.DataFrame(rank_database, index=[f"{v*8.64}" for v in vararr], columns=date)
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+    df.T.to_csv(outdir / dyn_out, index=True)
 
 if __name__ == "__main__":
     fire.Fire()
