@@ -1,34 +1,50 @@
 Running the model
-=================
-
+*****************
 Overview
-~~~~~~~~
+--------
 
-In general the model is run from the windows command line or bat file. It is highly recommended for now to use bat.file.
+In general the model is run from the windows command line or run ``run.bat`` file. The latter is highly recommended.
+
 For the time being, the most commonly used function is ``savecsv`` and ``batch-run-sdf``.
 
 The ``running_sample`` folder in the package includes the sample of running the model for both basic model and model with measure.
-The model with measure is still under development. It is recommended you for the time being add you running scripts in this folder.
+The model with measure is still under development. It is recommended for now to add you own running scripts in this folder.
 
-There are two input to run the model:
+Two input are necessary to run the Urbanwb model:
 
-``Dynamic input``: The forcing --- Hourly time series of Precipitation, potential open water evaporation and potential reference crop evaporation
-(0.8982 * Penman evaporation). The user is responsible for data preprocessing --- clean data, replace vacant data, remove
-unrealistic data and make sure the data is float type (We are considering to include automatically change to float type for user, but it is not
-relevant for now). Make sure the column name is the same because script use the column name to know which is precipitation and evaporation.
+``Dynamic input``: The forcing --- Hourly time series of Precipitation, potential open water evaporation and potential reference crop evaporation. The user is responsible for data preprocessing --- clean data, fill vacancy, remove
+unrealistic data and make sure the data is in float type (We are considering to include an automatic converter to float type for user, but it is not
+relevant for now). Make sure the column name is the same because script use the column name to know which data is precipitation and evaporation.
 
-``Static input``: All the static parameters in the configuration file ``.ini``. We have two static input file, one is only for the basics of model (stat1),
-the other is for the measure. If no measure is modelled, please specify ``choice=0`` in static input file for the measure (stat2).
-Please modify the parameters according to your area of interest.
+``Static input``: All the static input parameters are stored in the configuration file suffixed with ``.ini``.
+Currently, we have two static input file, one is for the basics of model (stat1.ini), the other is for the measure (stat2.ini).
+If no measure is included in the modelling, please specify ``choice=0`` in static input file for the measure (stat2.ini).
 
-Input and parameter explanation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Please modify the parameters according to the local context of your area of interest. Be aware of not changing the
+parameter name, otherwise the model may not work.
 
-a. Dynamic input
-^^^^^^^^^^^^^^^^
+Input time series and parameters
+------------------------------------------------
+
+a. Time series (Dynamic input)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The forcing of Urbanwb model is the time series of:
+
++ precipitation (only rainfall considered)
++ potential open water evaporation (i.e. Penman evaporation [Penman]_.)
++ potential reference crop evapotranspiration (i.e. Penman-Monteith evaporation [Monteith]_.)
+
+.. note::
+
+    Sometimes, Penman evaporation is not directly available since it is not straightly measured, while (class-A) pan
+    evaporation data is more easier to find. Pan evaporation Usually, pan evaporation is multiplied a correlation factor 0.77 to convert
+    to Penman evaporation [Linacre]_. The model assumes potential open water evaporation actual interception evaporation on paved surface
+
+
+Even though
 Forcing: Hourly time series of precipitation (actually only rainfall) [mm] and potential evaporation of
-open water [mm]. Length should better be most recent 30 years. Atmosphere is the most
-crucial exchange to the model.
+open water [mm]. (for grass, it is approximately 0.8982 * Penman evaporation [Droogers]_.)
+Length should better be most recent 30 years. Atmosphere is the most crucial exchange to the model.
 1. Format:
 CSV format is preferred with corresponding column names. Make sure the data has no vacancy or unrealistic data. Make sure
 the data is in float type.
@@ -42,8 +58,8 @@ evaporation time series is not available, then assumptions and simplifications w
 on evaporation interpolation. For instance, in Area H, we only have annual potential evaporation data.
 First, we will divide this value by 365 to get the average daily evaporation. Then, interpolate by daily dynamics as assumed.
 
-b. Static input
-^^^^^^^^^^^^^^^
+b. Parameters (Static input)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Land use at or above surface level are divided into 5 components, namely Paved roofs
 (buildings), Closed paved (roads, etc), Open paved (pavements, parkings, etc), Unpaved
 (grass land, etc) and Open water (ditches, canals, ponds, etc).
@@ -59,7 +75,7 @@ much percentage of the paved area (say paved roofs) is disconnected from the sew
 system. If this fraction is 5%, then it means 5% of the paved roofs (PR) is disconnected
 to sewer system. Consequently, 5% of the runoff from the paved roofs (PR) will not end
 in the sewer system but will presumably flow to unpaved area.
-
+This fraction indicates
 2. part of building above groundwater (GW):
 “part of buildings above GW”: This fraction means, in terms of paved roofs only, how much percentage of paved roofs (PR)
 has its bottom of foundation above the phreatic table. As we know, the relationship between the bottom level of
@@ -116,8 +132,11 @@ overflow to open water (CSO) will occur, and this discharge capacity is calculat
 
 
 
-
-
-
+References
+----------
+.. [Droogers] DROOGERS, P. Verbetering bepaling actuele verdamping voor het strategisch waterbeheer. Deﬁnitiestudie. STOWA, 2009.
+.. [Penman] PENMAN, Howard Latimer. Natural evaporation from open water, bare soil and grass. Proc. R. Soc. Lond. A, 1948, 193.1032: 120-145.
+.. [Monteith] MONTEITH, John L., et al. Evaporation and environment. In: Symp. Soc. Exp. Biol. 1965. p. 4.
+.. [Linacre] LINACRE, Edward T. Estimating US Class A pan evaporation from few climate data. Water International, 1994, 19.1: 5-14.
 
 

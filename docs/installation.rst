@@ -1,5 +1,5 @@
 Installation
-============
+************
 Prerequisite
 ------------
 Urbanwb currently requires Python 3.6+ to run. Please install Python 3.6+ if it is not ready.
@@ -40,7 +40,7 @@ To check whether install is successfull, go to and run: this should run without 
 
 Linux
 -----
-to be added.
+to be added ?.
 
 
 

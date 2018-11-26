@@ -1,24 +1,28 @@
 Urbanwb model
-=============
+*************
 Schematic Overview
 ------------------
-.. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_static/imgs/123.jpg
+.. _F1:
+.. figure:: _build/_images/urbanwb_overview.jpg
     :width: 600px
     :height: 400px
     :scale: 100%
     :alt: alternate text
     :align: center
 
-    Fig: 1.1: Schematic overview of Urbanwb model, copied from orignal Excel-based model by Toine Vergroesen
+    Schematic overview of Urbanwb model, copied from orignal Excel-based model by Toine Vergroesen
 
-Urbanwb model simulates dominant dynamic processes of an urban water system. Rainfall-runoff processes, shallow groundwater
+Urbanwb model is a lumped conceptual model focusing on the water balance. Urbanwb model simulates dominant dynamic processes of an urban water system. Rainfall-runoff processes, shallow groundwater
 (saturated and unsaturated zone), surface water and sewer system (combined and separate sewer system) are all incorporated
-in urbanwb. Three external water exchanges are also included with atmosphere, deep groundwater, outside water and waste water
-treatment plant (WWTP). Figure 1.1 provides a schematic overview of urbanwb model with all fundamental elements included.
-Under this conceptual framework, major urban water system dynamics can be quickly modelled to provide users with a general
-idea of how the system behaves under certain circumstances.
+in Urbanwb. Three external water exchanges are also included with atmosphere, deep groundwater, outside water and waste water
+treatment plant (WWTP). :numref:`F1` provides a schematic overview of Urbanwb model with all its fundamental elements included.
+Under this conceptual framework, major dynamics in urban water system can be quickly modelled to provide users with a general
+idea of how the system behaves under certain circumstances of given locations and climates.
 
-Land use of an urban area is divided into:
+Following is an overall introduction to the Urbanwb model. For detailed descriptions and explanations of the Urbanwb model, please
+refer to "Model components" section.
+
+In an urban area, the land use can be divided into following four types:
     * Paved area above surface level:
         + Paved roof (PR)
     * Paved area at surface level:
@@ -26,67 +30,114 @@ Land use of an urban area is divided into:
         + Open paved (OP)
     * Unpaved area at surface level:
         + Unpaved (UP)
-    * Open water area below surface level
+    * Open (surface) water below surface level
         + Open water (OW)
 
-Below the surface level, three components are distinguished:
+Below the surface level, three components can be distinguished:
     * Unsaturated zone (UZ)
         + Since water is assumed to flow mainly vertically in the unsaturated zone, the unsaturated zone is not relevant below
-          the closed paved (PR and CP) area.
+          the paved roof and closed paved (PR and CP) area where the runoff flows directly to the sewer system or to the unpaved presumably
+          when defined disconnected. Neither is unsaturated zone (UZ) relevant below the open paved (OP) area where the infiltration is assumed
+          directly percolating into the groundwater (GW). In other words, unsaturated zone is only relevant below the unpaved (UP) area
+          where the vegetation's root exists so the transpiration from the root zone must be taken into account.
     * Shallow groundwater (GW)
-        + It is assumed no unsaturated zone is beneath the open water, therefore the groundwater level is not relevant below open water. The groundwater level below buildings can be relevant, therefore it is required to predefine the fraction
-          of paved roof area that above the groundwater level.
-    * Sewer system:
-        + Combined sewer system, i.e. mixed sewer system (MSS)
-        + Storm water drainage system (SWDS), i.e. storm water draiange part of the separate sewer system
+        + It is by default assumed no unsaturated zone is beneath the open water, thus the groundwater level is not
+          relevant below open water. Though it can be defined relevant by specifying how much percentage of open water (OP) is above
+          groundwater. The groundwater level below buildings can be relevant, therefore it is required to predefine the
+          fraction of paved roof (PR) area that is above the groundwater level. Defining part of building (PR) and part of surface water
+          (OW) that is above the groundwater level will influence the size of groundwater and thus influence calculated results since conversion
+          of flux between reservoirs is dependent on area ratio of reservoirs.
+    * Sewer system (SWDS and MSS):
+        + Combined sewer system, i.e. mixed sewer system (MSS), collects stormwater and domestic (and industrial) wastewater
+          in the same pipe system. Hence under wet weather conditions, the untreated combined sewer overflows may cause serious
+          pollution to recipient water bodies (:numref:`F2`).
+
+        .. _F2:
+        .. figure:: _build/_images/mixed_sewer.jpg
+            :width: 450px
+            :height: 210px
+            :scale: 100%
+            :alt: alternate text
+            :align: center
+
+            Combined sewer system under dry, wet weather conditions, source: Wikipedia.
+
+        + Storm water drainage system (SWDS), i.e. stormwater drainage component of the separate sewer system. Separate sewer system
+          overcomes the disadvantage of combined sewer overflow pollution of combined sewer system by separately handling
+          wastewater and rainwater (stormwater) in two separate systems. Only the storm water drainage part is of concern
+          and incorporated in the Urbanwb.
 
 Boundary conditions (external water exchanges) of the model:
-    * Atmosphere:
-        + Rainfall and potential evaporation are the most essential dynamic input (forcing) to the urbanwb model. Since urban
-          is a relative simple conceptual lumped model, factors like temperature, relative humidity, radiation are not included
-          in the modelling.
-    * Deep groundwater:
-        + Seepage from shallow groundwater (GW) to the deep groundwater (deep GW) is relevant in the urbanwb model, which can
-          be predefined either as a constant flux or as a dynamically-computed flux that depends on head difference and
-          flow resistance between the two.
-    * Outside water and waste water treatment plant (WWTP):
-        + A maximum discharge capacity of combined sewer system (MSS) to waste water treatment plant (WWTP) and a maximum discharge capacity (pump_cap) of open water (OW)
-          to outside water are predefined to control the discharge from model internal to model external.
+    * Atmosphere (Atm):
+        + Rainfall and potential evaporation namely Penman evaporation (i.e. potential open water evaporation) and Penman-Monteith
+          evaporation (i.e. potential evapotranspiration) are the only and the most essential dynamic input (forcing) to the
+          Urbanwb model. Since Urbanwb is a simplicity-based lumped conceptual model, other factors like temperature,
+          relative humidity, radiation are irrelevant in the model.
+    * Deep groundwater (Deep GW):
+        + Seepage from shallow groundwater (GW) to the deep groundwater (deep GW) is relevant in the Urbanwb model, which can
+          be specified either as a constant flux or as a dynamically-computed flux that depends on head difference and
+          flow resistance.
+    * Outside water and waste water treatment plant (Out and WWTP):
+        + There are two outflows from model internal to this external exchange: a. Combined sewer system (MSS) is transporting
+          limited water to waste water treatment plant (WWTP) located outside the study area; b. In a typical dutch polder which has
+          no natural gradient for drainage, excessive water is usually pumped outside (Out) through a pumping station into a higher elevated
+          network of larger primary canals (see :numref:`F3`) (and finally gets released through gravity flow during low tide or simply gets pumped into the sea).
+          Both these outflows are limited by certain discharge rate. Hence, a maximum discharge capacity ("q_mss_out_cap" in model) of combined
+          sewer system (MSS) to waste water treatment plant (WWTP) and a maximum discharge capacity ("pump_cap" in model) of open water (OW) to
+          outside water are predefined to control the discharge from model internal to external.
 
-General assumptions of urbanwb model:
+        .. _F3:
+        .. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_images/polder.png
+            :width: 330px
+            :height: 260px
+            :scale: 100%
+            :alt: alternate text
+            :align: center
+
+            Dutch polder system, source: Hum 300 The Arts in Society.
+
+General assumptions of Urbanwb model:
     * Only rainfall is considered as the precipitation. It is assumed to fall instantaneously at the beginning of the current
       time step.
-    * After rainfall is completed, interception evaporation during current time step starts, of which the magnitude is assumed
-      limited by the potential open water evaporation (Penman evaporation) during current time step.
-    * All the (connected) runoff water from paved areas will end in one (or both) of the sewer systems regardless of their capacities
-      (exceedance of this capacity will be dealt with separately), except for the runoff on the disconnected paved areas
-      which is assumed to flow to unpaved area.
-    * All relevant parameters are defined by users in accordance with actual conditions of land use, soil, vegetation, surface
-      water level and etc. for their area of interest.
-    * In terms of state component B, Inflow flux from state component A to state component B is dependent on the area ratio of the two components. For example,
-      Area of component A is :math:`5 m^2`, area of component B is :math:`10 m^2`, the outflux of A to B is 2mm/hr, then the influx of B from A
-      is :math:`2\times\frac{5}{10} = 1 mm/hr`. In this way, the water quantity is conserved. All fluxes and storages are
-      calculated in depth (unit:mm).
-    * There is no internal routing of the model. As long as the water is added in the system, e.g. rain falls on paved area,
-      it directly becomes storage and exceedance of storage capacity becoming runoff stantaneously goes to sewer system, and then goes
-      to open water from which it is pumped outside. It does not takes time for water to "travel" in the system. It it like
-      a glass of water being knocked over with the water spiting over the entire desk instantaneously, the water quantity is conserved but
-      the internal routing is ignored (It does not takes time for water to go from A to B).
+    * After rainfall is completed, interception evaporation during current time step starts, the rate of which is assumed
+      limited by the potential open water evaporation (Penman evaporation) during that time step.
+    * All the connected runoff water from paved areas will end in the sewer systems regardless of their capacities (exceedance
+      of this capacity will be dealt with separately as the sewer overflow on the street). Runoff on the disconnected paved areas
+      is assumed to flow to the unpaved area.
+    * All relevant parameters are defined by users in accordance with local conditions of land use, soil, vegetation, surface
+      water level and other related factors for their area of interest. Detailed explanations on the input is in section.
+    * In terms of reservoir component B, inflow flux (in depth [mm]) from reservoir component A to reservoir component B is dependent
+      on the area ratio of the two components. For instance, area of component A is :math:`5 m^2`, area of component B is
+      :math:`10  m^2`, the calculated outflux from A to B in terms of A is :math:`2 mm/hr`, then the influx of B from A is :math:`2\times\frac{5}{10} = 1  mm/hr`.
+      In Urbanwb, fluxes between states and state storages are computed in relation to depth ([mm]) to make sure the water quantity
+      is strictly conserved not only for the individual component but also for the entire model. The parameterization of the size of components
+      should be given careful concern.
+    * There is no internal routing in Urbanwb model. As long as the water is added to the system, e.g. rain falls on paved
+      area, during current time step it forms interception storage, and exceedance of storage capacity becomes runoff flowing
+      into the sewer system. It does not takes time for water to "travel" from paved surface to the storm system.
+      It would be a good analogy that a glass of water being knocked over with water spiting
+      over the entire desk almost instantaneously. So the water quantity is conserved in this way, but the internal routing
+      is ignored (It does not takes time for water to go from A to B).
+    * Though the terminology for individual component is called paved roof and alike, it actually means area of paved roof
+      (without measure) other than total paved roof area. All calculations performed on single element are related to
+      area without measure. Area with measure is separately dealt with in the measure module. Please refer to the "FAQ" for
+      more information.
 
 Model components
 ----------------
-this section explain in detail how the unit component/element of urbanwb model is setup. The unit elements are namely Paved roof (PR),
-closed paved (CP), open paved (OP), unpaved (UP), open water (OW), unsaturated zone (UZ), groundwater (GW) and sewer system (
-storm water drainage system (SWDS) and combined sewer system (MSS). Their underlying principles, simplifying assumptions,
-calculation orders are explained from top to bottom in this section.
+This section explains in detail how the unit component/element of Urbanwb model is setup. The unit elements are namely
+Paved roof (PR), closed paved (CP), open paved (OP), unpaved (UP), open water (OW), unsaturated zone (UZ), groundwater
+(GW) and sewer system (storm water drainage system (SWDS) and combined sewer system (MSS). Their underlying principles,
+simplifying assumptions, calculation orders are explained from top to bottom.
 
 Paved roof
 ~~~~~~~~~~
 Paved roof is mainly referred to buildings of all kinds in an urban area, which could range from low-rise buildings (e.g.
 single dewlling, apartment complex) to high-rise buildings (e.g. high-rise housing, skyscraper). On a typical building roof,
-a roof drainage system collects rain water in gutters and drains it to a sewer through a downspout pip. A small amount of rainwater
+a roof drainage system collects rain water in gutters and drains it to a sewer through a downspout pipe. A small amount of rainwater
 ponded or intercepted on the roof surface, which is defined as interception storage in the modelling, can only be emptied through
-evaporation. Excessive rainwater that exceeds the storage limit is the runoff on the paved roof.
+evaporation. Excessive rainwater that exceeds the interception storage capacity limit becomes the runoff on the paved roof. Connected
+runoff ends in the sewer system while disconnected runoff flows to unpaved area.
 
 Assumptions
 ^^^^^^^^^^^
@@ -94,9 +145,10 @@ Assumptions
       then the excessive rainwater becomes runoff. In other words, only rainfall exceeding the interception storage capacity will
       run off. Given a very large interception storage capacity, there is no runoff generated.
     * Runoff on the paved roof is redistributed to sewer system and unpaved by predefined ratios. If part of building is
-      disconnected to the sewer system, that disconnected fraction of runoff is assumed to flow to unpaved while
-      connected fraction of runoff ends in the storm water drainage system (SWDS) and combined sewer system (MSS) at predefined
-      proportions.
+      disconnected to the sewer system, for instance a small fraction of water on the roof will flow out the edge down to the
+      ground, that disconnected fraction of runoff is assumed to flow to unpaved area. But the majority of runoff on the
+      paved roof are connected to the sewer system, so it ends in the storm water drainage system (SWDS) and combined
+      sewer system (MSS) at predefined proportions.
 
 Calculation order
 ^^^^^^^^^^^^^^^^^
@@ -106,9 +158,13 @@ Calculation order
     * (Actual) evaporation from interception on paved roof area is limited by potential open water evaporation and available initial
       interception storage during current time step. Evaporation is possible only if the interception storage contains water.
     * (Final) interception storage at the end of current time step is evaporation subtracted from initial interception storage.
-    * Runoff from paved roof area is rainfall minus actual evaporation minus the change in interception storage between current time step
-      and previous time step. Runoff is reallocated to combined sewer system (MSS), storm water drainage system (SWDS) and
-      unpavd area (UP) according to predefined ratios.
+    * (Total) runoff from paved roof area is rainfall minus actual evaporation minus the change in interception storage between
+      current time step and previous time step. Given no measure applied or measure inflow area equals to measure
+      area, there is no runoff from area of paved roof (without measure) to measure. Given measure applied, runoff on the
+      differencing area between the measure inflow area and measure area will flow into the measure.
+    * Subtracting runoff into the measure from the total runoff is the remaining runoff. Connected remaining runoff is
+      reallocated to combined sewer system (MSS), storm water drainage system (SWDS) at predefined proportions while
+      disconnected remaining runoff flows to unpavd area (UP) at predefined ratio.
 
 Code and input parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -120,31 +176,35 @@ Code and input parameters
 Closed paved
 ~~~~~~~~~~~~
 Closed paved is mainly referred to impervious urban land covers, e.g. cement concrete pavement and bituminous concrete pavement.
-In terms of mechanisms, closed paved is quite similar to paved roof. On a typical impermeable road surface, a small amount of
+In terms of modelling mechanisms, closed paved is quite similar to paved roof. On a typical impermeable road surface, a small amount of
 rainwater is interceptied as surface ponding which can only be emptied by evaporation. Rainfall exceeding the interception storage
-capacity will generate runoff, which ends in the sewer sytem through storm drians except for runoff on the disconnected fraction
-of closed paved area which is assumed to flow to the unpaved area.
+capacity will generate runoff, which ends in the sewer sytem through storm drians except for disconnected runoff flowing to the unpaved area by assumption.
 
 Assumptions
 ^^^^^^^^^^^
     * The rainwater on the closed paved is first intercepted as surface interception storage and depleted by evaporation,
       then the excessive rainwater becomes runoff. In other words, rainfall exceeding the interception storage capacity will
       run off. Given a very large interception storage capacity on closed paved, there is no runoff generated.
-    * Runoff is redistributed to sewer system and unpaved by predefinition. If part of the closed paved is disconnected to
-      the sewer system, that disconnected fraction of runoff is assumed to flow directly to unpaved while connected fraction
-      runoff ends in the storm water drainage system and combined sewer system at predefined proportions.
+    * Runoff on the paved roof is redistributed to sewer system and unpaved by predefined ratios. If part of closed paved area
+      is disconnected to the sewer system, that disconnected fraction of runoff flows to unpaved area by assumption. Connected
+      runoff on the closesd paved area will end in the storm water drainage system (SWDS) and combined sewer systm (MSS) at predefined
+      proportions.
 
 Calculation order
 ^^^^^^^^^^^^^^^^^
-    * Initial interception storage at current time step is the interception storage at the end of previous time step plus
+    * Initial interception storage at the beginning of current time step is the interception storage at the end of previous time step plus
       rainfall at current time step, and it is limited by predefined interception storage capacity on closed paved area.
     * (Actual) evaporation from interception on closed paved area is limited by the potential open water evaporation and available
       initial interception storage during current time step. Evaporation is possible only if the interception storage contains
       water.
     * (Final) interception storage at the end of current time step is evaporation subtracted from initial interception storage.
-    * Runoff from closed paved area is rainfall minus actual evaporation minus change in interception storage between current time
-      step and previous time step. Runoff is allocated to Combined sewer system (MSS), Storm Water Drainage System (SWDS) and Unpaved area (UP)
-      based on input predefined ratios.
+    * (Total) runoff from closed paved area is rainfall minus actual evaporation minus the change in interception storage
+      between current time step and previous time step. Given no measure applied or measure inflow area equals to measure area,
+      there is no runoff from area of closed paved (without measure) to measure. Given measure applied, runoff on the differencing
+      area between the measure inflow area and measure area will flow into the measure.
+    * Subtracting runoff into the measure from the total runoff is the remaining runoff. Connected remaining runoff is reallocated
+      to combined sewer system (MSS) and storm water drainage system (SWDS) at predefined proportions while disconnected runoff
+      flows to unpaved area (UP) at predefined ratios.
 
 Code and input parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -158,27 +218,35 @@ Open paved
 Open paved are paths, sidewalks, parking area and other less impervious city-fabric type that has limited infiltration capacity.
 These permeable pavements may use porous material that allows water flowing through it (e.g. pervious concrete, porous asphalt)
 or nonporous material that are spaced (e.g. paving stones, permeable interlocking concrete pavement) so the water may infiltrate
-between the cracks. Consequently, compared to paved roof and closed paved, open paved component has an extra infiltration flux from
-paved surface to groundwater, which is limited by the infiltration capacity as well as available surface interception storage.
+between the cracks. Consequently, compared to paved roof and closed paved component, open paved component has one extra
+infiltration flux from open paved surface to groundwater, which is limited by the infiltration capacity as well as available
+surface interception storage.
+
+        .. figure:: _build/_images/permeable_pavement.jpg
+            :scale: 85%
+            :alt: alternate text
+            :align: center
+
+            Fig: 2.1: Permeable pavement --- porous asphalt and interlocking pavement, source: google images.
 
 Assumptions
 ^^^^^^^^^^^
-    * Cracks on the pavement and pores in the material that allow infiltration only occupies a minor fraction of the surface
-      area, hence it does not affect the interception storage on the open paved surface.
-    * Infiltration starts after interception storage gets filled (storage contains water). Interception storage can only be emptied by evaporation.
-    * There is hardly any plant under the open paved surface, thus no evaptranspiration from the root zone is relevant. Hence,
-      for simplicity, the infiltration from open paved is assumed to directly percolate into the groundwater without going
+    * Cracks on the pavement and pores in the material that allow infiltration only occupy a very minor fraction of the
+      open paved surface area, hence it does not affect the interception storage on the open paved surface.
+    * Infiltration starts after interception storage is filled. Interception storage can only be emptied by evaporation.
+    * There is hardly any plant under the open paved area, thus no transpiration from the root zone is relevant. Hence,
+      for simplicity, the infiltration from open paved surface is assumed directly percolating into the groundwater without going
       through the unsaturated zone.
 
 Calculation order
 ^^^^^^^^^^^^^^^^^
-    * Initial interception storage at current time step is the interception storage at the end of previous time step plus rainfall
-      at current time step, and it is limited by predefined interception storage capacity on open paved area.
-    * (Actual) evaporation from interception on open paved area is limited by the potential open water evaporation and available
+    * Initial interception storage at the beginning of current time step is the interception storage at the end of previous
+      time step plus rainfall at current time step, and it is limited by predefined interception storage capacity on open paved area.
+    * (Actual) evaporation from interception on open paved area is limited by potential open water evaporation and available
       initial interception storage during current time step. Evaporation is possible only if the interception storage contains water.
     * (Final) interception storage at the end of current time step is evaporation subtracted from initial interception storage.
-    * The iniltration occurs if interception storage is not completely emptied by evaporation. Infiltration is limited by predefined
-      infiltration capacity on paved roof. Infiltration directly flows to groundwater, i.e. percolation (skipping unsaturated zone).
+    * The infiltration occurs if interception storage gets fully filled. Infiltration is limited by predefined infiltration
+      capacity on open paved. Infiltration directly flows to groundwater, i.e. percolation (skipping unsaturated zone).
     * Runoff from open paved area is rainfall minus actual evaporation minus change in interception storage between current time
       step and previous time step minus percolation to groundwater. Runoff is allocated to combined sewer system, storm water drainage
       system and unpaved area based on input parameters of predefined ratios.
@@ -273,7 +341,7 @@ than the threshold pressure :math:`h_3h` at high potential transpiration rate. S
 daily crop-evaporation values. For hourly case, instead of using sum of 24 hour evaporation on specified day (daily value),
 we use hourly evaporation divided by :math:`2\Delta t (i.e. 2\times\frac{1}{24})` since it is assumed crop-evaporation occur only during daytime.
 
-.. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_static/imgs/transpiration.jpg
+.. figure:: _build/_images/transpiration.jpg
     :width: 600px
     :height: 300px
     :scale: 100%
@@ -342,7 +410,7 @@ for limiting percolation and calculating root zone moisture content are determin
 on groundwater level at previous time step. Groundwater level is calculated as below, in which P is percolation,
 :math:`q_s=\frac{H-h}{c}` is seepage, :math:`q_{d}=\frac{pp-h}{w}` is drainage (inflow) and all levels are related to ground level:
 
-.. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_static/imgs/groundwater.jpg
+.. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_images/groundwater.jpg
     :width: 600px
     :height: 300px
     :scale: 100%
@@ -502,5 +570,34 @@ Code and input parameters
     :undoc-members:
     :show-inheritance:
 
+FAQ
+---
+1. What is measure inflow area ( ,area with measure and area without measure)?
+
+    .. figure:: _build/_images/measure_inflow.png
+        :width: 350px
+        :height: 220px
+        :scale: 100%
+        :alt: alternate text
+        :align: center
+
+        Fig: 3.1: Illustration of measure inflow area
+
+As can be seen from the figure 3.1 above, we take paved roof component as an example to explain several concepts users may
+find confusing. Total_pr_area means the entire paved roof area, so the big rectangle in the figure, the area of which is
+say 20 m2. In this paved roof area, if a 3 m2 green roof measure (small green rectangle) is implemented on the paved roof,
+we call this green rectangle "paved roof with measure" (pr_meas_area). So subtracting this area from the entire area,
+we have "paved roof without measure" (pr_no_meas_area), the area of which should be 20 - 3 = 17 m2. Besides these easy-to-understand
+concept, there is a concept called measure inflow area, that means the runoff inflow area to measure on the paved roof, which
+in the figure is the dashed-line blue rectangle. The measure inflow area should contain the measure area --- measure inflow area >=
+pr_meas_area, in the figure say it is 8 m2. The difference between the measure inflow area and pr_meas_area is 8-3=5m2. So runoff on this 5m2
+out of the pr_no_meas_area (17 m2) will inflow into the measure.
+
+
+Parameter estimation
+--------------------
+
+References
+----------
 .. [Feddes] FEDDES, Reinder Auke. Crop factors in relation to Makkink reference-crop evapotranspiration. 1987.
 .. [Dejongvanlier] DE JONG VAN LIER, Q., et al. Macroscopic root water uptake distribution using a matric flux potential approach. Vadose Zone Journal, 2008, 7.3: 1065-1078.
