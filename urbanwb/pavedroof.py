@@ -9,7 +9,7 @@ class PavedRoof:
         self.pr_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
         self.intstorcap (float): predefined interception storage capacity on paved roof area [mm]
         self.stormfrac (float): part of urban area with storm water drainage system [-]
-        self.discfrac (float): part of paved roof area that is disconnected from the sewer system[-]
+        self.discfrac (float): part of paved roof area that is disconnected from the sewer system [-]
     """
 
     def __init__(
@@ -42,10 +42,14 @@ class PavedRoof:
 
     def inflowfac(self):
         """
-        Calculates measure inflow factor of paved roof area.
+        Calculates measure inflow factor of paved roof area (without a measure).
 
         Returns:
-            (float): measure inflow factor of paved roof area
+            (float): Measure inflow factor.
+
+            * **inflowfac** -- measure inflow factor is (measure inflow area - measure area) / paved roof area (without measure)
+
+
         """
         return (self.pr_meas_inflow_area - self.pr_meas_area) / self.pr_no_meas_area
 

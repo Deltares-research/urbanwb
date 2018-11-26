@@ -42,10 +42,12 @@ class ClosedPaved:
 
     def inflowfac(self):
         """
-        Calculates measure inflow factor of closed paved area.
+        Calculates measure inflow factor of closed paved area (without a measure).
 
         Returns:
-            (float): measure inflow factor of closed paved area
+            (float): Measure inflow factor.
+
+            * **inflowfac** -- measure inflow factor is (measure inflow area - measure area) / closed paved area (without measure)
         """
         return (self.cp_meas_inflow_area - self.cp_meas_area) / self.cp_no_meas_area
 
@@ -65,7 +67,7 @@ class ClosedPaved:
             * **intstor_cp** -- Remaining interception storage on closed paved at the end of the current time step [mm]
             * **r_cp_meas** -- Runoff from closed paved to an area with a drainage measure (not necessarily on the closed paved area itself) [mm]
             * **r_cp_swds** -- Runoff from closed paved to the storm water drainage system [mm]
-            * **r_cp_mss** -- Runoff from closed paved to the mixed sewer system [mm]
+            * **r_cp_mss** -- Runoff from closed paved to the combined sewer system [mm]
             * **r_cp_up** -- Runoff from closed paved to unpaved area [mm]
         """
 
