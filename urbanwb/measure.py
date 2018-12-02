@@ -195,8 +195,8 @@ class Measure:
                     ts_ini_meas = 0 if self.ts_area_meas == 0 else self.prev_top_stor_meas + int_down_meas * (self.meas_area / self.ts_area_meas)
 
                 tt_atm_meas = 0 if self.num_stor_lvl < 2.5 else self.et_transpiration * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
-
-                pt_meas = 0 if self.num_stor_lvl < 2.5 else self.in_infiltration * max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+                # removed the in__infiltration button
+                pt_meas = 0 if self.num_stor_lvl < 2.5 else max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
 
                 top_stor_meas = min(self.top_storcap_meas, ts_ini_meas - tt_atm_meas - pt_meas)
 

@@ -1,4 +1,4 @@
-class WaterBalanceChecker:
+class WaterBalanceChecker:  # think about make separate waterbalance checker for basics and measure.
     """
     This part works as a checker of the water balance. It checks both the water balance of the entire model and
     the water balance of the measure. Since Urbanwb is strictly conserved in water quantity.
@@ -16,11 +16,13 @@ class WaterBalanceChecker:
         self.gw_no_meas_area = gw_no_meas_area
         self.swds_no_meas_area = swds_no_meas_area
         self.mss_no_meas_area = mss_no_meas_area
+
         self.meas_area = meas_area
         self.meas_top_area = meas_top_area
         self.meas_bot_area = meas_bot_area
         self.op_meas_inflow_area = meas_inflow_area
-        self.inflowareaIsoparea= inflowareaIsoparea
+        self.inflowareaIsoparea = inflowareaIsoparea
+
 
     def sol(self, P_atm, e_atm_pr, e_atm_cp, e_atm_op, e_atm_up, e_atm_ow, t_atm_uz, e_atm_meas, tt_atm_meas, tb_atm_meas,
             s_gw_out, d_gw_ow, q_swds_ow, q_mss_ow, sum_so_ow, q_mss_out, q_ow_out, q_meas_out, intstor_pr, intstor_pr_prevt,
@@ -70,7 +72,6 @@ class WaterBalanceChecker:
 
         # Currently two situations： a. inflow area = measure area b. inflow area = op(pr) area where the measure is applied. (see diifferent exp for a measure where inflow = meas < op area)
         # Think about how to do: 1. if inflow area is somewhere between the two 2. if contains inflow area from multiple sources
-
         if self.inflowareaIsoparea:
             evaporation_mia = (e_atm_meas * self.meas_area + tt_atm_meas * self.meas_top_area + tb_atm_meas * self.meas_bot_area + \
                                e_atm_op * self.op_no_meas_area)/ self.op_meas_inflow_area # this part --- e_atm_op is related to the area where the measure is applied.
@@ -89,10 +90,10 @@ class WaterBalanceChecker:
         runofftoSWDS_mia = meas_swds * self.meas_area / self.op_meas_inflow_area
 
         return {"rainfall_tot": rainfall_tot, "evaporation_tot": evaporation_tot, "seepage_tot":seepage_tot,
-                "drainage_tot":drainage_tot, "sewerflow_tot":sewerflow_tot, "toWWTP_tot":toWWTP_tot,
-                "OWtoOut_tot":OWtoOut_tot, "StorChange_tot":StorChange_tot, "BalanceClosed_tot":BalanceClosed_tot,
-                "rainfall_mia":rainfall_mia, "evaporation_mia": evaporation_mia, "storage_mia":storage_mia,
-                "toOW_mia":toOW_mia, "toGW_mia":toGW_mia, "runofftoSWDS_mia":runofftoSWDS_mia}
+                "drainage_tot": drainage_tot, "sewerflow_tot":sewerflow_tot, "toWWTP_tot":toWWTP_tot,
+                "OWtoOut_tot": OWtoOut_tot, "StorChange_tot":StorChange_tot, "BalanceClosed_tot":BalanceClosed_tot,
+                "rainfall_mia": rainfall_mia, "evaporation_mia": evaporation_mia, "storage_mia":storage_mia,
+                "toOW_mia": toOW_mia, "toGW_mia":toGW_mia, "runofftoSWDS_mia":runofftoSWDS_mia}
 
 
 

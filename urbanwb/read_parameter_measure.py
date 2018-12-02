@@ -71,7 +71,6 @@ def read_parameter_measure(stat2_inp):
     # btm_et_transpiration --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
     # connection_to_gw --- predefined selection if percolation (connection) from measure to groundwater is possible (1) or not (0)
     # gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
-    # k_sat_uz --- saturation permeability of soil [mm/d]
     # b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
     # btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = flux limited, 1 = level difference over resistance)
     # br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (flux=15mm/d)
@@ -117,12 +116,13 @@ def read_parameter_measure(stat2_inp):
     btm_et_transpiration = cf["btm_et_transpiration"]
     connection_to_gw = cf["connection_to_gw"]
     gwl_limit_meas = cf["gwl_limit_meas"]
-    k_sat_uz = cf["k_sat_uz"] # modify later
     b_level_meas = cf["b_level_meas"]
     btm_discharge_type = cf["btm_discharge_type"]
     br_cap_meas = cf["br_cap_meas"]
     bdl_meas = cf["bdl_meas"]
     bdr_meas = cf["bdr_meas"]
+    # temporary
+    waterbalance_check = cf["waterbalance_check"]
 
     # Buttons:
     surf_runoff_meas_ow = cf["surf_runoff_meas_ow"]
@@ -211,7 +211,6 @@ def read_parameter_measure(stat2_inp):
         "btm_et_transpiration": btm_et_transpiration,
         "connection_to_gw": connection_to_gw,
         "gwl_limit_meas": gwl_limit_meas,
-        "k_sat_uz": k_sat_uz, # this will later be thrown into stat1.ini
         "b_level_meas": b_level_meas,
         "btm_discharge_type": btm_discharge_type,
         "br_cap_meas": br_cap_meas,
@@ -231,10 +230,11 @@ def read_parameter_measure(stat2_inp):
         "overflow_meas_swds": overflow_meas_swds,
         "surf_runoff_meas_mss": surf_runoff_meas_mss,
         "ctrl_runoff_meas_mss": ctrl_runoff_meas_swds,
-        "overflow_meas_mss": overflow_meas_swds,
+        "overflow_meas_mss": overflow_meas_mss,
         "surf_runoff_meas_out": surf_runoff_meas_out,
         "ctrl_runoff_meas_out": ctrl_runoff_meas_out,
         "overflow_meas_out": overflow_meas_out,
+        "waterbalance_check": waterbalance_check
     }
 
 
