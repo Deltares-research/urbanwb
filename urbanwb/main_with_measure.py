@@ -24,8 +24,8 @@ from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.sdf_curve import SDF_Curve
 from urbanwb.measure import Measure
 from urbanwb.waterbalance_checker import WaterBalanceChecker
-
-
+from numba import jit, float32, autojit  #
+from time import sleep
 
 
 class Model(object):
@@ -153,6 +153,7 @@ class Model(object):
                                                        uz_no_meas_area=self.param["tot_uz_area"]-self.param["uz_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
                                                        swds_no_meas_area=self.param["tot_swds_area"]-self.param["swds_meas_area"],mss_no_meas_area=self.param["tot_mss_area"]-self.param["mss_meas_area"],
                                                        meas_area=self.param["meas_area"],meas_top_area=self.param["ts_area_meas"],meas_bot_area=self.param["bs_area_meas"],meas_inflow_area=self.param["op_meas_inflow_area"],inflowareaIsoparea=True)  # need to make this op_meas_inflow_area adaptive, not just open paved but it is applicable to other area.
+
     def __iter__(self):
         return self
 
@@ -265,35 +266,63 @@ class Model(object):
             raise StopIteration
         return dictmerged
 
-def running(dyn_inp, stat1_inp, stat2_inp): # needs to be merged with running2 and running3
+
+def read_inputdata(dyn_inp):
+    """
+    reads input data (time series of precipitation and evaporation) from dynamic input file.
+
+    Args:
+        dyn_inp (string): the filename of the input time series of precipitation and evaporation
+
+    Returns:
+        (dataframe): A dataframe of the time series of precipitation and evaporation
+    """
+    path = Path.cwd() / ".." / "input"
+    return pd.read_csv(str(path) + "\\" + dyn_inp)
+
+
+def read_parameters(stat1_inp, stat2_inp):
+    """
+    reads parameters for initializing the Model through calling "read_parameter_base" to read parameters in the
+    neighbourhood configuration file and calling "read_parameter_measure" to read parameters in the measure configuration
+    file.
+
+    Args:
+        stat1_inp (string): the filename of the neighbourhood configuration file
+        stat2_inp (string): the filename of the measure configuration file
+
+    Returns:
+        (dictionary): A dictionary of all parameters needed to initialize a Model
+    """
+    return {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        rv = func(*args, **kwargs)
+        after = time.time()
+        print(f"Elapsed: {after - start:.2f}s")
+        return rv
+    return wrapper
+
+
+@timer
+def running(inputdata, dict_param):
     """
     takes input data from input file and parameters from configuration file to run one calculation
 
     Args:
-        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
-        stat1_inp (string): the filename of the static form of general parameters
-        stat2_inp (string): the filename of the static form of measure parameters
 
     Returns:
         (dataframe): A dataframe of all desired results for all time steps
     """
-
-    start = time.time()
-    # read inputdata(P, Ep and Er) from dyn_inp
-    path = Path.cwd() / ".." / "input"
-    InputData = pd.read_csv(str(path) + "\\" + dyn_inp)
-    date = InputData["date"]
-    P_atm = InputData["P_atm"]
-    Ref_grass = InputData["Ref.grass"]
-    E_pot_OW = InputData["E_pot_OW"]
+    date = inputdata["date"]
+    P_atm = inputdata["P_atm"]
+    Ref_grass = inputdata["Ref.grass"]
+    E_pot_OW = inputdata["E_pot_OW"]
     iters = np.shape(date)[0]
-
-    # read general parameter and parameters for measure from static forms.
-    dict_para = {
-        **read_parameter_base(stat1_inp),
-        **read_parameter_measure(stat2_inp),
-    }  # One large dictionary of parameters
-    k = Model(dict_para)
+    k = Model(dict_param)
     lst = [
         {
             "int_pr": 0,
@@ -337,20 +366,20 @@ def running(dyn_inp, stat1_inp, stat2_inp): # needs to be merged with running2 a
             "theta_eq_uz": 0,
             "capris_max_uz": 0,
             "p_uz_gw": 0,
-            "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
-                gwlcal(dict_para["init_gwl"])[2]
+            "theta_uz": soil_selector(dict_param["soiltype"], dict_param["croptype"])[
+                gwlcal(dict_param["init_gwl"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
             "r_meas_gw": 0,
             "gwl_up_1": 0,
             "gwl_low_1": 0,
-            "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
-                gwlcal(dict_para["init_gwl"])[2]
+            "sc_gw": soil_selector(dict_param["soiltype"], dict_param["croptype"])[
+                gwlcal(dict_param["init_gwl"])[2]
             ]["stor_coef"],
             "h_gw": 0,
             "s_gw_out": 0,
             "d_gw_ow": 0,
-            "gwl": dict_para["init_gwl"],
+            "gwl": dict_param["init_gwl"],
             "gwl_sl": 0,
             "sum_r_swds": 0,
             "r_meas_swds": 0,
@@ -371,23 +400,23 @@ def running(dyn_inp, stat1_inp, stat2_inp): # needs to be merged with running2 a
             "sum_so_ow": 0,
             "r_meas_ow": 0,
             "q_ow_out": 0,
-            "owl": dict_para["ow_level"],
+            "owl": dict_param["ow_level"],
             "prec_meas": 0,
             "sum_r_meas": 0,
             "int_meas": 0,
             "e_atm_meas": 0,
             "int_down_meas": 0,
             "sr_meas": 0,
-            "intstor_meas": dict_para["intstor_meas_t0"],
+            "intstor_meas": dict_param["intstor_meas_t0"],
             "ts_ini_meas": 0,
             "tt_atm_meas": 0,
             "pt_meas": 0,
-            "top_stor_meas": dict_para["top_stor_meas_t0"], # top_stor_meas_t0
+            "top_stor_meas": dict_param["top_stor_meas_t0"], # top_stor_meas_t0
             "bs_ini_meas": 0,
             "tb_atm_meas": 0,
             "pb_meas_gw": 0,
             "br_meas": 0,
-            "bot_stor_meas": dict_para["bot_stor_meas_t0"], # bot_stor_meas_t0
+            "bot_stor_meas": dict_param["bot_stor_meas_t0"], # bot_stor_meas_t0
             "bo_meas": 0,
             "q_meas_ow": 0,
             "q_meas_uz": 0,
@@ -406,32 +435,34 @@ def running(dyn_inp, stat1_inp, stat2_inp): # needs to be merged with running2 a
             "BalanceClosed_tot": 0,
             "rainfall_mia": 0,
             "evaporation_mia": 0,
-            "storage_mia": (dict_para["intstor_meas_t0"]*dict_para["meas_area"] + dict_para["bot_stor_meas_t0"] *
-                            dict_para["bs_area_meas"] + dict_para["top_stor_meas_t0"] * dict_para["ts_area_meas"] + 0 * (dict_para["tot_op_area"] - dict_para["op_meas_area"])
-                            )/dict_para["op_meas_inflow_area"], # needs to be adaptive here, modify later,
+            "storage_mia": (dict_param["intstor_meas_t0"]*dict_param["meas_area"] + dict_param["bot_stor_meas_t0"] *
+                            dict_param["bs_area_meas"] + dict_param["top_stor_meas_t0"] * dict_param["ts_area_meas"] + 0 *
+                            (dict_param["tot_op_area"] - dict_param["op_meas_area"])
+                            )/dict_param["op_meas_inflow_area"],  # "op_meas_inflow_area" - needs to be adaptive here, modify later,
             "toOW_mia": 0,
             "toGW_mia": 0,
             "runofftoSWDS_mia": 0,
         }
     ]
-
-    t = 1
+    start = time.time()
     for t in trange(1, iters):
         lst.append(
             k.__next__(
-                P_atm[t],
-                E_pot_OW[t],
-                Ref_grass[t],
-                lst[t - 1],
-            )
-        )
-
+            P_atm[t],
+            E_pot_OW[t],
+            Ref_grass[t],
+            lst[t - 1],
+                        )
+                    )
+    end = time.time()
+    print(f"Model runtime: {end - start:.1f}s")
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     df.insert(1, "P_atm", P_atm)
     df.insert(2, "E_pot_OW", E_pot_OW)
     df.insert(3, "Ref.grass", Ref_grass)
 
+    # water balance check.
     sum_prec = sum(df["prec_meas"].iloc[1:])
     sum_evap = sum(df["evaporation_mia"].iloc[1:])
     intstor_change = df["storage_mia"].iloc[-1] - df["storage_mia"].iloc[0]
@@ -443,16 +474,11 @@ def running(dyn_inp, stat1_inp, stat2_inp): # needs to be merged with running2 a
             "gw_recharge": gw_recharge, "discharge": discharge, "balance_check": balance_check}
     print("results statistics", stat)
     print("Water balance is closed? ", math.isclose(balance_check, 0, abs_tol=0.001))
-
-    end = time.time()
-    print(f"Model runtime: {end - start:.1f}s")
     return df
+
 
 def running2(dyn_inp, param):
     """
-    This is a temporary function, will be modified later. I think running function should neither contain dynamic input file name or static input file name.
-    Just contains parameter matrix, dataframe of dynamic timeseries. So simply a running function.
-    takes input data from input file and parameters from configuration file to run one calculation
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -647,6 +673,37 @@ def savecsv(dyn_inp, stat1_inp, stat2_inp, dyn_out):
     df.to_csv(outdir / dyn_out, index=True)
 
 
+def savecsv2(dyn_inp, stat1_inp, stat2_inp, outputfilename, *args, saveall=True):
+    """
+    runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
+    measure) and saves results in a csv file with the specified output filename under the 'pysol' folder.
+
+    Args:
+        dyn_inp (string): the filename of the dynamic input data of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        outputfilename (string): the filename of the output file of solutions
+        *args (strings): specified selected results to be saved
+        saveall (bool): save all results when True, save specified selected results when False
+
+    Returns:
+        A csv file of all computed results
+    """
+    inputdata = read_inputdata(dyn_inp)
+    dict_param = read_parameters(stat1_inp, stat2_inp)
+    df = running(inputdata, dict_param)
+
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    if saveall:
+        df.to_csv(outdir / outputfilename, index=True)
+    else:
+        header = ["Date", "P_atm", "E_pot_OW", "Ref.grass"]
+        header.extend([arg for arg in args])
+        df.to_csv(outdir / outputfilename, index=True, columns=header)
+
+
 def saverun(dyn_inp, stat1_inp, stat2_inp, dyn_out, *args, saveall=True):
     """
     saverun function can save all (by default) results or selected results to the outputfile
@@ -798,7 +855,7 @@ def run(param, dyn_inp):
     print(f"Model runtime: {end - start:.1f}s")
     return df
 
-from time import sleep
+
 
 
 def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararrs, corresponding_varkey=None, baseline_variable="r_op_swds", variable_to_save="runofftoSWDS_mia"):
@@ -818,7 +875,6 @@ def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, v
         For now is is usable.
     for now doesn't enable the matrix checker cause some parameters are just correlated.
     """
-    database = []
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
     path = Path.cwd() / ".." / "input"
     InputData = pd.read_csv(path / dyn_inp)
@@ -874,7 +930,7 @@ def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, v
 
 
 def running3(dyn_inp, param):
-    """ Run without measure.
+    """ Run without measure ----.
     This is a temporary function, will be modified later. I think running function should neither contain dynamic input file name or static input file name.
     Just contains parameter matrix, dataframe of dynamic timeseries. So simply a running function.
     takes input data from input file and parameters from configuration file to run one calculation
@@ -1073,56 +1129,6 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
 #         fullname = os.path.join(outdir, new_dyn_out)
 #         df.to_csv(fullname, index=True)
 
-
-# def making_marks(precipitation):
-#     # first create an empty mark arary.
-#     mark = np.zeros_like(precipitation)
-#     # give values to the mark array.
-#     for i in range(len(precipitation)):
-#         if i < 6:
-#             mark[i] = 0
-#         else:
-#             if precipitation[i] > 0:
-#                 if sum(precipitation[i-6:i]) > 0:
-#                     mark[i] = mark[i-1]
-#                 else:
-#                     mark[i] = mark[i-1] + 1
-#             else:
-#                 mark[i] = mark[i-1]
-#     return mark
-#
-# def ranking(df, x, num):
-#     rank = np.zeros(num)
-#     for i in range(num):
-#         rank[i] = sum(df[df.mark==i][x])
-#     return sorted(rank, reverse=True)
-#
-#
-# from collections import OrderedDict
-# class GetResultsforPlotting(object):
-#
-#     def __init__(self, filename):
-#         self.name = filename
-#         # automatically create output name according to inputname: first remove ".csv" then add "_results.csv"
-#         self.output_name = ''.join(list(self.name)[:-4]) + "_results.csv"
-#         self.df = pd.read_csv(self.name)
-#         # making event marks according to precipitation (6 consective zeros as separation)
-#         self.df["mark"] = making_marks(self.df["P_atm"])
-#
-#     def makingranks(self, ):
-#         rank_P = ranking(self.df, "P_atm", int(max(self.df.mark) + 1))
-#         # create T list (30 yr, thus starting from (30+1 / 1)), could put it as argument for more general running, but not for now.
-#         T_list = [(5 + 1) / m for m in range(1, len(rank_P) + 1)]
-#         # rank runoff on the baseline case
-#         rank_B = ranking(self.df, "Baseline", int(max(self.df.mark) + 1))
-#         # rank runoff on the measure applied case
-#         rank_M = ranking(self.df, "measure", int(max(self.df.mark) + 1))
-#         datadict = OrderedDict([('T_list', T_list), ('rank_P', rank_P), ('rank_B', rank_B), ('rank_M', rank_M)])
-#         data = pd.DataFrame.from_dict(datadict)
-#         return data
-#
-#     def save_to_csv(self, ):
-#         self.makingranks().to_csv(self.output_name)
 
 if __name__ == "__main__":
     fire.Fire()
