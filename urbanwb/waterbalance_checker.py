@@ -23,7 +23,6 @@ class WaterBalanceChecker:  # think about make separate waterbalance checker for
         self.op_meas_inflow_area = meas_inflow_area
         self.inflowareaIsoparea = inflowareaIsoparea
 
-
     def sol(self, P_atm, e_atm_pr, e_atm_cp, e_atm_op, e_atm_up, e_atm_ow, t_atm_uz, e_atm_meas, tt_atm_meas, tb_atm_meas,
             s_gw_out, d_gw_ow, q_swds_ow, q_mss_ow, sum_so_ow, q_mss_out, q_ow_out, q_meas_out, intstor_pr, intstor_pr_prevt,
             intstor_cp, intstor_cp_prevt, intstor_op, intstor_op_prevt, intstor_up, intstor_up_prevt, theta_uz, theta_uz_prevt,

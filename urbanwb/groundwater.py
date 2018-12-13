@@ -104,11 +104,14 @@ class Groundwater:
 
             r_meas_gw = meas_gw * tot_meas_area / self.gw_no_meas_area
 
-            gwl_sol = gwlcal(self.prev_gwl)
-            gwl_up = gwl_sol[0]
-            gwl_low = gwl_sol[1]
-            id1 = gwl_sol[2]
-            id2 = gwl_sol[3]
+            if uz_no_meas_area == 0:   #  when up == 0 (i.e. uz==0), "div0" error as in the excel. Maybe the next logistic step is to make this term in the unsaturatedzone only.
+                gwl_up = gwl_low = 0
+            else:
+                gwl_sol = gwlcal(self.prev_gwl)
+                gwl_up = gwl_sol[0]
+                gwl_low = gwl_sol[1]
+                id1 = gwl_sol[2]
+                id2 = gwl_sol[3]
 
             if self.prev_gwl < 10:
                 sc_gw = self.soil_prm[id2]["stor_coef"] + (gwl_low - self.prev_gwl) / (

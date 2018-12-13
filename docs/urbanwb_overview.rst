@@ -122,6 +122,9 @@ General assumptions of Urbanwb model:
       (without measure) other than total paved roof area. All calculations performed on single element are related to
       area without measure. Area with measure is separately dealt with in the measure module. Please refer to the "FAQ" for
       more information.
+    * The flux from reservoir A to reservoir B (e.g. infiltration) is limited within a frame of thinking from three aspects: a. how much water (storage)
+      is available to transfer b. how much space is left in receiving reservoir B to accommodate the water c. What is the constrained transport capacity between
+      A and B.
 
 Model components
 ----------------
@@ -218,21 +221,22 @@ Open paved
 Open paved are paths, sidewalks, parking area and other less impervious city-fabric type that has limited infiltration capacity.
 These permeable pavements may use porous material that allows water flowing through it (e.g. pervious concrete, porous asphalt)
 or nonporous material that are spaced (e.g. paving stones, permeable interlocking concrete pavement) so the water may infiltrate
-between the cracks. Consequently, compared to paved roof and closed paved component, open paved component has one extra
+between the cracks (see :numref:`F4`). Consequently, compared to paved roof and closed paved component, open paved component has one extra
 infiltration flux from open paved surface to groundwater, which is limited by the infiltration capacity as well as available
 surface interception storage.
 
+        .. _F4:
         .. figure:: _build/_images/permeable_pavement.jpg
             :scale: 85%
             :alt: alternate text
             :align: center
 
-            Fig: 2.1: Permeable pavement --- porous asphalt and interlocking pavement, source: google images.
+            Permeable pavement --- porous asphalt and interlocking pavement, source: google images.
 
 Assumptions
 ^^^^^^^^^^^
     * Cracks on the pavement and pores in the material that allow infiltration only occupy a very minor fraction of the
-      open paved surface area, hence it does not affect the interception storage on the open paved surface.
+      open paved surface area, hence it does not affect the interception storage capacity on the open paved surface.
     * Infiltration starts after interception storage is filled. Interception storage can only be emptied by evaporation.
     * There is hardly any plant under the open paved area, thus no transpiration from the root zone is relevant. Hence,
       for simplicity, the infiltration from open paved surface is assumed directly percolating into the groundwater without going
@@ -263,7 +267,7 @@ Unpaved
 Unpaved area is land use that has no hard impervious surface cover, e.g. gardens and grassland, on which the water can much
 more easily infiltrate than on paved area. Vegetation/crop type on the unpaved needs to be predefined. The model assumes
 notable distinction between paved area (PR, CP, OP) and unpaved area (UP). On paved area, the runoff is mainly drained through
-the sewer system except for disconnected runoff which is assumed to unpaved area. In contrast, on unpaved area, the water contained
+the sewer system except for disconnected runoff which is assumed to flow to unpaved area. In contrast, on unpaved area, the water contained
 in the interception storage simultaneously evaporates to atmosphere and infiltrates to unsaturated zone, futher percolates to
 groundwater and then gets drained to deep groundwater reservoir and open water, while the water exceeding the interception storage
 capacity becomes runoff which is assumed to flow to open water.
@@ -275,11 +279,11 @@ Assumptions
     * The interception capacity for unpaved area is defined as the water depth above which surface runoff starts. Interception
       capacity of vegetation is not separately defined. Evaporation from vegetation is taken up in the transpiration from the unsaturated
       zone. Evaporation and infiltration from the unpaved surface  will occur as long as water remains on surface level.
-    * Infiltration starts after interception storage is filled (i.e. storage contains water). Interception storage
-      is proportionally emptied by infiltration and evaporation. Infiltration is limited by the actual infiltrate capacity
-      or the available soil moisture storage. Evaporation is limited by the potential open evaporation of that time step.
+    * Infiltration starts after interception storage is filled (i.e. interception storage contains water). Interception storage
+      is proportionally emptied by infiltration and evaporation. Infiltration is limited by the actual infiltration capacity
+      or the available soil moisture storage. Evaporation is limited by the potential open water evaporation of that time step.
     * Actual infiltration capacity is limited by the actual storage capacity in the root zone, i.e. the maximum moisture content minus
-      the actual moisture content. However the anticipated percolation from rootzone to groundwter during the current time step allows more infiltration.
+      the actual moisture content. However the anticipated percolation from rootzone to groundwater during the current time step allows more infiltration.
       The anticipated percolation is limited by the saturated conductivity of the soil and the maximum moisture content minus
       the actual moisture content of that time step.
     * Time factor is the part of the time step that water is remaining on surface level. Potential open water evaporation is multiplied
@@ -331,16 +335,17 @@ from unsaturated zone to groundwater as outflow. Percolation flux is limited by 
 Transpiration of plants (root zone water uptake) is modelled as the product of potential evapotranspiration for reference crop
 and transpiration reduction coefficient. Transpiration reduction coefficient is a concept from the literature [Feddes]_.
 Figure below shows how the transpiration reduction factor (i.e. so called water stress
-coefficient in [Dejongvanlier]_, figure also copied from this reference) is related to soil water pressure head.
+coefficient in [Dejongvanlier]_, figure :numref:`F5` also copied from this reference) is related to soil water pressure head.
 h = relative root zone storage = moisture content / moisture content at equilibrium.
 In the range between :math:`h_3` (reduction point)
 and :math:`h_2` (field capacity), root water uptake is optimal, so :math:`\alpha_{rw}=1`. When :math:`h < h_3`, :math:`\alpha_{rw}` linearly
 reduces to zero at :math:`h_4` (fully saturated). The threshold pressure :math:`h_3` increases with potential transpiration
 rates, i.e. daily crop-evaporation. For low potential transpiration rate, the threshold pressure :math:`h_{3l}` is lower
-than the threshold pressure :math:`h_3h` at high potential transpiration rate. Simplifications are made here to calculate
-daily crop-evaporation values. For hourly case, instead of using sum of 24 hour evaporation on specified day (daily value),
+than the threshold pressure :math:`h_{3h}` at high potential transpiration rate. Computational simplifications are made here to calculate
+daily crop-evaporation values. For hourly case, instead of using sum of 24 hour evaporation on that specified day (daily value),
 we use hourly evaporation divided by :math:`2\Delta t (i.e. 2\times\frac{1}{24})` since it is assumed crop-evaporation occur only during daytime.
 
+.. _F5:
 .. figure:: _build/_images/transpiration.jpg
     :width: 600px
     :height: 300px
@@ -348,7 +353,7 @@ we use hourly evaporation divided by :math:`2\Delta t (i.e. 2\times\frac{1}{24})
     :alt: alternate text
     :align: center
 
-    Fig: 2: Transpiration reduction coefficient, copied from the literature [Dejongvanlier]_
+    Transpiration reduction coefficient, copied from the literature [Dejongvanlier]_
 
 Assumptions
 ^^^^^^^^^^^
@@ -356,7 +361,7 @@ Assumptions
     * The area of unsaturated zone is equal to area of the unpaved.
     * For timestep length :math:`\Delta t` smaller than 1 day, daily crop-evaporation to determine moisture content at reduction point h3 is
       by simplification the potential evapotranspiration rate divided by 2t because it is assumed that (crop-) evaporation occurs during half
-      a day (only during daytime). Actually it would be better to apply daily reference crop evaporation instead of reference crop
+      a day (only during daytime). Actually it would be better to apply daily reference crop evaporation value instead of reference crop
       evaporation at current time step divide :math:`2\Delta t`.
     * (Actual) transpiration is determined by transpiration reduction factor and potential reference crop evaporation during current time step.
     * Percolation to groundwater is limited by the saturated conductivity of the soil.
@@ -364,7 +369,7 @@ Assumptions
 Calculation orders
 ^^^^^^^^^^^^^^^^^^
     * Total infiltration from unpaved area is taken as the influx. For that sizes of different runoff areas are multiplied with
-      different runoff depths of these areas. The sum is divided by the size of the unpaved(unsaturated zone) area.
+      different runoff depths of these areas. The sum is divided by the size of the unpaved (unsaturated zone) area.
     * Calculate drought evaporation reduction moisture content :math:`\theta_{h3}`. When daily potential evaporation is less than 1 mm/d
       :math:`\theta_{h3} = \theta_{h3l}`, and if daily potential evaporation is more than 5 mm/d, :math:`\theta_{h3} = \theta_{h3h}`.
       If daily potential evaporation is between 1mm/d and 5 mm/d, :math:`\theta_{h3}` is interpolated between :math:`\theta_{h3l}`
@@ -403,13 +408,15 @@ Groundwater
 ~~~~~~~~~~~
 Groundwater component takes percolation flux from unsaturated zone and infiltration flux from open paved
 as inflows. The outflows are downward seepage drainage flux to deep groundwater and seepage drainage flux to open
-water. Outflow’s direction is driven by head difference, thus it can be positive or negative, it is like a two-way street.
+water. Outflow’s direction is driven by the head difference, thus it can be positive or negative, it is like a two-way street.
 The groundwater area is equal to the total area minus the open water area that is not above the groundwater and part of
 the paved roof area (buildings) of which the basement is below groundwater. Maximum capillary rise and storage coefficient
 for limiting percolation and calculating root zone moisture content are determined by interpolation based
-on groundwater level at previous time step. Groundwater level is calculated as below, in which P is percolation,
+on groundwater level at previous time step. Groundwater level is calculated as shown in the below figure :numref:`F6`, in which P is percolation,
 :math:`q_s=\frac{H-h}{c}` is seepage, :math:`q_{d}=\frac{pp-h}{w}` is drainage (inflow) and all levels are related to ground level:
 
+
+.. _F6:
 .. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_images/groundwater.jpg
     :width: 600px
     :height: 300px
@@ -417,7 +424,7 @@ on groundwater level at previous time step. Groundwater level is calculated as b
     :alt: alternate text
     :align: center
 
-    Figure 3: Groundwater component fluxes calculation
+    Groundwater component fluxes calculation
 
 .. math::
 
@@ -453,17 +460,15 @@ Calculation orders
       different percolation depths of these areas. The sum is divided by the size of the groundwater area.
     * Determine storage coefficient :math:`\mu` by linear interpolation, based on the storage coefficients of the two groundwater
       levels above and below the actual groundwater level at the previous time step in the database table.
-    * Determine new groundwater level based on seepage, drainage and percolation flux. See the illustration plot and calculation formulas above.
-      In my opinion, it means based on a. how seepage to deep GW is defined? As a constant flux or as a
-      dynamic flux and b. the head difference (driving force) between the groundwater level and open water level.
+    * Determine new groundwater level at current time step based on seepage, drainage and percolation flux. See the illustration plot and derivation of calculation formulas above.
     * Determine downward seepage flux to deep groundwater (can also be upward negative) during current time step
-      according to predefinition. You can either define a constant flux (0=flux) or a fixed deep groundwater hydraulic
-      head plus a vertical drainage resistance vc (1=level).
-    * Determine drainage to open water during current time step based on the mass balance: drainage water = inflowing
+      according to predefinition of this seepage. You can either define it as a constant flux (0=flux) or a fixed deep groundwater hydraulic
+      head with a vertical drainage resistance vc between the shallow groundwater and deep groundwater (1=level).
+    * Determine drainage to open water from groundwater during current time step based on the water balance: drainage water = inflowing
       water - outflowing water - stored groundwater. Note here the drainage flux is not related to drainage resistance w
-      which is related in groundwater level calculation. It is only dependent on the water balance.
-    * Determine (final) groundwater level below surface level and above surface level at the end of the current time step,
-      dependent on groundwater level at the end of previous time step, percolation, seepage, drainage flux and storage coefficient :math:`\mu`.
+      which is only related in groundwater level h(t) calculation. The groundwater seepage to open water is only dependent on the water balance.
+    * Determine (final) groundwater level below surface level and above surface level at the end of the current time step.
+      They are dependent on groundwater level at the end of previous time step, percolation, seepage, drainage flux and storage coefficient :math:`\mu`.
 
 
 Code and input parameter
@@ -479,11 +484,11 @@ Sewer system is combined of storm water drainage system (SWDS) and combined sewe
 which the sewer system capacity should be accordingly predefined in regard to local context. Sewer system consists of
 mixed sewer system (MSS) (i.e. combined sewer system) and storm water drainage system (SWDS) (i.e. storm drain part of
 separate sewer system). As we know, there are two phases for combined sewer system. During dry flow condition, all runoff
-is tranported to the waste water treatment plant (WWTP) for futher treatment, while during wet flow conidtion (large storms),
+is tranported to the waste water treatment plant (WWTP) for futher treatment, while during wet flow condition (large storms),
 the relief structure (CSO weir) allows major part of the combined stormwater and sewage to be discharged untreatedly to
 an adjacent water body. So in phase one, combined sewer system collects runoff from paved areas and discharges it to
 waste water treatment plant (WWTP) which is limited by a predefined discharge capacity above which the sewer overflow
-through CSO weir to open water will occur. Given a heavier rainfall event, we enter phase two --- combine sewer overflow
+through CSO weir to open water will occur. Given a heavier rainfall event, we enter phase two --- combined sewer overflow
 occurs, however if the discharge capacity from Combined sewer system to open water is still exceeded because of e.g. quite heavy
 rainfall, then sewer overflow onto the street will occur. Different from combined sewer system (MSS), Storm water drainage
 system (SWDS) drains strom water directly to the open water and the discharge is limited by predefined discharge capacity
@@ -491,8 +496,8 @@ above which the sewer overflow on the street will occur.
 
 Assumptions:
 ^^^^^^^^^^^^
-    * Sewer system component is a bit confusing, especially the discharge capacity part. It is developed based on NL case,
-      hence user must understand it and tailor the input for more realistic modelling.
+    * Sewer system component is a bit confusing, especially the discharge capacity part. It is developed based on NL case (see information in parameter estimation part),
+      hence user must understand it and tailor the input for more realistic modelling of local context of study area.
     * Runoff from paved areas to sewer system is partitioned to combined sewer system and storm water drainage system at predefined
       proportions.
     * Area of sewer system is equal to the total area of all connected paved areas (PR, CP, OP).

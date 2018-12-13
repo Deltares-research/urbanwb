@@ -162,7 +162,7 @@ def read_parameter_measure(stat2_inp):
         + mss_meas_area
         + ow_meas_area
     )
-
+    isgreenroofdd = cf["isgreenroofdd"]
     # 0 or 1 check. check some parameters (some buttons) which can only be selected from 0 or 1
     k = [surf_runoff_meas_ow, ctrl_runoff_meas_ow, overflow_meas_ow, surf_runoff_meas_uz, ctrl_runoff_meas_uz, overflow_meas_uz, surf_runoff_meas_gw, ctrl_runoff_meas_gw, overflow_meas_gw,
          surf_runoff_meas_swds, ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out,
@@ -234,7 +234,8 @@ def read_parameter_measure(stat2_inp):
         "surf_runoff_meas_out": surf_runoff_meas_out,
         "ctrl_runoff_meas_out": ctrl_runoff_meas_out,
         "overflow_meas_out": overflow_meas_out,
-        "waterbalance_check": waterbalance_check
+        "waterbalance_check": waterbalance_check,
+        "isgreenroofdd": isgreenroofdd
     }
 
 

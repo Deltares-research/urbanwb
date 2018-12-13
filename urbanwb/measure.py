@@ -64,7 +64,7 @@ class Measure:
                 et_transpiration, e_fac_meas, in_infiltration, tinf_cap_meas, bs_area_meas, btm_et_transpiration, connection_to_gw, gwl_limit_meas,
                 k_sat_uz, b_level_meas, btm_discharge_type, br_cap_meas, bdl_meas, bdr_meas, surf_runoff_meas_ow, ctrl_runoff_meas_ow,
                 overflow_meas_ow, surf_runoff_meas_uz, ctrl_runoff_meas_uz, overflow_meas_uz, surf_runoff_meas_gw, ctrl_runoff_meas_gw, overflow_meas_gw, surf_runoff_meas_swds,
-                ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out):
+                ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out, isgreenroofdd):
         """
         Creates an instance of Measure class.
         """
@@ -116,6 +116,7 @@ class Measure:
         self.surf_runoff_meas_out = surf_runoff_meas_out
         self.ctrl_runoff_meas_out = ctrl_runoff_meas_out
         self.overflow_meas_out = overflow_meas_out
+        self.isgreenroofdd = isgreenroofdd
 
     def sol(self, p_atm, e_pot_ow, r_pr_meas, r_cp_meas, r_op_meas, r_up_meas, pr_no_meas_area, cp_no_meas_area,
             op_no_meas_area, up_no_meas_area, gw_no_meas_area, prev_gwl_gw, delta_t,
@@ -179,10 +180,17 @@ class Measure:
                 e_atm_meas = self.ev_evaporation * min(int_meas, e_pot_ow)
 
                 if self.num_stor_lvl > 1.5:  # needs update state here.
-                    int_down_meas = max(0, min(int_meas - e_atm_meas, delta_t * self.infil_cap_meas,
-                                        ((self.top_storcap_meas - self.prev_top_stor_meas) if self.num_stor_lvl > 2.5 else
-                                         (self.bot_storcap_meas - self.prev_bot_stor_meas))))
+
+                    if not self.isgreenroofdd:
+
+                        int_down_meas = max(0, min(int_meas - e_atm_meas, delta_t * self.infil_cap_meas,
+                                            ((self.top_storcap_meas - self.prev_top_stor_meas) if self.num_stor_lvl > 2.5 else
+                                             (self.bot_storcap_meas - self.prev_bot_stor_meas))))
+                    else:
+                        int_down_meas = max(0, min(int_meas - e_atm_meas - self.int_cap_meas, delta_t * self.infil_cap_meas))
+
                 else:
+
                     int_down_meas = 0
 
                 sr_meas = max(0, int_meas - e_atm_meas - int_down_meas - self.int_cap_meas)
@@ -196,7 +204,18 @@ class Measure:
 
                 tt_atm_meas = 0 if self.num_stor_lvl < 2.5 else self.et_transpiration * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
                 # removed the in__infiltration button
-                pt_meas = 0 if self.num_stor_lvl < 2.5 else max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+
+                if self.num_stor_lvl < 2.5:
+
+                    pt_meas = 0
+
+                else:
+                    if not self.isgreenroofdd:
+                        pt_meas = max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+                    else:
+                        pt_meas = max(0, min(ts_ini_meas - tt_atm_meas - self.top_storcap_meas, delta_t * self.tinf_cap_meas))
+
+                # pt_meas = 0 if self.num_stor_lvl < 2.5 else max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
 
                 top_stor_meas = min(self.top_storcap_meas, ts_ini_meas - tt_atm_meas - pt_meas)
 
