@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 import fire
-import math  # isclose
+import math
 from pathlib import Path
 from collections import OrderedDict
 from tqdm import trange
@@ -28,21 +28,19 @@ from time import sleep
 
 class Model(object):
     """
-    Creates an instance from Model class which consists of all eight components namely pavedroof, closedpaved,
-    openpaved, unpaved, unsaturatedzone, groundwater, sewersystem and openwater. Iterates __next__() as time
+    Creates an instance from Model class which consists of all eight components namely paved roof, closed paved,
+    open paved, unpaved, unsaturated zone, groundwater, sewer system and open water. Iterates __next__() as time
     stepping to get solutions for all time steps.
 
     Args:
-        dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood and measure configuration files
-        to initialize the model
+        dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood and measure configuration
+        files to initialize the model
     """
 
     def __init__(self, dict_param):
         self.param = dict_param  # get one large dictionary of parameters
         self.pavedroof = PavedRoof(
-            init_intstor_pr_t0=0,  # make it not default zero later
             pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
-            stormfrac_pr=self.param["swds_frac"],
             **self.param
         )
         self.closedpaved = ClosedPaved(

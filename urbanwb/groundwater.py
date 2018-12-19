@@ -112,7 +112,7 @@ class Groundwater:
                 gwl_up = gwl_sol[0]
                 gwl_low = gwl_sol[1]
                 id1 = gwl_sol[2]
-                id2 = gwl_sol[3]
+                id2 = gwl_sol[3]  # we need to put gwl_up and gwl_low as sol() arguments, not calculated again.
 
             if self.prev_gwl < 10:
                 sc_gw = self.soil_prm[id2]["stor_coef"] + (gwl_low - self.prev_gwl) / (
