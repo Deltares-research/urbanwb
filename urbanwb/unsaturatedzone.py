@@ -16,7 +16,7 @@ class UnsaturatedZone:
     """
 
     def __init__(
-        self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1
+        self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1, **kwargs
     ):
         """
         Creates an instance of UnsaturatedZone class

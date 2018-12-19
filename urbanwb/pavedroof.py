@@ -20,7 +20,7 @@ class PavedRoof:
         pr_meas_inflow_area,
         intstorcap_pr=1.6,
         stormfrac_pr=1.0,
-        discfrac_pr=0.0,
+        discfrac_pr=0.0, **kwargs
     ):
         """
         Creates an instance of PavedRoof class.

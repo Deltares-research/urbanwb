@@ -30,6 +30,7 @@ class SewerSystem:
         q_mss_ow_cap=48.1,
         stor_swds_cap=2,
         stor_mss_cap=9,
+        **kwargs
     ):
         """
         Creates an instance of SewerSystem class.

@@ -23,6 +23,7 @@ class OpenPaved:
         stormfrac_op=1.0,
         discfrac_op=0.0,
         infilcap_op=1.0,
+        **kwargs
     ):
         """
         Creates an instance of OpenPaved class

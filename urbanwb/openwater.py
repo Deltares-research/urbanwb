@@ -8,7 +8,7 @@ class OpenWater:
         self.ow_level (float): predefined target open water level [m-SL], also the initial open water level at t=0
     """
 
-    def __init__(self, ow_no_meas_area, ow_level, q_ow_out_cap=200):
+    def __init__(self, ow_no_meas_area, ow_level, q_ow_out_cap=200, **kwargs):
         """
         Creates an instance of OpenWater class.
         """
@@ -21,6 +21,7 @@ class OpenWater:
         self.ow_no_meas_area = ow_no_meas_area
         self.q_ow_out_cap = q_ow_out_cap
         self.ow_level = ow_level
+
 
     def sol(
         self,

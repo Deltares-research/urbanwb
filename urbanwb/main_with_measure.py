@@ -28,75 +28,51 @@ from time import sleep
 
 class Model(object):
     """
-    Creates an instance of Model class which consists of consists of all eight components namely pavedroof, closedpaved,
-    openpaved, unpaved, unsaturatedzone, groundwater, sewersystem and openwater module. Iterates __next__() over time
-    steps to get solutions at each time step.
+    Creates an instance from Model class which consists of all eight components namely pavedroof, closedpaved,
+    openpaved, unpaved, unsaturatedzone, groundwater, sewersystem and openwater. Iterates __next__() as time
+    stepping to get solutions for all time steps.
 
     Args:
-        dict (dictionary): A dictionary of general parameters and parameters for measure which are read from dynamic
-        input (.csv) and configuration file (.ini)
+        dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood and measure configuration files
+        to initialize the model
     """
 
-    def __init__(self, dict):
-        self.param = dict  # get one large dictionary of parameters
+    def __init__(self, dict_param):
+        self.param = dict_param  # get one large dictionary of parameters
         self.pavedroof = PavedRoof(
-            init_intstor_pr_t0=0,
+            init_intstor_pr_t0=0,  # make it not default zero later
             pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
-            pr_meas_area=self.param["pr_meas_area"],
-            pr_meas_inflow_area=self.param["pr_meas_inflow_area"],
-            intstorcap_pr=self.param["intstorcap_pr"],
             stormfrac_pr=self.param["swds_frac"],
-            discfrac_pr=self.param["discfrac_pr"],
+            **self.param
         )
         self.closedpaved = ClosedPaved(
             init_intstor_cp_t0=0,
             cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
-            cp_meas_area=self.param["cp_meas_area"],
-            cp_meas_inflow_area=self.param["cp_meas_inflow_area"],
-            intstorcap_cp=self.param["intstorcap_cp"],
             stormfrac_cp=self.param["swds_frac"],
-            discfrac_cp=self.param["discfrac_cp"],
+            **self.param
         )
         self.openpaved = OpenPaved(
             init_intstor_op_t0=0,
             op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
-            op_meas_area=self.param["op_meas_area"],
-            op_meas_inflow_area=self.param["op_meas_inflow_area"],  # need to change this for other cases. current equal to tot_op_area., inflow area >= measure area <= total component area
-            intstorcap_op=self.param["intstorcap_op"],  # needs to differentiate clearly the measure inflow area, measure area, area with measure and area without measure, total area.
             stormfrac_op=self.param["swds_frac"],
-            discfrac_op=self.param["discfrac_op"],
-            infilcap_op=self.param["infilcap_op"],
+            **self.param
         )
         self.unpaved = Unpaved(
             fin_stor_up_t0=0,
             up_no_meas_area=self.param["tot_up_area"] - self.param["up_meas_area"],
-            up_meas_area=self.param["up_meas_area"],
-            up_meas_inflow_area=self.param["up_meas_inflow_area"],
-            infilcap_up=self.param["infilcap_up"],
-            intstorcap_up=self.param["intstorcap_up"],
-            soiltype=self.param["soiltype"],
-            croptype=self.param["croptype"],
+            **self.param
         )
         self.unsaturatedzone = UnsaturatedZone(
             theta_uz_t0=soil_selector(self.param["soiltype"], self.param["croptype"])[
                 gwlcal(self.param["init_gwl"])[2]
             ]["moist_cont_eq_rz[mm]"],
             uz_no_meas_area=self.param["tot_uz_area"] - self.param["uz_meas_area"],
-            uz_meas_area=self.param["uz_meas_area"],
-            soiltype=self.param["soiltype"],
-            croptype=self.param["croptype"],
+            **self.param
         )
         self.groundwater = Groundwater(
             init_gwl_t0=self.param["init_gwl"],
             gw_no_meas_area=self.param["tot_gw_area"] - self.param["gw_meas_area"],
-            gw_meas_area=self.param["gw_meas_area"],
-            seep_def=self.param["seep_def"],
-            w=self.param["w"],
-            vc=self.param["vc"],
-            h_deepgw=self.param["h_deepgw"],
-            flux=self.param["flux"],
-            soiltype=self.param["soiltype"],
-            croptype=self.param["croptype"],
+            **self.param
         )
         self.sewersystem = SewerSystem(
             swds_no_meas_area=self.param["tot_swds_area"]
@@ -106,11 +82,9 @@ class Model(object):
             prev_so_swds_t0=0,
             prev_stor_mss_t0=0,
             prev_so_mss_t0=0,
-            q_swds_ow_cap=self.param["q_swds_ow_cap"],
-            q_mss_out_cap=self.param["q_mss_out_cap"],
-            q_mss_ow_cap=self.param["q_mss_ow_cap"],
             stor_swds_cap=self.param["storcap_swds"],
             stor_mss_cap=self.param["storcap_mss"],
+            **self.param
         )
         self.openwater = OpenWater(
             ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
@@ -118,6 +92,7 @@ class Model(object):
             q_ow_out_cap=self.param["pump_cap"]
             * 8.64  # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
             # may need modifications later.
+            # got multiple value for 'q_ow_out_cap'
         )
         # it takes too many parameters to initialise a measure instance.
 
@@ -276,26 +251,30 @@ def read_inputdata(dyn_inp):
         (dataframe): A dataframe of the time series of precipitation and evaporation
     """
     path = Path.cwd() / ".." / "input"
+
+    # add checker of the data here.
     return pd.read_csv(str(path) + "\\" + dyn_inp)
 
 
 def read_parameters(stat1_inp, stat2_inp):
     """
-    reads parameters for initializing the Model through calling "read_parameter_base" to read parameters in the
-    neighbourhood configuration file and calling "read_parameter_measure" to read parameters in the measure configuration
-    file.
+    reads parameters for Model initialization through calling "read_parameter_base" to read parameters from
+    neighbourhood  configuration file and "read_parameter_measure" to read parameters from measure configuration file.
 
     Args:
-        stat1_inp (string): the filename of the neighbourhood configuration file
-        stat2_inp (string): the filename of the measure configuration file
+        stat1_inp (string): filename of neighbourhood configuration file
+        stat2_inp (string): filename of measure configuration file
 
     Returns:
-        (dictionary): A dictionary of all parameters needed to initialize a Model
+        (dictionary): A dictionary of all necessary parameters to initialize a Model
     """
     return {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
 
 
 def timer(func):
+    """
+    a decorator that timings the function runtime.
+    """
     def wrapper(*args, **kwargs):
         start = time.time()
         rv = func(*args, **kwargs)
@@ -306,19 +285,21 @@ def timer(func):
 
 
 @timer
-def running(inputdata, dict_param):
+def running(input_data, dict_param):
     """
-    takes input data from input file and parameters from configuration file to run one calculation
+    takes input data from input file and parameters from configuration files to run simulation once.
 
     Args:
+        input_data (dataframe): a fixed-format dataframe of the time series of precipitation and evaporation
+        dict_param (dictionary): a dictionary of all necessary parameters to initialize a model
 
     Returns:
-        (dataframe): A dataframe of all desired results for all time steps
+        (dataframe): A dataframe of computed results for all time steps
     """
-    date = inputdata["date"]
-    P_atm = inputdata["P_atm"]
-    Ref_grass = inputdata["Ref.grass"]
-    E_pot_OW = inputdata["E_pot_OW"]
+    date = input_data["date"]
+    P_atm = input_data["P_atm"]
+    Ref_grass = input_data["Ref.grass"]
+    E_pot_OW = input_data["E_pot_OW"]
     iters = np.shape(date)[0]
     k = Model(dict_param)
     lst = [
@@ -436,7 +417,7 @@ def running(inputdata, dict_param):
             "storage_mia": 0,  # "op_meas_inflow_area" - needs to be adaptive here, modify later, #(dict_param["intstor_meas_t0"]*dict_param["meas_area"] + dict_param["bot_stor_meas_t0"] *
                             #dict_param["bs_area_meas"] + dict_param["top_stor_meas_t0"] * dict_param["ts_area_meas"] + 0 *
                             #(dict_param["tot_op_area"] - dict_param["op_meas_area"])
-                            #)/dict_param["op_meas_inflow_area"]
+                            #)/dict_param["op_meas_inflow_area"]  # another way to modify it is to use another waterbalance check method to avoid this divzero.
             "toOW_mia": 0,
             "toGW_mia": 0,
             "runofftoSWDS_mia": 0,

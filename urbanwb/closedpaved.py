@@ -21,6 +21,7 @@ class ClosedPaved:
         intstorcap_cp=1.6,
         stormfrac_cp=1.0,
         discfrac_cp=0.0,
+        **kwargs
     ):
         """
         Creates an instance of ClosedPaved class.

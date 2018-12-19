@@ -33,6 +33,7 @@ class Groundwater:
         flux=1,
         soiltype=2,
         croptype=1,
+        **kwargs
     ):
 
         # state

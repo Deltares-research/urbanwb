@@ -26,6 +26,7 @@ class Unpaved:
         intstorcap_up=20,
         soiltype=2,
         croptype=1,
+        **kwargs
     ):
 
         # state
