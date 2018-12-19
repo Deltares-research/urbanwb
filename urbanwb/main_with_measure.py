@@ -443,7 +443,7 @@ def running(inputdata, dict_param):
         }
     ]
     start = time.time()
-    for t in trange(1, iters):
+    for t in trange(1, iters):  # time series first line is not relevant (initial), start from second line.
         lst.append(
             k.__next__(
             P_atm[t],

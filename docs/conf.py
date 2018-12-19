@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "urbanwb"
-copyright = "2018, Deltares/Wenxing Zhang"
+copyright = "2018, Deltares"
 author = "Wenxing Zhang"
 
 # The short X.Y version

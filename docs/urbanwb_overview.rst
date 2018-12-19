@@ -12,17 +12,18 @@ Schematic Overview
 
     Schematic overview of Urbanwb model, copied from orignal Excel-based model by Toine Vergroesen
 
-Urbanwb model is a lumped conceptual model focusing on the water balance. Urbanwb model simulates dominant dynamic processes of an urban water system. Rainfall-runoff processes, shallow groundwater
-(saturated and unsaturated zone), surface water and sewer system (combined and separate sewer system) are all incorporated
-in Urbanwb. Three external water exchanges are also included with atmosphere, deep groundwater, outside water and waste water
-treatment plant (WWTP). :numref:`F1` provides a schematic overview of Urbanwb model with all its fundamental elements included.
-Under this conceptual framework, major dynamics in urban water system can be quickly modelled to provide users with a general
-idea of how the system behaves under certain circumstances of given locations and climates.
+Urbanwb model is a lumped conceptual model for urban water balance modelling. Urbanwb model simulates dominant dynamic hydrological
+processes of an urban water system. Rainfall-runoff processes, shallow groundwater (saturated and unsaturated zone), surface
+water and sewer system (combined and separate sewer system) are all incorporated in Urbanwb model. Three external water
+exchanges are included with atmosphere, deep groundwater, outside water and waste water treatment plant (WWTP). :numref:`F1`
+provides a schematic overview of Urbanwb model with its fundamental elements included. Under this conceptual framework,
+major hydrological dynamics in an urban water system can be quickly and indicatively modelled to provide users with a general
+idea of the water quantity distribution amd how the water system behaves under certain circumstances.
 
-Following is an overall introduction to the Urbanwb model. For detailed descriptions and explanations of the Urbanwb model, please
+Following provides an overall introduction to the Urbanwb model. For detailed descriptions and explanations of the Urbanwb model, please
 refer to "Model components" section.
 
-In an urban area, the land use can be divided into following four types:
+In an urban area, the land use is divided into four types:
     * Paved area above surface level:
         + Paved roof (PR)
     * Paved area at surface level:
@@ -30,26 +31,25 @@ In an urban area, the land use can be divided into following four types:
         + Open paved (OP)
     * Unpaved area at surface level:
         + Unpaved (UP)
-    * Open (surface) water below surface level
+    * Surface water below surface level
         + Open water (OW)
 
-Below the surface level, three components can be distinguished:
+Below the surface level, three components are distinguished:
     * Unsaturated zone (UZ)
-        + Since water is assumed to flow mainly vertically in the unsaturated zone, the unsaturated zone is not relevant below
-          the paved roof and closed paved (PR and CP) area where the runoff flows directly to the sewer system or to the unpaved presumably
-          when defined disconnected. Neither is unsaturated zone (UZ) relevant below the open paved (OP) area where the infiltration is assumed
-          directly percolating into the groundwater (GW). In other words, unsaturated zone is only relevant below the unpaved (UP) area
-          where the vegetation's root exists so the transpiration from the root zone must be taken into account.
+        + Since water is assumed to flow mainly vertically in the unsaturated zone, unsaturated zone is irrelevant below
+          paved roof (PR) and closed paved (CP) where runoff flows directly into sewer system (SWDS, MSS) or to unpaved
+          (UP) when defined disconnected. Unsaturated zone (UZ) is neither relevant below open paved (OP) where the limited
+          infiltration is assumed percolating directly into groundwater (GW). In other words, unsaturated zone (UZ) is only
+          relevant below unpaved (UP) area since transpiration from the root zone has to be taken into account.
     * Shallow groundwater (GW)
-        + It is by default assumed no unsaturated zone is beneath the open water, thus the groundwater level is not
-          relevant below open water. Though it can be defined relevant by specifying how much percentage of open water (OP) is above
-          groundwater. The groundwater level below buildings can be relevant, therefore it is required to predefine the
-          fraction of paved roof (PR) area that is above the groundwater level. Defining part of building (PR) and part of surface water
-          (OW) that is above the groundwater level will influence the size of groundwater and thus influence calculated results since conversion
-          of flux between reservoirs is dependent on area ratio of reservoirs.
+        + By default it is assumed no unsaturated zone (UZ) is beneath open water (OW), thus the groundwater level is irrelevant
+          below open water, though it can be defined relevant by specifying the percentage of open water (OW) that is above
+          phreatic table. The groundwater below buildings is relevant and it is required to predefine the percentage of
+          paved roof (PR) that is above the groundwater level. Flux conversion between reservoirs depends on the area ratio
+          of reservoirs.
     * Sewer system (SWDS and MSS):
         + Combined sewer system, i.e. mixed sewer system (MSS), collects stormwater and domestic (and industrial) wastewater
-          in the same pipe system. Hence under wet weather conditions, the untreated combined sewer overflows may cause serious
+          in the same pipe system. Under wet weather conditions, untreated combined sewer overflows may cause serious
           pollution to recipient water bodies (:numref:`F2`).
 
         .. _F2:
@@ -62,29 +62,31 @@ Below the surface level, three components can be distinguished:
 
             Combined sewer system under dry, wet weather conditions, source: Wikipedia.
 
-        + Storm water drainage system (SWDS), i.e. stormwater drainage component of the separate sewer system. Separate sewer system
-          overcomes the disadvantage of combined sewer overflow pollution of combined sewer system by separately handling
-          wastewater and rainwater (stormwater) in two separate systems. Only the storm water drainage part is of concern
-          and incorporated in the Urbanwb.
+        + Storm water drainage system (SWDS), i.e. stormwater drainage component of the separate sewer system. Separate
+          sewer system overcomes the drawback of sewer overflow pollution of combined sewer system through disposing wastewater
+          and stormwater in two separate systems. The storm water drainage system module is incorporated in the Urbanwb
+          model.
 
 Boundary conditions (external water exchanges) of the model:
     * Atmosphere (Atm):
-        + Rainfall and potential evaporation namely Penman evaporation (i.e. potential open water evaporation) and Penman-Monteith
-          evaporation (i.e. potential evapotranspiration) are the only and the most essential dynamic input (forcing) to the
-          Urbanwb model. Since Urbanwb is a simplicity-based lumped conceptual model, other factors like temperature,
-          relative humidity, radiation are irrelevant in the model.
+        + Rainfall and potential evaporation namely Penman evaporation [Penman]_ (i.e. potential open water evaporation)
+          and Penman-Monteith evaporation [Monteith]_ (i.e. potential evapotranspiration) are the only forcing to Urbanwb
+          model. Since Urbanwb is a simple lumped conceptual model, other factors like temperature, relative humidity,
+          radiation and etc are irrelevant.
     * Deep groundwater (Deep GW):
-        + Seepage from shallow groundwater (GW) to the deep groundwater (deep GW) is relevant in the Urbanwb model, which can
-          be specified either as a constant flux or as a dynamically-computed flux that depends on head difference and
-          flow resistance.
+        + Seepage from shallow groundwater (GW) to deep groundwater (deep GW) can be defined relevant in Urbanwb model,
+          either as a constant flux or a dynamically-computed flux dependent on head difference and flow resistance.
     * Outside water and waste water treatment plant (Out and WWTP):
-        + There are two outflows from model internal to this external exchange: a. Combined sewer system (MSS) is transporting
-          limited water to waste water treatment plant (WWTP) located outside the study area; b. In a typical dutch polder which has
-          no natural gradient for drainage, excessive water is usually pumped outside (Out) through a pumping station into a higher elevated
-          network of larger primary canals (see :numref:`F3`) (and finally gets released through gravity flow during low tide or simply gets pumped into the sea).
-          Both these outflows are limited by certain discharge rate. Hence, a maximum discharge capacity ("q_mss_out_cap" in model) of combined
-          sewer system (MSS) to waste water treatment plant (WWTP) and a maximum discharge capacity ("pump_cap" in model) of open water (OW) to
-          outside water are predefined to control the discharge from model internal to external.
+        + There are two outflows from model internal to this external exchange: a. Combined sewer system (MSS) discharges
+          water at certain rate to waste water treatment plant (WWTP) which is located outside the study area; b. excess
+          of water on the surface water is pumped outside. These outflows are limited by predefined discharge rate --- the
+          maximum discharge capacity of combined sewer system (MSS) to waste water treatment plant (WWTP)
+          and the maximum discharge capacity of open water (OW) to outside water.
+
+    .. note::
+          A typical dutch polder has no natural gradient for drainage, thus excessive water is normally pumped through a
+          pumping station into a higher elevated network of larger primary canals (:numref:`F3`) from where the water
+          is released into sea at low tide.
 
         .. _F3:
         .. figure:: C:/Users/ZWX/PycharmProjects/UWM/docs/_build/_images/polder.png
@@ -97,74 +99,79 @@ Boundary conditions (external water exchanges) of the model:
             Dutch polder system, source: Hum 300 The Arts in Society.
 
 General assumptions of Urbanwb model:
-    * Only rainfall is considered as the precipitation. It is assumed to fall instantaneously at the beginning of the current
-      time step.
-    * After rainfall is completed, interception evaporation during current time step starts, the rate of which is assumed
-      limited by the potential open water evaporation (Penman evaporation) during that time step.
-    * All the connected runoff water from paved areas will end in the sewer systems regardless of their capacities (exceedance
-      of this capacity will be dealt with separately as the sewer overflow on the street). Runoff on the disconnected paved areas
-      is assumed to flow to the unpaved area.
-    * All relevant parameters are defined by users in accordance with local conditions of land use, soil, vegetation, surface
-      water level and other related factors for their area of interest. Detailed explanations on the input is in section.
-    * In terms of reservoir component B, inflow flux (in depth [mm]) from reservoir component A to reservoir component B is dependent
-      on the area ratio of the two components. For instance, area of component A is :math:`5 m^2`, area of component B is
-      :math:`10  m^2`, the calculated outflux from A to B in terms of A is :math:`2 mm/hr`, then the influx of B from A is :math:`2\times\frac{5}{10} = 1  mm/hr`.
-      In Urbanwb, fluxes between states and state storages are computed in relation to depth ([mm]) to make sure the water quantity
-      is strictly conserved not only for the individual component but also for the entire model. The parameterization of the size of components
-      should be given careful concern.
-    * There is no internal routing in Urbanwb model. As long as the water is added to the system, e.g. rain falls on paved
-      area, during current time step it forms interception storage, and exceedance of storage capacity becomes runoff flowing
-      into the sewer system. It does not takes time for water to "travel" from paved surface to the storm system.
-      It would be a good analogy that a glass of water being knocked over with water spiting
-      over the entire desk almost instantaneously. So the water quantity is conserved in this way, but the internal routing
-      is ignored (It does not takes time for water to go from A to B).
-    * Though the terminology for individual component is called paved roof and alike, it actually means area of paved roof
-      (without measure) other than total paved roof area. All calculations performed on single element are related to
-      area without measure. Area with measure is separately dealt with in the measure module. Please refer to the "FAQ" for
-      more information.
-    * The flux from reservoir A to reservoir B (e.g. infiltration) is limited within a frame of thinking from three aspects: a. how much water (storage)
-      is available to transfer b. how much space is left in receiving reservoir B to accommodate the water c. What is the constrained transport capacity between
+    * Only rainfall is considered as the precipitation. Rainfall falls instantaneously at the beginning of
+      current time step.
+    * After rainfall is completed, interception evaporation during current time step starts, the rate of which is limited
+      by the potential open water evaporation at the same time step.
+    * Connected runoff from paved areas ends in the sewer systems regardless of their capacities (exceedance
+      of this capacity is dealt with separately as sewer overflow on the street). Runoff from disconnected paved area
+      flows to unpaved area.
+    * All relevant parameters are defined by users in accordance with local conditions of area of interest, like land use,
+      soil, vegetation, surface water level and etc. Detailed explanations on parameter input is in section ???.
+    * Calculated fluxes and states are expressed in depth (mm) per area of that component. For reservoir B, inflow flux
+      from reservoir A to B is converted from outflow flux from A by considering the area ratio of reservoir A over B.
+      For example, area of A is :math:`5 m^2`, area of B is :math:`10  m^2`, calculated outflux from A to B in terms of
+      A is :math:`2 mm/hr`, then the influx of B from A  in terms of B is :math:`2\times\frac{5}{10} = 1  mm/hr`.
+      In Urbanwb model, the water quantity is strictly conserved not only for the individual reservoir but also for the
+      entire model.
+    * Internal routing is irrelevant in Urbanwb model. It takes no time for water to "travel" between reservoirs.
+      Consequently, the model is applicable at neighbourhood scale and use at large spatial scale may be questionable. A
+      best analogy would be a glass of water being knocked over with water spilling all over the table instantly --- mass
+      balance is conserved but routing is ignored.
+    * Urban adaptation measures can be implemented with Urbanwb model through incorporating Adaptive Measure module. Measure
+      module is an individual component that interacts with basic reservoirs of Urbanwb model. Detailed explanations on
+      adaptive measure structure is in Section ???.
+    * Parameters to initialize the model are allocated into two parts and saved in separate configuration files. In neighbourhood
+      configuration file, parameters of local urban environment like land use fractions, soil type, target water level
+      and etc are stored. In measure configuration file, parameters to setup the measure are stored. Parameters should be
+      defined by user from scientific literature and empirical evidence with his or her logistic thinking and expert judgement
+      in order to avoid "Garbage in, garbage out".
+    * The flux from A to  B (e.g. infiltration) is limited from three aspects: a. how much water (storage) is available for
+      transferring b. how much space is left in recipient B to accommodate the water c. What is the transport capacity between
       A and B.
 
 Model components
 ----------------
-This section explains in detail how the unit component/element of Urbanwb model is setup. The unit elements are namely
+This section explains in detail how the unit component of Urbanwb model is architected. Unit elements involved are namely
 Paved roof (PR), closed paved (CP), open paved (OP), unpaved (UP), open water (OW), unsaturated zone (UZ), groundwater
-(GW) and sewer system (storm water drainage system (SWDS) and combined sewer system (MSS). Their underlying principles,
-simplifying assumptions, calculation orders are explained from top to bottom.
+(GW) and sewer system (SWDS and MSS). Underlying principles, simplifying assumptions, and calculation orders are explained
+in depth from top to bottom.
 
 Paved roof
 ~~~~~~~~~~
-Paved roof is mainly referred to buildings of all kinds in an urban area, which could range from low-rise buildings (e.g.
-single dewlling, apartment complex) to high-rise buildings (e.g. high-rise housing, skyscraper). On a typical building roof,
-a roof drainage system collects rain water in gutters and drains it to a sewer through a downspout pipe. A small amount of rainwater
-ponded or intercepted on the roof surface, which is defined as interception storage in the modelling, can only be emptied through
-evaporation. Excessive rainwater that exceeds the interception storage capacity limit becomes the runoff on the paved roof. Connected
-runoff ends in the sewer system while disconnected runoff flows to unpaved area.
+Paved roof (PR) refers to all kinds of buildings in an urban area ranging from low-rise buildings (e.g. single dwelling,
+apartment complex) to high-rise buildings (e.g. high-rise housing, skyscraper). On rooftop, a roof drainage system collects
+rainwater in gutters and drains it into a sewer through a downspout pipe. A small amount of rainwater ponded or intercepted
+on the roof surface is defined as interception storage. It can only be emptied through evaporation. Water exceeding the
+interception storage capacity becomes runoff on the paved roof. Connected runoff ends in the sewer system while disconnected
+runoff flows to unpaved area.
 
 Assumptions
 ^^^^^^^^^^^
-    * The rainwater on the paved roof is first intercepted as surface interception storage and depleted by evaporation,
-      then the excessive rainwater becomes runoff. In other words, only rainfall exceeding the interception storage capacity will
-      run off. Given a very large interception storage capacity, there is no runoff generated.
-    * Runoff on the paved roof is redistributed to sewer system and unpaved by predefined ratios. If part of building is
-      disconnected to the sewer system, for instance a small fraction of water on the roof will flow out the edge down to the
-      ground, that disconnected fraction of runoff is assumed to flow to unpaved area. But the majority of runoff on the
-      paved roof are connected to the sewer system, so it ends in the storm water drainage system (SWDS) and combined
+    * Rainwater falling on the roof is first retained as interception storage and depleted by evaporation,
+      and then excess water becomes runoff. In other words, only rainfall exceeding interception storage capacity runs
+      off. Given a considerably large interception storage capacity, there is no runoff generated.
+    * Runoff on paved roof (PR) is redistributed to sewer system (SWDS and MSS) and unpaved (UP) by predefined ratios.
+      If part of roof is disconnected to sewer system, for instance a minor fraction of water flows out from the edge down
+      to the ground, that disconnected fraction of runoff by assumption flows to unpaved area. But the majority of the runoff
+      from paved roof are connected to the sewer system, so it ends in the storm water drainage system (SWDS) and combined
       sewer system (MSS) at predefined proportions.
 
 Calculation order
 ^^^^^^^^^^^^^^^^^
     * Initial interception storage at the beginning of current time step is the interception storage at the end of previous
       time step plus rainfall at current time step, and it is limited by predefined interception storage capacity on paved
-      roof area.
-    * (Actual) evaporation from interception on paved roof area is limited by potential open water evaporation and available initial
-      interception storage during current time step. Evaporation is possible only if the interception storage contains water.
+      roof.
+    * (Actual) evaporation from interception on paved roof during current time step is limited by potential open water evaporation
+      and available initial interception storage during the same time step. Evaporation is possible only if the interception
+      storage contains water.
     * (Final) interception storage at the end of current time step is evaporation subtracted from initial interception storage.
-    * (Total) runoff from paved roof area is rainfall minus actual evaporation minus the change in interception storage between
-      current time step and previous time step. Given no measure applied or measure inflow area equals to measure
-      area, there is no runoff from area of paved roof (without measure) to measure. Given measure applied, runoff on the
-      differencing area between the measure inflow area and measure area will flow into the measure.
+    * (Total) runoff from paved roof during current time step is rainfall subtracting actual evaporation and change in interception
+      storage between the same time step and previous time step. Total runoff from paved roof (without a measure) are redistributed
+      to the measure, sewer system and unpaved at predefined ratios. If no measure is applied or runoff inflow area to measure
+      equals to measure area (i.e. paved roof with a measure), then there is no runoff flowing from paved roof (without a measure)
+      to the measure. If a measure is applied and runoff inflow area from paved roof to measure is larger than measure area,
+      runoff on the differencing area between the measure inflow area and measure area will flow into the measure.
     * Subtracting runoff into the measure from the total runoff is the remaining runoff. Connected remaining runoff is
       reallocated to combined sewer system (MSS), storm water drainage system (SWDS) at predefined proportions while
       disconnected remaining runoff flows to unpavd area (UP) at predefined ratio.
@@ -588,6 +595,11 @@ FAQ
 
         Fig: 3.1: Illustration of measure inflow area
 
+    * Though the terminology for individual component is called paved roof and alike, it actually means area of paved roof
+      (without measure) other than total paved roof area. All calculations performed on single element are related to
+      area without measure. Area with measure is separately dealt with in the measure module. Please refer to the "FAQ" for
+      more information.
+
 As can be seen from the figure 3.1 above, we take paved roof component as an example to explain several concepts users may
 find confusing. Total_pr_area means the entire paved roof area, so the big rectangle in the figure, the area of which is
 say 20 m2. In this paved roof area, if a 3 m2 green roof measure (small green rectangle) is implemented on the paved roof,
@@ -604,5 +616,7 @@ Parameter estimation
 
 References
 ----------
+.. [Penman] Penman, H. L. (1948). Natural evaporation from open water, bare soil and grass. Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences, 193(1032), 120-145.
+.. [Monteith] Monteith, J. L. (1965, July). Evaporation and environment. In Symp. Soc. Exp. Biol (Vol. 19, No. 205-23, p. 4).
 .. [Feddes] FEDDES, Reinder Auke. Crop factors in relation to Makkink reference-crop evapotranspiration. 1987.
 .. [Dejongvanlier] DE JONG VAN LIER, Q., et al. Macroscopic root water uptake distribution using a matric flux potential approach. Vadose Zone Journal, 2008, 7.3: 1065-1078.
