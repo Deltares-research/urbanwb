@@ -1,25 +1,27 @@
 class ClosedPaved:
     """
-    Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function at each time step.
+    Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function to
+    compute fluxes and states at each time step.
 
     Args:
-        self.init_intstor_cp (float): initial interception storage on closed paved area [mm]
-        self.cp_no_meas_area (float): closed paved area (without a measure) [m^2]
-        self.cp_meas_area (float): closed paved area (with a measure) [m^2]
-        self.cp_meas_inflow_area (float): measure inflow area (>= measure area and <= total area) [m^2]
-        self.intstorcap (float): predefined storage capacity on closed paved area [mm]
-        self.stormfrac (float): part of urban area with storm water drainage system [-]
-        self.discfrac (float): part of closed paved area that is disconnected [-]
+        intstor_cp_t0 (float): initial interception on closed paved (at t=0) [mm]
+        cp_no_meas_area (float): area of closed paved without measure [m^2]
+        cp_meas_area (float): area of closed paved with measure [m^2]
+        cp_meas_inflow_area (float): measure inflow area from closed paved, i.e. runoff inflow area to measure from \
+        closed paved (>= area of closed paved with measure and <= total area of closed paved) [m^2]
+        intstorcap_cp (float): predefined interception storage capacity on closed paved [mm]
+        swds_frac (float): part of urban paved area with storm water drainage system (SWDS) [-]
+        discfrac_cp (float): part of closed paved that is disconnected from sewer system [-]
     """
 
     def __init__(
         self,
-        init_intstor_cp_t0,
+        intstor_cp_t0,
         cp_no_meas_area,
         cp_meas_area,
         cp_meas_inflow_area,
         intstorcap_cp=1.6,
-        stormfrac_cp=1.0,
+        swds_frac=1.0,
         discfrac_cp=0.0,
         **kwargs
     ):
@@ -28,90 +30,101 @@ class ClosedPaved:
         """
 
         # state
-        # init_intstor_cp_t0 (float): initial interception on closed paved at t=0
-        self.init_intstor_cp = init_intstor_cp_t0
+
+        # self.intstor_cp_prevt (float): interception storage on closed paved at previous time step [mm]
+        self.intstor_cp_prevt = intstor_cp_t0
 
         # properties
+
         self.cp_no_meas_area = cp_no_meas_area
         self.cp_meas_area = cp_meas_area
         self.cp_meas_inflow_area = cp_meas_inflow_area
-        self.intstorcap = intstorcap_cp
-        self.stormfrac = stormfrac_cp
-        # self.mxdfrac (float): part of urban area with mixed sewer system [-]
-        self.mxdfrac = 1 - self.stormfrac
-        self.discfrac = discfrac_cp
+        self.intstorcap_cp = intstorcap_cp
+        self.swds_frac = swds_frac
+
+        # self.mss_frac (float): part of urban paved area with mixed sewer system (MSS) [-]
+        self.mss_frac = 1.0 - self.swds_frac
+        self.discfrac_cp = discfrac_cp
+
+        # self.inflowfac_cp (float): measure inflow factor of closed paved
+        self.inflowfac_cp = self.inflowfac()
 
     def inflowfac(self):
         """
-        Calculates measure inflow factor of closed paved area (without a measure).
+        Calculates measure inflow factor of closed paved.
 
         Returns:
-            (float): Measure inflow factor.
+            (float): Measure inflow factor of closed paved.
 
-            * **inflowfac** -- measure inflow factor is (measure inflow area - measure area) / closed paved area (without measure)
+            * **inflowfac** -- measure inflow factor is calculated as (runoff inflow area to measure from closed paved \
+            - area of closed paved with measure) / area of closed paved without measure
         """
-        return (self.cp_meas_inflow_area - self.cp_meas_area) / self.cp_no_meas_area
+
+        if self.cp_no_meas_area != 0.0:
+            return (self.cp_meas_inflow_area - self.cp_meas_area) / self.cp_no_meas_area
+        else:
+            return 0.0
 
     def sol(self, p_atm, e_pot_ow):
         """
-        Calculates states and fluxes during current time step.
+        Calculates states and fluxes on closed paved during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
-            e_pot_ow (float): potential evaporation of open water during current time step [mm]
+            e_pot_ow (float): potential open water evaporation during current time step [mm]
 
         Returns:
-            (dictionary): A dictionary of states and fluxes during current time step:
+            (dictionary): A dictionary of computed states and fluxes during current time step:
 
-            * **int_cp** -- Interception on closed paved after rainfall during current time step [mm]
+            * **int_cp** -- Interception storage on closed paved after rainfall at the beginning of current time step [mm]
             * **e_atm_cp** -- Evaporation from interception storage on closed paved during current time step [mm]
-            * **intstor_cp** -- Remaining interception storage on closed paved at the end of the current time step [mm]
-            * **r_cp_meas** -- Runoff from closed paved to an area with a drainage measure (not necessarily on the closed paved area itself) [mm]
-            * **r_cp_swds** -- Runoff from closed paved to the storm water drainage system [mm]
-            * **r_cp_mss** -- Runoff from closed paved to the combined sewer system [mm]
-            * **r_cp_up** -- Runoff from closed paved to unpaved area [mm]
+            * **intstor_cp** -- Remaining interception storage on closed paved at the end of current time step [mm]
+            * **r_cp_meas** -- Runoff from closed paved to measure during current time step (not necessarily on closed paved itself) [mm]
+            * **r_cp_swds** -- Runoff from closed paved storm water drainage system (SWDS) during current time step [mm]
+            * **r_cp_mss** -- Runoff from closed paved to combined sewer system (MSS) during current time step [mm]
+            * **r_cp_up** -- Runoff from closed paved to unpaved during current time step [mm]
         """
 
-        if self.cp_no_meas_area == 0:
+        if self.cp_no_meas_area == 0.0:
             int_cp = (
                 e_atm_cp
-            ) = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0
+            ) = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0.0
 
         else:
-            int_cp = min(self.intstorcap, max(0, self.init_intstor_cp + p_atm))
+            int_cp = min(self.intstorcap_cp, max(0.0, self.intstor_cp_prevt + p_atm))
 
             e_atm_cp = min(e_pot_ow, int_cp)
 
             intstor_cp = int_cp - e_atm_cp
 
-            r_cp_meas = self.inflowfac() * max(
-                0, (p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp))
+            r_cp_meas = self.inflowfac_cp * max(
+                0.0, (p_atm - e_atm_cp - (intstor_cp - self.intstor_cp_prevt))
             )
 
             r_cp_swds = (
-                self.stormfrac
-                * (1 - self.discfrac)
+                self.swds_frac
+                * (1.0 - self.discfrac_cp)
                 * max(
-                    0,
-                    p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas,
+                    0.0,
+                    p_atm - e_atm_cp - (intstor_cp - self.intstor_cp_prevt) - r_cp_meas,
                 )
             )
 
             r_cp_mss = (
-                self.mxdfrac
-                * (1 - self.discfrac)
+                self.mss_frac
+                * (1.0 - self.discfrac_cp)
                 * max(
-                    0,
-                    p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas,
+                    0.0,
+                    p_atm - e_atm_cp - (intstor_cp - self.intstor_cp_prevt) - r_cp_meas,
                 )
             )
 
-            r_cp_up = self.discfrac * max(
-                0, p_atm - e_atm_cp - (intstor_cp - self.init_intstor_cp) - r_cp_meas
+            r_cp_up = self.discfrac_cp * max(
+                0.0, p_atm - e_atm_cp - (intstor_cp - self.intstor_cp_prevt) - r_cp_meas
             )
 
             # update state
-            self.init_intstor_cp = intstor_cp
+            self.intstor_cp_prevt = intstor_cp
 
         return {
             "int_cp": int_cp,

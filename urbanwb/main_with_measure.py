@@ -44,19 +44,14 @@ class Model(object):
             **self.param
         )
         self.closedpaved = ClosedPaved(
-            init_intstor_cp_t0=0,
             cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
-            stormfrac_cp=self.param["swds_frac"],
             **self.param
         )
         self.openpaved = OpenPaved(
-            init_intstor_op_t0=0,
             op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
-            stormfrac_op=self.param["swds_frac"],
             **self.param
         )
         self.unpaved = Unpaved(
-            fin_stor_up_t0=0,
             up_no_meas_area=self.param["tot_up_area"] - self.param["up_meas_area"],
             **self.param
         )
@@ -151,7 +146,7 @@ class Model(object):
                 r_pr_up=a["r_pr_up"],
                 r_cp_up=b["r_cp_up"],
                 r_op_up=c["r_op_up"],
-                prev_mois_uz=prev_lst["theta_uz"],
+                mois_uz_prevt=prev_lst["theta_uz"],
                 pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
                 cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
@@ -223,7 +218,7 @@ class Model(object):
                                                q_swds_ow=g["q_swds_ow"],q_mss_ow=g["q_mss_ow"],sum_so_ow=h["sum_so_ow"],q_mss_out=g["q_mss_out"],q_ow_out=h["q_ow_out"],
                                                q_meas_out=M["q_meas_out"],intstor_pr=a["intstor_pr"],intstor_pr_prevt=prev_lst["intstor_pr"],intstor_cp=b["intstor_cp"],
                                                intstor_cp_prevt=prev_lst["intstor_cp"],intstor_op=c["intstor_op"],intstor_op_prevt=prev_lst["intstor_op"],
-                                               intstor_up=d["fin_stor_up"],intstor_up_prevt=prev_lst["fin_stor_up"],theta_uz=e["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
+                                               intstor_up=d["fin_intstor_up"],intstor_up_prevt=prev_lst["fin_intstor_up"],theta_uz=e["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
                                                sc_gw=f["sc_gw"],gwl_prevt=prev_lst["gwl"],gwl=f["gwl"],gwl_sl=f["gwl_sl"],gwl_sl_prevt=prev_lst["gwl_sl"],
                                                so_swds=g["so_swds_ow"],so_swds_prevt=prev_lst["so_swds_ow"],so_mss=g["so_mss_ow"],so_mss_prevt=prev_lst["so_mss_ow"],
                                                stor_swds=g["stor_swds"],stor_swds_prevt=prev_lst["stor_swds"],stor_mss=g["stor_mss"],stor_mss_prevt=prev_lst["stor_mss"],
@@ -326,11 +321,11 @@ def running(input_data, dict_param):
             "r_op_up": 0.0,
             "sum_r_up": 0,
             "init_stor_up": 0,
-            "act_infilcap_up": 0,
+            "actl_infilcap_up": 0,
             "tfac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,
-            "fin_stor_up": 0,  # fin_stor_up_t0
+            "fin_intstor_up": 0,  # fin_stor_up_t0
             "r_up_meas": 0,
             "r_up_ow": 0,
             "sum_i_uz": 0,
@@ -607,7 +602,7 @@ def running3(dyn_inp, param):
             "r_op_up": 0.0,
             "sum_r_up": 0,
             "init_stor_up": 0,
-            "act_infilcap_up": 0,
+            "actl_infilcap_up": 0,
             "tfac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,

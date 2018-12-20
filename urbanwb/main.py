@@ -147,7 +147,7 @@ class Model(object):
                 r_pr_up=a["r_pr_up"],
                 r_cp_up=b["r_cp_up"],
                 r_op_up=c["r_op_up"],
-                prev_mois_uz=prev_lst["theta_uz"],
+                mois_uz_prevt=prev_lst["theta_uz"],
                 pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
                 cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],

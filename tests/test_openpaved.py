@@ -92,13 +92,13 @@ class TestOpenPaved(unittest.TestCase):
         test the 'sol' in the OpenPaved class.
         """
         # time level t = 12/23/1990 6:00
-        self.op_1.init_intstor_op = 0  # update state
+        self.op_1.intstor_op_prevt = 0  # update state
         self.assertAlmostEqual(
             self.op_1.sol(2.286, 0.02145677, 1 / 24)["int_op"], 1.6, places=8
         )
 
         # time level t = 12/23/1990 7:00
-        self.op_1.init_intstor_op = 0.02145677  # update state
+        self.op_1.intstor_op_prevt = 0.02145677  # update state
         self.assertAlmostEqual(
             self.op_1.sol(12.7, 0.183915171, 1 / 24)["e_atm_op"], 0.183915171, places=8
         )

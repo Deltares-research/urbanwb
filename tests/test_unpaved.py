@@ -114,7 +114,7 @@ class TestOpenPaved(unittest.TestCase):
         """
 
         # time level t = 8/1/1988 13:00
-        self.up_1.prev_fin_stor_up = 0  # update state
+        self.up_1.fin_intstor_up_prevt = 0  # update state
         self.assertAlmostEqual(
             self.up_1.sol(
                 0,
@@ -133,7 +133,7 @@ class TestOpenPaved(unittest.TestCase):
         )
 
         # time level t = 8/1/1988 14:00
-        self.up_1.prev_fin_stor_up = 0  # update state
+        self.up_1.fin_intstor_up_prevt = 0  # update state
         self.assertAlmostEqual(
             self.up_1.sol(
                 4.826,

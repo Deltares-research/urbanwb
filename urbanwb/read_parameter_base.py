@@ -258,6 +258,9 @@ def read_parameter_base(stat1_inp):
         raise ValueError("Error: Fraction is over 1 or negative.")
 
     intstor_pr_t0 = cf["intstor_pr_t0"]
+    intstor_cp_t0 = cf["intstor_cp_t0"]
+    intstor_op_t0 = cf["intstor_op_t0"]
+    fin_intstor_up_t0 = cf["fin_intstor_up_t0"]
 
     return {
         "delta_t": delta_t,
@@ -298,6 +301,9 @@ def read_parameter_base(stat1_inp):
         "q_ow_out_cap": q_ow_out_cap,
         "ow_level": ow_level,
         "intstor_pr_t0": intstor_pr_t0,
+        "intstor_cp_t0": intstor_cp_t0,
+        "intstor_op_t0": intstor_op_t0,
+        "fin_intstor_up_t0": fin_intstor_up_t0,
     }
 
 
