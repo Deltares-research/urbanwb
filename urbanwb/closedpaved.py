@@ -1,3 +1,7 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 class ClosedPaved:
     """
     Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function to

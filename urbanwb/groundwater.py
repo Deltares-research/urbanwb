@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcal
@@ -5,12 +8,12 @@ from urbanwb.gwlcalculator import gwlcal
 
 class Groundwater:
     """
-    creates an instance of Groundwater class with given initial states and properties, iterates sol() function at each time step.
+    creates an instance of Groundwater class with given initial states and properties, iterates sol() function to
+    compute fluxes and states at each time step.
 
     Args:
-        self.prev_gwl (float): groundwater level at previous time step [m-SL]
-        self.prev_gwl_sl (float): groundwater level above surface level at previous time step [m-SL]
-        self.gw_no_meas_area (float): groundwater area (without a measure) [m^2]
+        gwl_t0 (float): initial groundwater level (at t=0) [mm]
+        gw_no_meas_area (float): area of groundwater without measure [m^2]
         self.gw_meas_area (float): groundwater area (with a measure) [m^2]
         self.seep_def (float): seepage defined as constant flux (0) or dynamic calculated flux (1) [0=flux; 1=level]
         self.w (float): groundwater drainage resistance [d]
@@ -37,7 +40,9 @@ class Groundwater:
     ):
 
         # state
+        # self.prev_gwl (float): groundwater level at previous time step [m-SL]
         self.prev_gwl = init_gwl_t0
+        # self.prev_gwl_sl (float): groundwater level above surface level at previous time step [m-SL]
         self.prev_gwl_sl = 0
 
         # properties

@@ -1,18 +1,21 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from urbanwb.selector import et_selector, soil_selector
 from urbanwb.gwlcalculator import gwlcal
 
 
 class UnsaturatedZone:
     """
-    Creates an instance of unsaturated zone class with given initial states and properties, iterates sol() function at each time
-    step.
+    Creates an instance of UnsaturatedZone class with given initial states and properties, iterates sol() function to
+    compute fluxes and states at each time step.
 
     Args:
-        self.init_theta_uz (float): moisture content at previous time step [mm]
-        self.uz_no_meas_area (float): unsaturated zone area (without a measure) [m^2]
-        self.uz_meas_area (float): unsaturated zone area (with a measure) [m^2]
-        self.soiltype (int): Soil type
-        self.croptype (int): Crop type
+        theta_uz_t0 (float): initial volumetric moisture content of unsaturated zone (at t=0) [mm]
+        uz_no_meas_area (float): area of unsaturated zone without measure [m^2]
+        uz_meas_area (float): area of unsaturated zone with measure [m^2]
+        soiltype (int): Soil type
+        croptype (int): Crop type
     """
 
     def __init__(
@@ -21,61 +24,73 @@ class UnsaturatedZone:
         """
         Creates an instance of UnsaturatedZone class
         """
+
         # state
-        self.init_theta_uz = theta_uz_t0
+
+        # self.theta_uz_prevt (float): volumetric moisture content of unsaturated zone at previous time step [mm]
+        self.theta_uz_prevt = theta_uz_t0
 
         # properties
-        # self.theta_h3l (float): Equilibrium moisture content in rootzone, at which transpiration (Epot≤ 1 mm/d) reduction starts
-        # self.theta_h3h (float): Equilibrium moisture content in rootzone, at which transpiration (Epot≥ 5 mm/d) reduction starts
-        # self.theta_h1 (float): Equilibrium moisture content in rootzone with groundwater level at surface level i.e. top root zone (complete saturation)
-        # self.theta_h2 (float): Equilibrium moisture content in rootzone with groundwater level at bottom root zone (field capacity)
-        # self.theta_h4 (float): Equilibrium moisture content in rootzone, at which transpiration = 0 (wilting point)
-        # self.soil_prm (float): soil parameter database determined by soil type and crop type
-        # self.k_sat_uz (float): Predefined saturated permeability of unsaturated zone
+
         self.uz_no_meas_area = uz_no_meas_area
         self.uz_meas_area = uz_meas_area
         self.soiltype = soiltype
         self.croptype = croptype
-        et = et_selector(self.soiltype, self.croptype)
-        self.theta_h3l = et["theta_h3l_mm"].values[0]
-        self.theta_h3h = et["theta_h3h_mm"].values[0]
-        self.theta_h1 = et["theta_h1_mm"].values[0]
-        self.theta_h2 = et["theta_h2_mm"].values[0]
-        self.theta_h4 = et["theta_h4_mm"].values[0]
-        self.soil_prm = soil_selector(self.soiltype, self.croptype)
-        self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
-        # Note here saturated permeability of soil K_sat_uz is only dependent on soil type thus index 0 is taken here.
 
-    def sol(self, i_up_uz, meas_uz, tot_meas_area, e_ref, prev_gwl, delta_t=1 / 24):
+        # self.et (dataframe): matrix of unsaturated zone - related parameters
+        self.et = et_selector(self.soiltype, self.croptype)
+
+        # self.theta_h3l (float): equilibrium moisture content of soil, at which transpiration (PE ≤ 1 mm/d) reduction starts
+        self.theta_h3l = self.et["theta_h3l_mm"].values[0]
+
+        # self.theta_h3h (float): equilibrium moisture content of soil, at which transpiration (PE ≥ 5 mm/d) reduction starts
+        self.theta_h3h = self.et["theta_h3h_mm"].values[0]
+
+        # self.theta_h1 (float): equilibrium moisture content of soil, with groundwater level at surface level, i.e. complete saturation
+        self.theta_h1 = self.et["theta_h1_mm"].values[0]
+
+        # self.theta_h2 (float): equilibrium moisture content of soil, with groundwater level at bottom root zone, i.e. field capacity
+        self.theta_h2 = self.et["theta_h2_mm"].values[0]
+
+        # self.theta_h4 (float): equilibrium moisture content of soil, at which transpiration = 0, i.e. wilting point
+        self.theta_h4 = self.et["theta_h4_mm"].values[0]
+
+        # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
+        self.soil_prm = soil_selector(self.soiltype, self.croptype)
+
+        # self.k_sat_uz (float): predefined saturated permeability of unsaturated zone
+        self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
+
+    def sol(self, i_up_uz, meas_uz, e_ref, tot_meas_area, gwl_prevt, delta_t=1/24):
         """
-        Calculates storage, factor and fluxes during current time step.
+        Calculates states and fluxes in unsaturated zone during current time step.
 
         Args:
-            i_up_uz (float): Infiltration from interception storage on the surface of the unpaved area to the unsaturated zone during the current time step [mm]
-            meas_uz (float): Inflow flux from measure to unsaturated zone during current time step [mm]
+            i_up_uz (float): infiltration from interception storage on unpaved to unsaturated zone during current time step [mm]
+            meas_uz (float): inflow from measure to unsaturated zone during current time step [mm]
+            e_ref (float): Potential evapotranspiration for reference crop during current time step [mm]
             tot_meas_area (float): total area of measure [m^2]
-            e_ref (float): Potential evapotranspiration for reference crop (grass) during current time step [mm]
-            prev_gwl (float): groundwater level at previous time step [m-SL]
-            delta_t (float): timestep length [d]
+            gwl_prevt (float): groundwater level at previous time step [m-SL]
+            delta_t (float): length of time step [d]
 
         Returns:
-            (dictionary): A dictionary of storage and fluxes during current time step:
+            (dictionary): A dictionary of computed states and fluxes during current time step:
 
             * **sum_i_uz** -- Infiltration from unpaved to unsaturated zone during current time step [mm]
-            * **r_meas_uz** -- Inflow from measure area (if applicable) during current time step [mm]
-            * **theta_h3_uz** -- Equilibrium moisture content in the root zone at which reduction of transpiration starts [mm] for the current time step
-            * **t_alpha_uz** -- Transpiration factor [-] for the current time step
-            * **t_atm_uz** -- Transpiration from unsaturated zone to atmosphere during the current time step [mm]
-            * **gwl_up_uz** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
-            * **gwl_low_uz** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
-            * **theta_eq_uz** -- Equilibrium soil moisture content in the root zone for the current time step [mm]
-            * **capris_max_uz** -- Maximum capillary rise for the current time step [mm/d]
-            * **p_uz_gw** -- Percolation from unsaturated zone to groundwater [mm]
-            * **theta_uz** -- Soil moisture content in the root zone at the end of the current time step [mm]
+            * **r_meas_uz** -- Inflow from measure (if applicable) to unsaturated zone during current time step [mm]
+            * **theta_h3_uz** -- Equilibrium moisture content of soil during current time step at which reduction of transpiration starts [mm]
+            * **t_alpha_uz** -- Transpiration factor during current time step [-]
+            * **t_atm_uz** -- Transpiration to atmosphere from unsaturated zone during current time step [mm]
+            * **gwl_up** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
+            * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
+            * **theta_eq_uz** -- Equilibrium soil moisture content of soil during current time step [mm]
+            * **capris_max_uz** -- Maximum capillary rise in the root zone during current time step [mm/d]
+            * **p_uz_gw** -- Percolation from unsaturated zone to groundwater during current time step [mm]
+            * **theta_uz** -- Moisture content of soil at the end of current time step [mm]
         """
 
         # parameters
-        if self.uz_no_meas_area == 0:
+        if self.uz_no_meas_area == 0.0:
             sum_i_uz = (
                 r_meas_uz
             ) = (
@@ -84,57 +99,54 @@ class UnsaturatedZone:
                 t_alpha_uz
             ) = (
                 t_atm_uz
-            ) = gwl_up = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0
+            ) = gwl_up = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0.0
 
         else:
-            sum_i_uz = i_up_uz  # It is assumed that UP and UZ areas area equal, thus flux is the same.
+            sum_i_uz = i_up_uz
 
             r_meas_uz = meas_uz * tot_meas_area / self.uz_no_meas_area
 
-            if e_ref / (2 * delta_t) < 1:
+            if e_ref / (2.0 * delta_t) < 1.0:
                 theta_h3_uz = self.theta_h3l
-            elif e_ref / (2 * delta_t) > 5:
+            elif e_ref / (2.0 * delta_t) > 5.0:
                 theta_h3_uz = self.theta_h3h
             else:
-                theta_h3_uz = self.theta_h3l + (e_ref / (2 * delta_t) - 1) / 4 * (
+                theta_h3_uz = self.theta_h3l + (e_ref / (2.0 * delta_t) - 1.0) / 4.0 * (
                     self.theta_h3h - self.theta_h3l
                 )
 
-            if self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h1:
-                t_alpha_uz = 0
-            elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h2:
-                t_alpha_uz = 1 - (
-                    (self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h2
+            if self.theta_uz_prevt + sum_i_uz + r_meas_uz > self.theta_h1:
+                t_alpha_uz = 0.0
+            elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > self.theta_h2:
+                t_alpha_uz = 1.0 - (
+                        (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h2
                 ) / (self.theta_h1 - self.theta_h2)
-            elif self.init_theta_uz + sum_i_uz + r_meas_uz > theta_h3_uz:
-                t_alpha_uz = 1
-            elif self.init_theta_uz + sum_i_uz + r_meas_uz > self.theta_h4:
+            elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > theta_h3_uz:
+                t_alpha_uz = 1.0
+            elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > self.theta_h4:
                 t_alpha_uz = (
-                    (self.init_theta_uz + sum_i_uz + r_meas_uz) - self.theta_h4
+                                     (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h4
                 ) / (theta_h3_uz - self.theta_h4)
             else:
-                t_alpha_uz = 0
+                t_alpha_uz = 0.0
 
             t_atm_uz = e_ref * t_alpha_uz
 
-            # using index "id" to locate the groundwater levels above and below previous timestep gwl in the database.
-            # Hence, if the database needs extension, the additional data should have same indexing structure as original data,
-            # Or codes needs modifications.
-            gwl_sol = gwlcal(prev_gwl)
+            gwl_sol = gwlcal(gwl_prevt)
             gwl_up = gwl_sol[0]
             gwl_low = gwl_sol[1]
             id1 = gwl_sol[2]
             id2 = gwl_sol[3]
 
-            if prev_gwl < 10:
+            if gwl_prevt < 10.0:
                 theta_eq_uz = self.soil_prm[id2]["moist_cont_eq_rz[mm]"] + (
-                    gwl_low - prev_gwl
+                        gwl_low - gwl_prevt
                 ) / (gwl_low - gwl_up) * (
                     self.soil_prm[id1]["moist_cont_eq_rz[mm]"]
                     - self.soil_prm[id2]["moist_cont_eq_rz[mm]"]
                 )
                 capris_max_uz = self.soil_prm[id2]["capris_max[mm/d]"] + (
-                    gwl_low - prev_gwl
+                        gwl_low - gwl_prevt
                 ) / (gwl_low - gwl_up) * (
                     self.soil_prm[id1]["capris_max[mm/d]"]
                     - self.soil_prm[id2]["capris_max[mm/d]"]
@@ -143,22 +155,22 @@ class UnsaturatedZone:
                 theta_eq_uz = self.soil_prm[29]["moist_cont_eq_rz[mm]"]
                 capris_max_uz = self.soil_prm[29]["capris_max[mm/d]"]
 
-            if self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
+            if self.theta_uz_prevt + sum_i_uz + r_meas_uz - t_atm_uz > theta_eq_uz:
                 p_uz_gw = min(
-                    self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
+                    self.theta_uz_prevt + sum_i_uz + r_meas_uz - t_atm_uz - theta_eq_uz,
                     delta_t * self.k_sat_uz,
                 )
             else:
-                p_uz_gw = -1 * min(
+                p_uz_gw = -1.0 * min(
                     theta_eq_uz
-                    - (self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz),
+                    - (self.theta_uz_prevt + sum_i_uz + r_meas_uz - t_atm_uz),
                     delta_t * capris_max_uz,
                 )
 
-            theta_uz = self.init_theta_uz + sum_i_uz + r_meas_uz - t_atm_uz - p_uz_gw
+            theta_uz = self.theta_uz_prevt + sum_i_uz + r_meas_uz - t_atm_uz - p_uz_gw
 
             # update state
-            self.init_theta_uz = theta_uz
+            self.theta_uz_prevt = theta_uz
 
         return {
             "sum_i_uz": sum_i_uz,

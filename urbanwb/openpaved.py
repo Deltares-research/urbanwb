@@ -1,3 +1,7 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 class OpenPaved:
     """
     Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function to compute

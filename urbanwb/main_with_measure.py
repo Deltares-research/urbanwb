@@ -163,7 +163,7 @@ class Model(object):
                 meas_uz=M["q_meas_uz"],
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
-                prev_gwl=prev_lst["gwl"],
+                gwl_prevt=prev_lst["gwl"],
                 delta_t=self.param["delta_t"],
             )
             f = self.groundwater.sol(
@@ -339,6 +339,9 @@ def running(input_data, dict_param):
             "capris_max_uz": 0,
             "p_uz_gw": 0,
             "theta_uz": soil_selector(dict_param["soiltype"], dict_param["croptype"])[
+                gwlcal(dict_param["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
+            "moist_cont_uz":soil_selector(dict_param["soiltype"], dict_param["croptype"])[
                 gwlcal(dict_param["init_gwl"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
@@ -620,6 +623,9 @@ def running3(dyn_inp, param):
             "capris_max_uz": 0,
             "p_uz_gw": 0,
             "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
+                gwlcal(dict_para["init_gwl"])[2]
+            ]["moist_cont_eq_rz[mm]"],
+            "moist_cont_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
                 gwlcal(dict_para["init_gwl"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,

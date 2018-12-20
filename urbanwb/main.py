@@ -159,7 +159,7 @@ class Model(object):
                 meas_uz=meas_uz,
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
-                prev_gwl=prev_lst["gwl"],
+                gwl_prevt=prev_lst["gwl"],
                 delta_t=self.param["delta_t"],
             )
             f = self.groundwater.sol(

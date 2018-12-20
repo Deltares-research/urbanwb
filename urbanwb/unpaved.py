@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from urbanwb.selector import soil_selector
 
 
@@ -52,7 +55,7 @@ class Unpaved:
         # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
 
-        # self.mois_uz_max: maximum water volume in root zone [mm]
+        # self.mois_uz_max: maximum moisture content in root zone [mm]
         self.mois_uz_max = self.soil_prm[0]["moist_cont_eq_rz[mm]"]
 
         # self.k_sat_uz: predefined saturated permeability of unsaturated zone [mm/d]
@@ -92,7 +95,7 @@ class Unpaved:
         delta_t=1 / 24,
     ):
         """
-        Calculates storage and fluxes during current time step.
+        Calculates states and fluxes  on unpaved during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -100,7 +103,7 @@ class Unpaved:
             r_pr_up (float): runoff from paved roof to unpaved during current time step [mm]
             r_cp_up (float): runoff from closed paved to unpaved during current time step [mm]
             r_op_up (float): runoff from open paved to unpaved during current time step[mm]
-            mois_uz_prevt (float): water volume in root zone at previous time step [mm]
+            mois_uz_prevt (float): moisture content in root zone at previous time step [mm]
             pr_no_meas_area (float): area of paved roof without measure [m^2]
             cp_no_meas_area (float): area of closed paved without measure [m^2]
             op_no_meas_area (float): area of open paved without measure [m^2]

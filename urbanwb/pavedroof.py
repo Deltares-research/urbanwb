@@ -1,3 +1,7 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 class PavedRoof:
     """
     Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function to compute
