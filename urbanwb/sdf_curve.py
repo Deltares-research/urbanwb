@@ -98,6 +98,21 @@ class SDF_Curve(object):
     #     return rqd_stor_cap
 
 
+class SDF_curve2:
+    def __init__(self, segment_marks, owl, ow_level):
+        self.segment_marks = segment_marks
+        self.ow_level = ow_level
+        self.owl = np.append(np.ones(len(owl)) * self.ow_level - owl, 0)
+        self.ranking = sorted(self.get_maxima(), reverse=True)
+
+    def get_maxima(self,):
+        maxima = []
+        for i in range(len(self.segment_marks)-1):
+            maxima.append(max(self.owl[self.segment_marks[i]:self.segment_marks[i+1]]))
+        return maxima
+
+
+
 if __name__ == "__main__":
     start = time.time()
     path = urbanwb.urbanwbdir / ".." / "input"

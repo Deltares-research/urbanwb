@@ -17,7 +17,7 @@ from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
 from urbanwb.selector import soil_selector
-from urbanwb.gwlcalculator import gwlcal
+from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.sdf_curve import SDF_Curve

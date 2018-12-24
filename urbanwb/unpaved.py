@@ -76,7 +76,7 @@ class Unpaved:
         """
 
         if self.up_no_meas_area != 0.0:
-            return (self.up_no_meas_area - self.up_meas_area) / self.up_no_meas_area
+            return (self.up_meas_inflow_area - self.up_meas_area) / self.up_no_meas_area
         else:
             return 0.0
 
