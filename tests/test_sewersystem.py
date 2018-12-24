@@ -23,8 +23,8 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
     # c --- q_swds_ow_cap predefined discharge capacity of storm water drainage system [mm/dt]
     # d --- q_mss_out_cap predefined discharge capacity of mixed sewer system to WWTP [mm/dt]
     # e --- q_mss_ow_cap predefined discharge capacity of mixed sewer system to open water [mm/dt]
-    # f --- stor_swds_cap predefined storage capacity of storm water drainage system [mm]
-    # g --- stor_mss_cap predefined storage capacity of mixed sewer system [mm]
+    # f --- storcap_swds predefined storage capacity of storm water drainage system [mm]
+    # g --- storcap_mss predefined storage capacity of mixed sewer system [mm]
     # Dec --- Desired precision, default is 6.
     # Num --- No. of test to locate excel file.
 
@@ -38,8 +38,8 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
         q_swds_ow_cap=c,
         q_mss_out_cap=d,
         q_mss_ow_cap=e,
-        stor_swds_cap=f,
-        stor_mss_cap=g,
+        storcap_swds=f,
+        storcap_mss=g,
     )
     data_py = [
         {
@@ -125,8 +125,8 @@ class TestOpenPaved(unittest.TestCase):
             q_swds_ow_cap=55.1,
             q_mss_out_cap=26.3,
             q_mss_ow_cap=48.1,
-            stor_swds_cap=2,
-            stor_mss_cap=9,
+            storcap_swds=2,
+            storcap_mss=9,
         )
 
     def test_sol(self):
@@ -135,10 +135,10 @@ class TestOpenPaved(unittest.TestCase):
         process threshold
         """
         # time level t = 1/4/1986 11:00
-        self.ss_1.prev_stor_swds = 0
-        self.ss_1.prev_so_swds = 0
-        self.ss_1.prev_stor_mss = 0
-        self.ss_1.prev_so_mss = 0
+        self.ss_1.stor_swds_prevt = 0
+        self.ss_1.so_swds_prevt = 0
+        self.ss_1.stor_mss_prevt = 0
+        self.ss_1.so_mss_prevt = 0
         self.assertAlmostEqual(
             self.ss_1.sol(
                 1560,
@@ -160,10 +160,10 @@ class TestOpenPaved(unittest.TestCase):
         )
 
         # # time level t = 1/4/1986 12:00
-        self.ss_1.prev_stor_swds = 0
-        self.ss_1.prev_so_swds = 0
-        self.ss_1.prev_stor_mss = 0
-        self.ss_1.prev_so_mss = 0
+        self.ss_1.stor_swds_prevt = 0
+        self.ss_1.so_swds_prevt = 0
+        self.ss_1.stor_mss_prevt = 0
+        self.ss_1.so_mss_prevt = 0
         self.assertAlmostEqual(
             self.ss_1.sol(
                 1560,
@@ -216,19 +216,19 @@ class TestOpenPaved(unittest.TestCase):
             self.assertIsNone(n)
         for n in validate(
             2845, 0, 37.1, 26.3, 48.1, 20, 9, Dec=7, Num=7
-        ):  # q_swds_ow_cap = 37.1, stor_swds_cap = 20
+        ):  # q_swds_ow_cap = 37.1, storcap_swds = 20
             self.assertIsNone(n)
         for n in validate(
             2845, 0, 57.1, 26.3, 48.1, 0, 9, Dec=7, Num=8
-        ):  # q_swds_ow_cap = 57.1, stor_swds_cap = 0
+        ):  # q_swds_ow_cap = 57.1, storcap_swds = 0
             self.assertIsNone(n)
         for n in validate(
             2845, 0, 55.1, 26.3, 48.1, 2, 90, Dec=7, Num=9
-        ):  # stor_mss_cap = 90
+        ):  # storcap_mss = 90
             self.assertIsNone(n)
         for n in validate(
             2845, 0, 55.1, 26.3, 48.1, 2, 0, Dec=7, Num=10
-        ):  # stor_mss_cap = 0
+        ):  # storcap_mss = 0
             self.assertIsNone(n)
 
 

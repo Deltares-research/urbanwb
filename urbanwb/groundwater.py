@@ -3,59 +3,63 @@
 
 import numpy as np
 from urbanwb.selector import soil_selector
-from urbanwb.gwlcalculator import gwlcal
+from urbanwb.gwlcalculator import gwlcalc
 
 
 class Groundwater:
     """
     creates an instance of Groundwater class with given initial states and properties, iterates sol() function to
-    compute fluxes and states at each time step.
+    compute fluxes and states of groundwater at each time step.
 
     Args:
-        gwl_t0 (float): initial groundwater level (at t=0) [mm]
+        gwl_t0 (float): initial groundwater level (at t=0) [m-SL]
         gw_no_meas_area (float): area of groundwater without measure [m^2]
-        self.gw_meas_area (float): groundwater area (with a measure) [m^2]
-        self.seep_def (float): seepage defined as constant flux (0) or dynamic calculated flux (1) [0=flux; 1=level]
-        self.w (float): groundwater drainage resistance [d]
-        self.vc (float): flow resistance between deep and shallow groundwater [d]
-        self.h_deepgw (float): predefined hydraulic head of deep groundwater [m-SL]
-        self.flux (float): predefined constant downward seepage flux [mm/d]
-        self.soiltype (int): soil type
-        self.croptype (int): crop type
+        gw_meas_area (float): area of groundwater with measure [m^2]
+        seepage_define (int): seepage to deep groundwater defined as either constant downward flux or dynamic computed \
+        flux determined by head difference and resistance [0=flux; 1=level]
+        w (float): drainage resistance from groundwater to open water [d]
+        vc (float): vertical flow resistance from shallow groundwater to deep groundwater [d]
+        head_deep_gw (float): predefined hydraulic head of deep groundwater [m-SL]
+        down_seepage_flux (float): predefined constant downward flux from shallow groundwater to deep groundwater [mm/d]
+        soiltype (int): soil type
+        croptype (int): crop type
     """
 
     def __init__(
         self,
-        init_gwl_t0,
+        gwl_t0,
         gw_no_meas_area,
         gw_meas_area,
-        seep_def=0,
+        seepage_define=0,
         w=100,
         vc=20000,
-        h_deepgw=21.5,
-        flux=1,
+        head_deep_gw=21.5,
+        down_seepage_flux=1,
         soiltype=2,
         croptype=1,
         **kwargs
     ):
 
         # state
-        # self.prev_gwl (float): groundwater level at previous time step [m-SL]
-        self.prev_gwl = init_gwl_t0
-        # self.prev_gwl_sl (float): groundwater level above surface level at previous time step [m-SL]
-        self.prev_gwl_sl = 0
+
+        # self.gwl_prevt (float): groundwater level at previous time step [m-SL]
+        self.gwl_prevt = gwl_t0
+        # self.gwl_sl_prevt (float): groundwater level above surface level at previous time step [m-SL]
+        self.gwl_sl_prevt = 0
 
         # properties
-        # soil_prm --- soil parameter database determined by soil type and crop type.
+
         self.gw_no_meas_area = gw_no_meas_area
         self.gw_meas_area = gw_meas_area
-        self.seep_def = seep_def
+        self.seepage_define = seepage_define
         self.w = w
         self.vc = vc
-        self.h_deepgw = h_deepgw
-        self.flux = flux
+        self.head_deep_gw = head_deep_gw
+        self.down_seepage_flux = down_seepage_flux
         self.soiltype = soiltype
         self.croptype = croptype
+
+        # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
 
     def sol(
@@ -66,35 +70,35 @@ class Groundwater:
         op_no_meas_area,
         tot_meas_area,
         meas_gw,
-        prev_owl,
+        owl_prevt,
         delta_t=1 / 24,
     ):
         """
-        Calculates storage and fluxes during current time step.
+        Calculates storage and fluxes in groundwater during current time step.
 
         Args:
-            p_uz_gw (float): percolation from unsaturated zone to groundwater [mm]
-            uz_no_meas_area (float): area of unsaturated zone (without a measure) [m^2]
-            p_op_gw (float): percolation from open paved area to groundwater [mm]
-            op_no_meas_area (float): area of open paved (without a measure) [m^2]
-            tot_meas_area (float): total measure area [m^2]
-            meas_gw (float): measure inflow to groundwater [mm]
-            prev_owl (float): open water level at the previous time step [m-SL]
-            delta_t (float): time step size [d]
+            p_uz_gw (float): percolation from unsaturated zone to groundwater during current time step [mm]
+            uz_no_meas_area (float): area of unsaturated zone without measure [m^2]
+            p_op_gw (float): percolation from open paved to groundwater during current time step [mm]
+            op_no_meas_area (float): area of open paved without measure [m^2]
+            tot_meas_area (float): total area of measure [m^2]
+            meas_gw (float): inflow from measure to groundwater during current time step [mm]
+            owl_prevt (float): open water level at the previous time step [m-SL]
+            delta_t (float): length of time step [d]
 
         Returns:
-            (dictionary): A dictionary of storage and fluxes during current time step:
+            (dictionary): A dictionary of computed states and fluxes of groundwater during current time step:
 
-            * **sum_p_gw** -- Total percolation from unsaturated zone and from open paved area to groundwater during the current time step [mm]
-            * **r_meas_gw** -- Inflow from measure area (if applicable) during current time step [mm]
+            * **sum_p_gw** -- Sum of percolation from unsaturated zone and percolation from open paved to groundwater during current time step [mm]
+            * **r_meas_gw** -- Inflow from measure (if applicable) to groundwater during current time step [mm]
             * **gwl_up** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
             * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
-            * **sc_gw** -- Storage coefficient of the groundwater for the current time step [-]
-            * **h_gw** -- Groundwater level at the end of the current time step [m-SL]
-            * **s_gw_out** -- downward seepage flux to deep groundwater during current time step [mm]
-            * **d_gw_ow**  -- Groundwater drainage to the open water for the current time step [mm]
-            * **gwl** -- Groundwater level below surface level at the end of the current time step [m-SL]
-            * **gwl_sl** -- Groundwater level above surface level at the end of the current time step [m-SL]
+            * **sc_gw** -- Storage coefficient of groundwater for current time step [-]
+            * **h_gw** -- Groundwater level at the end of current time step [m-SL]
+            * **s_gw_out** -- Downward seepage from shallow groundwater to deep groundwater during current time step [mm]
+            * **d_gw_ow**  -- Groundwater drainage to open water during current time step [mm]
+            * **gwl** -- Groundwater level below surface level at the end of current time step [m-SL]
+            * **gwl_sl** -- Groundwater level above surface level at the end of current time step [m-SL]
 
         """
 
@@ -102,7 +106,7 @@ class Groundwater:
         if self.gw_no_meas_area == 0:
             sum_p_gw = (
                 r_meas_gw
-            ) = gwl_up = gwl_low = sc_gw = h_gw = s_gw_out = d_gw_ow = gwl = gwl_sl = 0
+            ) = sc_gw = h_gw = s_gw_out = d_gw_ow = gwl = gwl_sl = 0
         else:
             sum_p_gw = (
                 p_uz_gw * uz_no_meas_area + p_op_gw * op_no_meas_area
@@ -110,36 +114,36 @@ class Groundwater:
 
             r_meas_gw = meas_gw * tot_meas_area / self.gw_no_meas_area
 
-            if uz_no_meas_area == 0:   #  when up == 0 (i.e. uz==0), "div0" error as in the excel. Maybe the next logistic step is to make this term in the unsaturatedzone only.
-                gwl_up = gwl_low = 0
+            if uz_no_meas_area == 0.0:  # div0 error noted!
+                gwl_up = gwl_low = 0.0
             else:
-                gwl_sol = gwlcal(self.prev_gwl)
+                gwl_sol = gwlcalc(self.gwl_prevt)
                 gwl_up = gwl_sol[0]
                 gwl_low = gwl_sol[1]
                 id1 = gwl_sol[2]
-                id2 = gwl_sol[3]  # we need to put gwl_up and gwl_low as sol() arguments, not calculated again.
+                id2 = gwl_sol[3]
 
-            if self.prev_gwl < 10:
-                sc_gw = self.soil_prm[id2]["stor_coef"] + (gwl_low - self.prev_gwl) / (
+            if self.gwl_prevt < 10:
+                sc_gw = self.soil_prm[id2]["stor_coef"] + (gwl_low - self.gwl_prevt) / (
                     gwl_low - gwl_up
                 ) * (self.soil_prm[id1]["stor_coef"] - self.soil_prm[id2]["stor_coef"])
             else:
                 sc_gw = self.soil_prm[29]["stor_coef"]
 
-            if self.seep_def > 0.5:
+            if self.seepage_define > 0.5:
                 h_gw = -(
                     (
-                        (sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc
-                        - self.h_deepgw * self.w
-                        - prev_owl * self.vc
+                            (sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc
+                            - self.head_deep_gw * self.w
+                            - owl_prevt * self.vc
                     )
                     / (self.w + self.vc)
                     + (
-                        -(self.prev_gwl + self.prev_gwl_sl)
+                        -(self.gwl_prevt + self.gwl_sl_prevt)
                         - (
-                            (sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc
-                            - self.h_deepgw * self.w
-                            - prev_owl * self.vc
+                                (sum_p_gw + r_meas_gw) / 1000 * self.w * self.vc
+                                - self.head_deep_gw * self.w
+                                - owl_prevt * self.vc
                         )
                         / (self.w + self.vc)
                     )
@@ -149,8 +153,8 @@ class Groundwater:
                 s_gw_out = (
                     1000
                     * (
-                        self.h_deepgw
-                        - 0.5 * (h_gw + (self.prev_gwl + self.prev_gwl_sl))
+                        self.head_deep_gw
+                        - 0.5 * (h_gw + (self.gwl_prevt + self.gwl_sl_prevt))
                     )
                     / self.vc
                     * delta_t
@@ -158,30 +162,30 @@ class Groundwater:
 
             else:
                 h_gw = -(
-                    self.w * (((sum_p_gw + r_meas_gw) - self.flux) / 1000)
-                    - prev_owl
-                    + (
-                        -(self.prev_gwl + self.prev_gwl_sl)
+                        self.w * (((sum_p_gw + r_meas_gw) - self.down_seepage_flux) / 1000)
+                        - owl_prevt
+                        + (
+                        -(self.gwl_prevt + self.gwl_sl_prevt)
                         - (
-                            self.w * (((sum_p_gw + r_meas_gw) - self.flux) / 1000)
-                            - prev_owl
+                                self.w * (((sum_p_gw + r_meas_gw) - self.down_seepage_flux) / 1000)
+                                - owl_prevt
                         )
                     )
-                    * np.exp(-delta_t / (sc_gw * self.w))
+                        * np.exp(-delta_t / (sc_gw * self.w))
                 )
 
-                s_gw_out = delta_t * self.flux
+                s_gw_out = delta_t * self.down_seepage_flux
 
             d_gw_ow = (
-                sum_p_gw
-                + r_meas_gw
-                - s_gw_out
-                - sc_gw * (self.prev_gwl + self.prev_gwl_sl - h_gw) * 1000
+                    sum_p_gw
+                    + r_meas_gw
+                    - s_gw_out
+                    - sc_gw * (self.gwl_prevt + self.gwl_sl_prevt - h_gw) * 1000
             )
 
             gwl = max(
                 0,
-                self.prev_gwl
+                self.gwl_prevt
                 - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000 * sc_gw),
             )
 
@@ -190,7 +194,7 @@ class Groundwater:
                 (
                     0
                     - (
-                        self.prev_gwl
+                        self.gwl_prevt
                         - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000 * sc_gw)
                     )
                 )
@@ -198,14 +202,12 @@ class Groundwater:
             )
 
             # update state
-            self.prev_gwl = gwl
-            self.prev_gwl_sl = gwl_sl
+            self.gwl_prevt = gwl
+            self.gwl_sl_prevt = gwl_sl
 
         return {
             "sum_p_gw": sum_p_gw,
             "r_meas_gw": r_meas_gw,
-            "gwl_up_1": gwl_up,
-            "gwl_low_1": gwl_low,
             "sc_gw": sc_gw,
             "h_gw": h_gw,
             "s_gw_out": s_gw_out,

@@ -5,10 +5,10 @@
 class ClosedPaved:
     """
     Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function to
-    compute fluxes and states at each time step.
+    compute fluxes and states of closed paved at each time step.
 
     Args:
-        intstor_cp_t0 (float): initial interception on closed paved (at t=0) [mm]
+        intstor_cp_t0 (float): initial interception storage on closed paved (at t=0) [mm]
         cp_no_meas_area (float): area of closed paved without measure [m^2]
         cp_meas_area (float): area of closed paved with measure [m^2]
         cp_meas_inflow_area (float): measure inflow area from closed paved, i.e. runoff inflow area to measure from \
@@ -50,7 +50,7 @@ class ClosedPaved:
         self.mss_frac = 1.0 - self.swds_frac
         self.discfrac_cp = discfrac_cp
 
-        # self.inflowfac_cp (float): measure inflow factor of closed paved
+        # self.inflowfac_cp (float): measure inflow factor of closed paved [-]
         self.inflowfac_cp = self.inflowfac()
 
     def inflowfac(self):
@@ -78,21 +78,19 @@ class ClosedPaved:
             e_pot_ow (float): potential open water evaporation during current time step [mm]
 
         Returns:
-            (dictionary): A dictionary of computed states and fluxes during current time step:
+            (dictionary): A dictionary of computed states and fluxes of closed paved during current time step:
 
             * **int_cp** -- Interception storage on closed paved after rainfall at the beginning of current time step [mm]
             * **e_atm_cp** -- Evaporation from interception storage on closed paved during current time step [mm]
             * **intstor_cp** -- Remaining interception storage on closed paved at the end of current time step [mm]
             * **r_cp_meas** -- Runoff from closed paved to measure during current time step (not necessarily on closed paved itself) [mm]
-            * **r_cp_swds** -- Runoff from closed paved storm water drainage system (SWDS) during current time step [mm]
+            * **r_cp_swds** -- Runoff from closed paved to storm water drainage system (SWDS) during current time step [mm]
             * **r_cp_mss** -- Runoff from closed paved to combined sewer system (MSS) during current time step [mm]
             * **r_cp_up** -- Runoff from closed paved to unpaved during current time step [mm]
         """
 
         if self.cp_no_meas_area == 0.0:
-            int_cp = (
-                e_atm_cp
-            ) = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0.0
+            int_cp = e_atm_cp = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0.0
 
         else:
             int_cp = min(self.intstorcap_cp, max(0.0, self.intstor_cp_prevt + p_atm))

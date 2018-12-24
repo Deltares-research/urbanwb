@@ -5,7 +5,7 @@
 class PavedRoof:
     """
     Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function to compute
-    fluxes and states at each time step.
+    fluxes and states of paved roof at each time step.
 
     Args:
         intstor_pr_t0 (float): initial interception storage on paved roof (at t=0) [mm]
@@ -50,7 +50,7 @@ class PavedRoof:
         self.mss_frac = 1.0 - self.swds_frac
         self.discfrac_pr = discfrac_pr
 
-        # self.inflowfac_pr (float): measure inflow factor of paved roof
+        # self.inflowfac_pr (float): measure inflow factor of paved roof [-]
         self.inflowfac_pr = self.inflowfac()
 
     def inflowfac(self):
@@ -78,7 +78,7 @@ class PavedRoof:
             e_pot_ow (float): potential open water evaporation during current time step [mm]
 
         Returns:
-            (dictionary): A dictionary of computed states and fluxes during current time step:
+            (dictionary): A dictionary of computed states and fluxes of paved roof during current time step:
 
             * **int_pr** -- Interception storage on paved roof after rainfall at the beginning of current time step [mm]
             * **e_atm_pr** -- Evaporation from interception storage on paved roof during current time step [mm]
@@ -90,9 +90,7 @@ class PavedRoof:
         """
 
         if self.pr_no_meas_area == 0.0:
-            int_pr = (
-                e_atm_pr
-            ) = intstor_pr = r_pr_meas = r_pr_swds = r_pr_mss = r_pr_up = 0.0
+            int_pr = e_atm_pr = intstor_pr = r_pr_meas = r_pr_swds = r_pr_mss = r_pr_up = 0.0
 
         else:
             int_pr = min(self.intstorcap_pr, max(0.0, self.intstor_pr_prevt + p_atm))

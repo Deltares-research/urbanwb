@@ -86,11 +86,11 @@ class Model(object):
             init_gwl_t0=self.param["init_gwl"],
             gw_no_meas_area=self.param["tot_gw_area"] - self.param["gw_meas_area"],
             gw_meas_area=self.param["gw_meas_area"],
-            seep_def=self.param["seep_def"],
+            seepage_define=self.param["seepage_define"],
             w=self.param["w"],
             vc=self.param["vc"],
-            h_deepgw=self.param["h_deepgw"],
-            flux=self.param["flux"],
+            head_deep_gw=self.param["head_deep_gw"],
+            down_seepage_flux=self.param["down_seepage_flux"],
             soiltype=self.param["soiltype"],
             croptype=self.param["croptype"],
         )
@@ -105,8 +105,8 @@ class Model(object):
             q_swds_ow_cap=self.param["q_swds_ow_cap"],
             q_mss_out_cap=self.param["q_mss_out_cap"],
             q_mss_ow_cap=self.param["q_mss_ow_cap"],
-            stor_swds_cap=self.param["storcap_swds"],
-            stor_mss_cap=self.param["storcap_mss"],
+            storcap_swds=self.param["storcap_swds"],
+            storcap_mss=self.param["storcap_mss"],
         )
         self.openwater = OpenWater(
             ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
@@ -147,7 +147,7 @@ class Model(object):
                 r_pr_up=a["r_pr_up"],
                 r_cp_up=b["r_cp_up"],
                 r_op_up=c["r_op_up"],
-                mois_uz_prevt=prev_lst["theta_uz"],
+                theta_uz_prevt=prev_lst["theta_uz"],
                 pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
                 cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
@@ -169,7 +169,7 @@ class Model(object):
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
                 meas_gw=meas_gw,
-                prev_owl=prev_lst["owl"],
+                owl_prevt=prev_lst["owl"],
                 delta_t=self.param["delta_t"],
             )
             g = self.sewersystem.sol(

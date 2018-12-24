@@ -72,8 +72,8 @@ def read_parameter_measure(stat2_inp):
     # connection_to_gw --- predefined selection if percolation (connection) from measure to groundwater is possible (1) or not (0)
     # gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
     # b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
-    # btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = flux limited, 1 = level difference over resistance)
-    # br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (flux=15mm/d)
+    # btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = down_seepage_flux limited, 1 = level difference over resistance)
+    # br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (down_seepage_flux=15mm/d)
     # bdl_meas --- predefined discharge level from bottom layer of measure [mm]
     # bdr_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
 

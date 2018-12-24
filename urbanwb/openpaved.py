@@ -5,7 +5,7 @@
 class OpenPaved:
     """
     Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function to compute
-    fluxes and states at each time step.
+    fluxes and states of open paved at each time step.
 
     Args:
         intstor_op_t0 (float): initial interception storage on open paved (at t=0) [mm]
@@ -53,7 +53,7 @@ class OpenPaved:
         self.mss_frac = 1.0 - self.swds_frac
         self.discfrac_op = discfrac_op
 
-        # self.inflowfac_op (float): measure inflow factor of open paved
+        # self.inflowfac_op (float): measure inflow factor of open paved [-]
         self.inflowfac_op = self.inflowfac()
 
     def inflowfac(self):
@@ -66,10 +66,11 @@ class OpenPaved:
             * **inflowfac** -- measure inflow factor is calculated as (runoff inflow area to measure from open paved - \
             area of open paved with measure) / area of open paved without measure
         """
+
         if self.op_meas_inflow_area != 0.0:
             return (self.op_meas_inflow_area - self.op_meas_area) / self.op_no_meas_area
         else:
-            0.0
+            return 0.0
 
     def sol(self, p_atm, e_pot_ow, delta_t):
         """
@@ -81,7 +82,7 @@ class OpenPaved:
             delta_t (float): length of time step [d]
 
         Returns:
-            (dictionary): A dictionary of computed storage and fluxes during current time step:
+            (dictionary): A dictionary of computed storage and fluxes of open paved during current time step:
 
             * **int_op** -- Interception storage on open paved after rainfall at the beginning of current time step [mm]
             * **e_atm_op** -- Evaporation from interception storage on open paved during current time step [mm]
@@ -95,9 +96,7 @@ class OpenPaved:
         """
 
         if self.op_no_meas_area == 0.0:
-            int_op = (
-                e_atm_op
-            ) = intstor_op = p_op_gw = r_op_meas = r_op_swds = r_op_mss = r_op_up = 0.0
+            int_op = e_atm_op = intstor_op = p_op_gw = r_op_meas = r_op_swds = r_op_mss = r_op_up = 0.0
 
         else:
             int_op = min(self.intstorcap_op, max(0.0, p_atm + self.intstor_op_prevt))

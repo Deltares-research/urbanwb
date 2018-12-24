@@ -18,7 +18,7 @@ from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
 from urbanwb.selector import soil_selector
-from urbanwb.gwlcalculator import gwlcal
+from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.measure import Measure
@@ -57,35 +57,23 @@ class Model(object):
         )
         self.unsaturatedzone = UnsaturatedZone(
             theta_uz_t0=soil_selector(self.param["soiltype"], self.param["croptype"])[
-                gwlcal(self.param["init_gwl"])[2]
+                gwlcalc(self.param["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
             uz_no_meas_area=self.param["tot_uz_area"] - self.param["uz_meas_area"],
             **self.param
         )
         self.groundwater = Groundwater(
-            init_gwl_t0=self.param["init_gwl"],
             gw_no_meas_area=self.param["tot_gw_area"] - self.param["gw_meas_area"],
             **self.param
         )
         self.sewersystem = SewerSystem(
-            swds_no_meas_area=self.param["tot_swds_area"]
-            - self.param["swds_meas_area"],
+            swds_no_meas_area=self.param["tot_swds_area"] - self.param["swds_meas_area"],
             mss_no_meas_area=self.param["tot_mss_area"] - self.param["mss_meas_area"],
-            prev_stor_swds_t0=0,
-            prev_so_swds_t0=0,
-            prev_stor_mss_t0=0,
-            prev_so_mss_t0=0,
-            stor_swds_cap=self.param["storcap_swds"],
-            stor_mss_cap=self.param["storcap_mss"],
             **self.param
         )
         self.openwater = OpenWater(
             ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
-            ow_level=self.param["ow_level"],
-            q_ow_out_cap=self.param["pump_cap"]
-            * 8.64  # using "pump_cap" [liter/s/hec] instead of q_ow_out_cap [mm/d]"
-            # may need modifications later.
-            # got multiple value for 'q_ow_out_cap'
+            **self.param
         )
         # it takes too many parameters to initialise a measure instance.
 
@@ -135,72 +123,72 @@ class Model(object):
         """
         try:
             # empty dictionary
-            a = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
-            b = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
-            c = self.openpaved.sol(
+            pr_sol = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
+            cp_sol = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
+            op_sol = self.openpaved.sol(
                 p_atm=p_atm, e_pot_ow=e_pot_ow, delta_t=self.param["delta_t"]
             )
-            d = self.unpaved.sol(
+            up_sol = self.unpaved.sol(
                 p_atm=p_atm,
                 e_pot_ow=e_pot_ow,
-                r_pr_up=a["r_pr_up"],
-                r_cp_up=b["r_cp_up"],
-                r_op_up=c["r_op_up"],
-                mois_uz_prevt=prev_lst["theta_uz"],
+                r_pr_up=pr_sol["r_pr_up"],
+                r_cp_up=cp_sol["r_cp_up"],
+                r_op_up=op_sol["r_op_up"],
+                theta_uz_prevt=prev_lst["theta_uz"],
                 pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
                 cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
                 ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
                 delta_t=self.param["delta_t"],
             )
-            M = self.measure.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, r_pr_meas=a["r_pr_meas"], r_cp_meas=b["r_cp_meas"],
-                                 r_op_meas=c["r_op_meas"], r_up_meas=d["r_up_meas"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
-                                 cp_no_meas_area=self.param["tot_cp_area"]-self.param["cp_meas_area"], op_no_meas_area=self.param["tot_op_area"]-self.param["op_meas_area"],
-                                 up_no_meas_area=self.param["tot_up_area"]-self.param["up_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
-                                 prev_gwl_gw=prev_lst["gwl"], delta_t=self.param["delta_t"])
-            e = self.unsaturatedzone.sol(
-                i_up_uz=d["i_up_uz"],
-                meas_uz=M["q_meas_uz"],
+            meas_sol = self.measure.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
+                                        r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
+                                        cp_no_meas_area=self.param["tot_cp_area"]-self.param["cp_meas_area"], op_no_meas_area=self.param["tot_op_area"]-self.param["op_meas_area"],
+                                        up_no_meas_area=self.param["tot_up_area"]-self.param["up_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
+                                        prev_gwl_gw=prev_lst["gwl"], delta_t=self.param["delta_t"])
+            uz_sol = self.unsaturatedzone.sol(
+                i_up_uz=up_sol["i_up_uz"],
+                meas_uz=meas_sol["q_meas_uz"],
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
                 gwl_prevt=prev_lst["gwl"],
                 delta_t=self.param["delta_t"],
             )
-            f = self.groundwater.sol(
-                p_uz_gw=e["p_uz_gw"],
+            gw_sol = self.groundwater.sol(
+                p_uz_gw=uz_sol["p_uz_gw"],
                 uz_no_meas_area=self.param["tot_uz_area"] - self.param["uz_meas_area"],
-                p_op_gw=c["p_op_gw"],
+                p_op_gw=op_sol["p_op_gw"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
-                meas_gw=M["q_meas_gw"],
-                prev_owl=prev_lst["owl"],
+                meas_gw=meas_sol["q_meas_gw"],
+                owl_prevt=prev_lst["owl"],
                 delta_t=self.param["delta_t"],
             )
-            g = self.sewersystem.sol(
+            ss_sol = self.sewersystem.sol(
                 pr_no_meas_area=self.param["tot_pr_area"] - self.param["pr_meas_area"],
                 cp_no_meas_area=self.param["tot_cp_area"] - self.param["cp_meas_area"],
                 op_no_meas_area=self.param["tot_op_area"] - self.param["op_meas_area"],
-                r_pr_swds=a["r_pr_swds"],
-                r_cp_swds=b["r_cp_swds"],
-                r_op_swds=c["r_op_swds"],
-                r_pr_mss=a["r_pr_mss"],
-                r_cp_mss=b["r_cp_mss"],
-                r_op_mss=c["r_op_mss"],
-                meas_swds=M["q_meas_swds"],
-                meas_mss=M["q_meas_mss"],
+                r_pr_swds=pr_sol["r_pr_swds"],
+                r_cp_swds=cp_sol["r_cp_swds"],
+                r_op_swds=op_sol["r_op_swds"],
+                r_pr_mss=pr_sol["r_pr_mss"],
+                r_cp_mss=cp_sol["r_cp_mss"],
+                r_op_mss=op_sol["r_op_mss"],
+                meas_swds=meas_sol["q_meas_swds"],
+                meas_mss=meas_sol["q_meas_mss"],
                 ow_no_meas_area=self.param["tot_ow_area"] - self.param["ow_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
             )
-            h = self.openwater.sol(
+            ow_sol = self.openwater.sol(
                 p_atm=p_atm,
                 e_pot_ow=e_pot_ow,
-                r_up_ow=d["r_up_ow"],
-                d_gw_ow=f["d_gw_ow"],
-                q_swds_ow=g["q_swds_ow"],
-                q_mss_ow=g["q_mss_ow"],
-                so_swds_ow=g["so_swds_ow"],
-                so_mss_ow=g["so_mss_ow"],
-                meas_ow=M["q_meas_ow"],
+                r_up_ow=up_sol["r_up_ow"],
+                d_gw_ow=gw_sol["d_gw_ow"],
+                q_swds_ow=ss_sol["q_swds_ow"],
+                q_mss_ow=ss_sol["q_mss_ow"],
+                so_swds_ow=ss_sol["so_swds_ow"],
+                so_mss_ow=ss_sol["so_mss_ow"],
+                meas_ow=meas_sol["q_meas_ow"],
                 up_no_meas_area=self.param["tot_up_area"] - self.param["up_meas_area"],
                 gw_no_meas_area=self.param["tot_gw_area"] - self.param["gw_meas_area"],
                 swds_no_meas_area=self.param["tot_swds_area"]
@@ -212,22 +200,22 @@ class Model(object):
                 delta_t=self.param["delta_t"],
             )
             if self.param["waterbalance_check"]:
-                wbc = self.waterbalancechecker.sol(P_atm=p_atm, e_atm_pr=a["e_atm_pr"],e_atm_cp=b["e_atm_cp"],e_atm_op=c["e_atm_op"],
-                                               e_atm_up=d["e_atm_up"],e_atm_ow=h["e_atm_ow"], t_atm_uz=e["t_atm_uz"],e_atm_meas=M["e_atm_meas"],
-                                               tt_atm_meas=M["tt_atm_meas"],tb_atm_meas=M["tb_atm_meas"],s_gw_out=f["s_gw_out"],d_gw_ow=f["d_gw_ow"],
-                                               q_swds_ow=g["q_swds_ow"],q_mss_ow=g["q_mss_ow"],sum_so_ow=h["sum_so_ow"],q_mss_out=g["q_mss_out"],q_ow_out=h["q_ow_out"],
-                                               q_meas_out=M["q_meas_out"],intstor_pr=a["intstor_pr"],intstor_pr_prevt=prev_lst["intstor_pr"],intstor_cp=b["intstor_cp"],
-                                               intstor_cp_prevt=prev_lst["intstor_cp"],intstor_op=c["intstor_op"],intstor_op_prevt=prev_lst["intstor_op"],
-                                               intstor_up=d["fin_intstor_up"],intstor_up_prevt=prev_lst["fin_intstor_up"],theta_uz=e["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
-                                               sc_gw=f["sc_gw"],gwl_prevt=prev_lst["gwl"],gwl=f["gwl"],gwl_sl=f["gwl_sl"],gwl_sl_prevt=prev_lst["gwl_sl"],
-                                               so_swds=g["so_swds_ow"],so_swds_prevt=prev_lst["so_swds_ow"],so_mss=g["so_mss_ow"],so_mss_prevt=prev_lst["so_mss_ow"],
-                                               stor_swds=g["stor_swds"],stor_swds_prevt=prev_lst["stor_swds"],stor_mss=g["stor_mss"],stor_mss_prevt=prev_lst["stor_mss"],
-                                               owl_prevt=prev_lst["owl"],owl=h["owl"],intstor_meas=M["intstor_meas"],intstor_meas_prevt=prev_lst["intstor_meas"],top_stor_meas=M["top_stor_meas"],
-                                               top_stor_meas_prevt=prev_lst["top_stor_meas"],bot_stor_meas=M["bot_stor_meas"],bot_stor_meas_prevt=prev_lst["bot_stor_meas"],
-                                               meas_ow=M["q_meas_ow"],meas_gw=M["q_meas_gw"],meas_swds=M["q_meas_swds"]) # the last part about measure should be kindof adapative.
-                dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h, **M, **wbc))
+                wbc = self.waterbalancechecker.sol(P_atm=p_atm, e_atm_pr=pr_sol["e_atm_pr"],e_atm_cp=cp_sol["e_atm_cp"],e_atm_op=op_sol["e_atm_op"],
+                                               e_atm_up=up_sol["e_atm_up"],e_atm_ow=ow_sol["e_atm_ow"], t_atm_uz=uz_sol["t_atm_uz"],e_atm_meas=meas_sol["e_atm_meas"],
+                                               tt_atm_meas=meas_sol["tt_atm_meas"],tb_atm_meas=meas_sol["tb_atm_meas"],s_gw_out=gw_sol["s_gw_out"],d_gw_ow=gw_sol["d_gw_ow"],
+                                               q_swds_ow=ss_sol["q_swds_ow"],q_mss_ow=ss_sol["q_mss_ow"],sum_so_ow=ow_sol["sum_so_ow"],q_mss_out=ss_sol["q_mss_out"],q_ow_out=ow_sol["q_ow_out"],
+                                               q_meas_out=meas_sol["q_meas_out"],intstor_pr=pr_sol["intstor_pr"],intstor_pr_prevt=prev_lst["intstor_pr"],intstor_cp=cp_sol["intstor_cp"],
+                                               intstor_cp_prevt=prev_lst["intstor_cp"],intstor_op=op_sol["intstor_op"],intstor_op_prevt=prev_lst["intstor_op"],
+                                               intstor_up=up_sol["fin_intstor_up"],intstor_up_prevt=prev_lst["fin_intstor_up"],theta_uz=uz_sol["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
+                                               sc_gw=gw_sol["sc_gw"],gwl_prevt=prev_lst["gwl"],gwl=gw_sol["gwl"],gwl_sl=gw_sol["gwl_sl"],gwl_sl_prevt=prev_lst["gwl_sl"],
+                                               so_swds=ss_sol["so_swds_ow"],so_swds_prevt=prev_lst["so_swds_ow"],so_mss=ss_sol["so_mss_ow"],so_mss_prevt=prev_lst["so_mss_ow"],
+                                               stor_swds=ss_sol["stor_swds"],stor_swds_prevt=prev_lst["stor_swds"],stor_mss=ss_sol["stor_mss"],stor_mss_prevt=prev_lst["stor_mss"],
+                                               owl_prevt=prev_lst["owl"],owl=ow_sol["owl"],intstor_meas=meas_sol["intstor_meas"],intstor_meas_prevt=prev_lst["intstor_meas"],top_stor_meas=meas_sol["top_stor_meas"],
+                                               top_stor_meas_prevt=prev_lst["top_stor_meas"],bot_stor_meas=meas_sol["bot_stor_meas"],bot_stor_meas_prevt=prev_lst["bot_stor_meas"],
+                                               meas_ow=meas_sol["q_meas_ow"],meas_gw=meas_sol["q_meas_gw"],meas_swds=meas_sol["q_meas_swds"]) # the last part about measure should be kindof adapative.
+                dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol, **wbc))
             else:
-                dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h, **M))
+                dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol))
         except IndexError:
             raise StopIteration
         return dictmerged
@@ -320,9 +308,9 @@ def running(input_data, dict_param):
             "r_op_mss": 0.0,
             "r_op_up": 0.0,
             "sum_r_up": 0,
-            "init_stor_up": 0,
+            "init_intstor_up": 0,
             "actl_infilcap_up": 0,
-            "tfac_up": 0,
+            "timefac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,
             "fin_intstor_up": 0,  # fin_stor_up_t0
@@ -339,22 +327,22 @@ def running(input_data, dict_param):
             "capris_max_uz": 0,
             "p_uz_gw": 0,
             "theta_uz": soil_selector(dict_param["soiltype"], dict_param["croptype"])[
-                gwlcal(dict_param["init_gwl"])[2]
+                gwlcalc(dict_param["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "moist_cont_uz":soil_selector(dict_param["soiltype"], dict_param["croptype"])[
-                gwlcal(dict_param["init_gwl"])[2]
+                gwlcalc(dict_param["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
             "r_meas_gw": 0,
             "gwl_up_1": 0,
             "gwl_low_1": 0,
             "sc_gw": soil_selector(dict_param["soiltype"], dict_param["croptype"])[
-                gwlcal(dict_param["init_gwl"])[2]
+                gwlcalc(dict_param["gwl_t0"])[2]
             ]["stor_coef"],
             "h_gw": 0,
             "s_gw_out": 0,
             "d_gw_ow": 0,
-            "gwl": dict_param["init_gwl"],
+            "gwl": dict_param["gwl_t0"],
             "gwl_sl": 0,
             "sum_r_swds": 0,
             "r_meas_swds": 0,
@@ -363,10 +351,10 @@ def running(input_data, dict_param):
             "q_swds_ow": 0,
             "q_mss_out": 0,
             "q_mss_ow": 0,
-            "so_swds_ow": 0,  # prev_so_swds_t0
-            "so_mss_ow": 0,  # prev_so_mss_t0
-            "stor_swds": 0,  # prev_stor_swds_t0
-            "stor_mss": 0,  # prev_stor_mss_t0
+            "so_swds_ow": dict_param["so_swds_t0"],  # prev_so_swds_t0
+            "so_mss_ow": dict_param["so_mss_t0"],  # prev_so_mss_t0
+            "stor_swds": dict_param["stor_swds_t0"],  # prev_stor_swds_t0
+            "stor_mss": dict_param["stor_mss_t0"],  # prev_stor_mss_t0
             "prec_ow": P_atm[0],
             "e_atm_ow": E_pot_OW[0],
             "sum_r_ow": 0,
@@ -413,7 +401,7 @@ def running(input_data, dict_param):
             "storage_mia": 0,  # "op_meas_inflow_area" - needs to be adaptive here, modify later, #(dict_param["intstor_meas_t0"]*dict_param["meas_area"] + dict_param["bot_stor_meas_t0"] *
                             #dict_param["bs_area_meas"] + dict_param["top_stor_meas_t0"] * dict_param["ts_area_meas"] + 0 *
                             #(dict_param["tot_op_area"] - dict_param["op_meas_area"])
-                            #)/dict_param["op_meas_inflow_area"]  # another way to modify it is to use another waterbalance check method to avoid this divzero.
+                            #)/dict_param["op_meas_inflow_area"]  # another way to modify it is to use another (new) waterbalance check method to avoid this divzero.
             "toOW_mia": 0,
             "toGW_mia": 0,
             "runofftoSWDS_mia": 0,
@@ -517,7 +505,7 @@ def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, v
     for varval in vararrs:
         dict_param[varkey] = varval
         if corresponding_varkey is not None:
-            dict_param[corresponding_varkey] = varval/2  # if change bot_stor --> sometimes the discharge flux will change accordingly /2, if change measure area, sometimes bot_area change accordingly. need more thinking here
+            dict_param[corresponding_varkey] = varval/2  # if change bot_stor --> sometimes the discharge down_seepage_flux will change accordingly /2, if change measure area, sometimes bot_area change accordingly. need more thinking here
             print(varval/2)
         rv = running(inputdata, dict_param)
         df2 = pd.DataFrame(rv[0])
@@ -623,22 +611,22 @@ def running3(dyn_inp, param):
             "capris_max_uz": 0,
             "p_uz_gw": 0,
             "theta_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
-                gwlcal(dict_para["init_gwl"])[2]
+                gwlcalc(dict_para["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "moist_cont_uz": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
-                gwlcal(dict_para["init_gwl"])[2]
+                gwlcalc(dict_para["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
             "sum_p_gw": 0,
             "r_meas_gw": 0,
             "gwl_up_1": 0,
             "gwl_low_1": 0,
             "sc_gw": soil_selector(dict_para["soiltype"], dict_para["croptype"])[
-                gwlcal(dict_para["init_gwl"])[2]
+                gwlcalc(dict_para["gwl_t0"])[2]
             ]["stor_coef"],
             "h_gw": 0,
             "s_gw_out": 0,
             "d_gw_ow": 0,
-            "gwl": dict_para["init_gwl"],
+            "gwl": dict_para["gwl_t0"],
             "gwl_sl": 0,
             "sum_r_swds": 0,
             "r_meas_swds": 0,

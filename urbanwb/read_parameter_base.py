@@ -152,8 +152,6 @@ def read_parameter_base(stat1_inp):
         "storcap_swds"
     ]  # storage capacity of storm water drainage system [mm]
     storcap_mss = cf["storcap_mss"]  # storage capacity of mixed sewer system [mm]
-    pump_cap = cf["pump_cap"]  # pump capacity [lt/s/ha]
-    discharge_cap = pump_cap * 8.64  # discharge capacity for total area [mm/d]
     q_swds_ow_cap = (
         rainfall_swds_so - intstorcap_cp - storcap_swds
     )  # discharge cap of SWDS to open water [mm/dt]
@@ -166,23 +164,22 @@ def read_parameter_base(stat1_inp):
 
     # groundwater calculation parameters
     w = cf["w"]  # groundwater drainage resistance w [d]
-    seep_def = cf["seep_def"]  # defined seepage [type: 0=flux, 1=level]
+    seep_def = cf["seepage_define"]  # defined seepage [type: 0=down_seepage_flux, 1=level]
     if seep_def == 0 or seep_def == 1:
         flux = cf[
-            "flux"
-        ]  # defined constant downward seepage flux [mm/d] (can be negative [upward])
-        init_gwl = cf["init_gwl"]
-        h_deepgw = cf["h_deepgw"]  # defined hydraulic head of deep groundwater [m-SL]
+            "down_seepage_flux"
+        ]  # defined constant downward seepage down_seepage_flux [mm/d] (can be negative [upward])
+        init_gwl = cf["gwl_t0"]
+        h_deepgw = cf["head_deep_gw"]  # defined hydraulic head of deep groundwater [m-SL]
         vc = cf["vc"]  # flow resistance between deep and shallow groundwater vc [d]
     else:
         raise ValueError(
-            "Error: 'seep_def' (defined seepage) can only be 0(flux) or 1(level)."
+            "Error: 'seepage_define' (defined seepage) can only be 0(flux) or 1(level)."
         )
 
     # open water calculation parameters.
     # q_ow_out_cap needs to be dealt with carefully as it can be problematic in the batch run.
-    q_ow_out_cap = (
-        discharge_cap
+    q_ow_out_cap = (cf["q_ow_out_cap"]
     )  # predefined discharge capacity from open water to outside water [mm/d]
     ow_level = (
         storcap_ow / 1000
@@ -219,7 +216,6 @@ def read_parameter_base(stat1_inp):
         storcap_mss,
         rainfall_swds_so,
         rainfall_mss_ow,
-        pump_cap,
         q_swds_ow_cap,
         q_mss_ow_cap,
         q_mss_out_cap,
@@ -230,7 +226,7 @@ def read_parameter_base(stat1_inp):
         vc,
         q_ow_out_cap,
         ow_level,
-    ]  # note that: flux can be negative(when upward flux)
+    ]  # note that: down_seepage_flux can be negative(when upward down_seepage_flux)
 
     # Fraction within [0,1] check
     list2 = [
@@ -261,6 +257,10 @@ def read_parameter_base(stat1_inp):
     intstor_cp_t0 = cf["intstor_cp_t0"]
     intstor_op_t0 = cf["intstor_op_t0"]
     fin_intstor_up_t0 = cf["fin_intstor_up_t0"]
+    stor_swds_t0 = cf["stor_swds_t0"]
+    so_swds_t0 = cf["so_swds_t0"]
+    stor_mss_t0 = cf["stor_mss_t0"]
+    so_mss_t0 = cf["so_mss_t0"]
 
     return {
         "delta_t": delta_t,
@@ -282,7 +282,6 @@ def read_parameter_base(stat1_inp):
         "tot_mss_area": tot_mss_area,
         "storcap_swds": storcap_swds,
         "storcap_mss": storcap_mss,
-        "pump_cap": pump_cap,
         "intstorcap_pr": intstorcap_pr,
         "intstorcap_cp": intstorcap_cp,
         "intstorcap_op": intstorcap_op,
@@ -290,10 +289,10 @@ def read_parameter_base(stat1_inp):
         "infilcap_op": infilcap_op,
         "infilcap_up": infilcap_up,
         "w": w,
-        "seep_def": seep_def,
-        "flux": flux,
-        "init_gwl": init_gwl,
-        "h_deepgw": h_deepgw,
+        "seepage_define": seep_def,
+        "down_seepage_flux": flux,
+        "gwl_t0": init_gwl,
+        "head_deep_gw": h_deepgw,
         "vc": vc,
         "q_swds_ow_cap": q_swds_ow_cap,
         "q_mss_ow_cap": q_mss_ow_cap,
@@ -304,6 +303,10 @@ def read_parameter_base(stat1_inp):
         "intstor_cp_t0": intstor_cp_t0,
         "intstor_op_t0": intstor_op_t0,
         "fin_intstor_up_t0": fin_intstor_up_t0,
+        "stor_swds_t0": stor_swds_t0,
+        "so_swds_t0": so_swds_t0,
+        "stor_mss_t0": stor_mss_t0,
+        "so_mss_t0": so_mss_t0,
     }
 
 

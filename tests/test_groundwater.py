@@ -25,7 +25,7 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
     # e --- groundwater drainage resistance [d]
     # f --- flow resistance between deep and shallow groundwater [d]
     # g --- defined hydraulic head of deep groundwater [m-SL]
-    # h --- defined constant downward seepage flux [mm/d]
+    # h --- defined constant downward seepage down_seepage_flux [mm/d]
     # i --- soil type
     # j --- crop type
     # Dec --- Desired precision, default is 6.
@@ -35,11 +35,11 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
         init_gwl_t0=a,
         gw_no_meas_area=b,
         gw_meas_area=c,
-        seep_def=d,
+        seepage_define=d,
         w=e,
         vc=f,
-        h_deepgw=g,
-        flux=h,
+        head_deep_gw=g,
+        down_seepage_flux=h,
         soiltype=i,
         croptype=j,
     )
@@ -77,7 +77,7 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
                 op_no_meas_area=300,
                 tot_meas_area=c,
                 meas_gw=meas_gw[t],
-                prev_owl=owl[t - 1],
+                owl_prevt=owl[t - 1],
                 delta_t=1 / 24,
             )
         )
@@ -107,11 +107,11 @@ class TestOpenPaved(unittest.TestCase):
             1.5,
             8140,
             0,
-            seep_def=0,
+            seepage_define=0,
             w=100,
             vc=20000,
-            h_deepgw=21.5,
-            flux=1,
+            head_deep_gw=21.5,
+            down_seepage_flux=1,
             soiltype=2,
             croptype=1,
         )
@@ -120,8 +120,8 @@ class TestOpenPaved(unittest.TestCase):
         """test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the
         process threshold"""
         # time level t = 12/17/1989 15:00
-        self.gw_1.prev_gwl = 1.5589210852  # update state
-        self.gw_1.prev_gwl_sl = 0
+        self.gw_1.gwl_prevt = 1.5589210852  # update state
+        self.gw_1.gwl_sl_prevt = 0
         self.assertAlmostEqual(
             self.gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
                 "sc_gw"
@@ -131,8 +131,8 @@ class TestOpenPaved(unittest.TestCase):
         )
 
         # time level t = 12/17/1989 15:00
-        self.gw_1.prev_gwl = 1.5589210852  # update state
-        self.gw_1.prev_gwl_sl = 0
+        self.gw_1.gwl_prevt = 1.5589210852  # update state
+        self.gw_1.gwl_sl_prevt = 0
         self.assertAlmostEqual(
             self.gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
                 "sum_p_gw"
@@ -142,8 +142,8 @@ class TestOpenPaved(unittest.TestCase):
         )
 
         # time level t = 12/17/1989 16:00
-        self.gw_1.prev_gwl = 1.5588655980  # update state
-        self.gw_1.prev_gwl_sl = 0
+        self.gw_1.gwl_prevt = 1.5588655980  # update state
+        self.gw_1.gwl_sl_prevt = 0
         self.assertAlmostEqual(
             self.gw_1.sol(
                 0.3826862970, 6855, 0.041666667, 481.6093594, 0, 0, 1.5, 1 / 24
@@ -170,7 +170,7 @@ class TestOpenPaved(unittest.TestCase):
             self.assertIsNone(n)
         for n in validate(
             1.5, 8140, 0, 1, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=3
-        ):  # seep_def = 1
+        ):  # seepage_define = 1
             self.assertIsNone(n)
         for n in validate(
             1.5, 8140, 0, 0, 10000, 20000, 21.5, 1, 2, 1, Dec=3, Num=4
@@ -190,11 +190,11 @@ class TestOpenPaved(unittest.TestCase):
             self.assertIsNone(n)
         for n in validate(
             1.5, 8140, 0, 1, 100, 20000, 215, 1, 2, 1, Dec=3, Num=8
-        ):  # h_deepgw = 215, seep_def = 1
+        ):  # head_deep_gw = 215, seepage_define = 1
             self.assertIsNone(n)
         for n in validate(
             1.5, 8140, 0, 1, 100, 20000, 0, 1, 2, 1, Dec=3, Num=9
-        ):  # h_deepgw = 0, seep_def = 1
+        ):  # head_deep_gw = 0, seepage_define = 1
             self.assertIsNone(n)
         for n in validate(
             1.5, 0, 8140, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=10
