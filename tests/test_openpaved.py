@@ -30,12 +30,12 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
     iters = np.shape(date)[0]
 
     m = OpenPaved(
-        init_intstor_op_t0=0,
+        intstor_op_t0=0,
         op_no_meas_area=a,
         op_meas_area=b,
         op_meas_inflow_area=c,
         intstorcap_op=d,
-        stormfrac_op=e,
+        swds_frac=e,
         discfrac_op=f,
         infilcap_op=g,
     )

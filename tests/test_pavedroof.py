@@ -29,12 +29,12 @@ def validate(a, b, c, d, e, f, Dec, Num):
     # Num --- No. of test to locate excel file.
 
     m = PavedRoof(
-        init_intstor_pr_t0=0,
+        intstor_pr_t0=0,
         pr_no_meas_area=a,
         pr_meas_area=b,
         pr_meas_inflow_area=c,
         intstorcap_pr=d,
-        stormfrac_pr=e,
+        swds_frac=e,
         discfrac_pr=f,
     )
     data_py = [

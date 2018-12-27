@@ -32,7 +32,7 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
     # Num --- No. of test to locate excel file.
 
     m = Groundwater(
-        init_gwl_t0=a,
+        gwl_t0=a,
         gw_no_meas_area=b,
         gw_meas_area=c,
         seepage_define=d,

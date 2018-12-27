@@ -39,7 +39,7 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
     theta_rz = theta_rz["theta_rz_" + str(Num)]
 
     m = Unpaved(
-        fin_stor_up_t0=0,
+        fin_intstor_up_t0=0,
         up_no_meas_area=a,
         up_meas_area=b,
         up_meas_inflow_area=c,
