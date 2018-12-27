@@ -28,7 +28,7 @@ def validate(a, b, c, d, e, f, Dec, Num):
     iters = np.shape(date)[0]
 
     m = ClosedPaved(
-        instor_cp_t0=0,
+        intstor_cp_t0=0,
         cp_no_meas_area=a,
         cp_meas_area=b,
         cp_meas_inflow_area=c,

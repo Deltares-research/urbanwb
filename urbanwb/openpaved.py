@@ -67,7 +67,7 @@ class OpenPaved:
             area of open paved with measure) / area of open paved without measure
         """
 
-        if self.op_meas_inflow_area != 0.0:
+        if self.op_no_meas_area != 0.0:
             return (self.op_meas_inflow_area - self.op_meas_area) / self.op_no_meas_area
         else:
             return 0.0

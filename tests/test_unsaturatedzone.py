@@ -5,7 +5,7 @@ import pandas as pd
 import numpy.testing as npt
 from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.selector import soil_selector
-from urbanwb.gwlcalculator import gwlcal
+from urbanwb.gwlcalculator import gwlcalc
 
 path = urbanwb.urbanwbdir / ".." / "input"
 InputData = pd.read_csv(path / "integration_test" / "input_csv.csv")
@@ -28,7 +28,7 @@ def validate(a, b, c, d, e, Dec, Num):
     # Dec --- Desired precision, default is 6.
     # Num --- No. of test to locate excel file.
     init_GWL = a
-    theta_uz_t0 = soil_selector(d, e)[gwlcal(init_GWL)[2]]["moist_cont_eq_rz[mm]"]
+    theta_uz_t0 = soil_selector(d, e)[gwlcalc(init_GWL)[2]]["moist_cont_eq_rz[mm]"]
     m = UnsaturatedZone(
         theta_uz_t0, uz_no_meas_area=b, uz_meas_area=c, soiltype=d, croptype=e
     )

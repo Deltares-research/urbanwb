@@ -52,7 +52,7 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
         {
             "sum_r_up": 0,
             "init_stor_up": 0,
-            "act_infilcap_up": 0,
+            "actl_infilcap_up": 0,
             "tfac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,
@@ -128,7 +128,7 @@ class TestOpenPaved(unittest.TestCase):
                 481.6093594,
                 300,
                 1 / 24,
-            )["act_infilcap_up"],
+            )["actl_infilcap_up"],
             2,
         )
 
