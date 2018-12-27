@@ -51,7 +51,7 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
     data_py = [
         {
             "sum_r_up": 0,
-            "init_stor_up": 0,
+            "init_intstor_up": 0,
             "actl_infilcap_up": 0,
             "tfac_up": 0,
             "e_atm_up": 0,
@@ -93,7 +93,7 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
+class TestUnPaved(unittest.TestCase):
     def setUp(self):
         """
         runs the code before every single test
@@ -128,7 +128,7 @@ class TestOpenPaved(unittest.TestCase):
                 481.6093594,
                 300,
                 1 / 24,
-            )["actl_infilcap_up"],
+            )["actl_infilcap_up"],  # actl_infilcap_up
             2,
         )
 
@@ -147,7 +147,7 @@ class TestOpenPaved(unittest.TestCase):
                 481.6093594,
                 300,
                 1 / 24,
-            )["init_stor_up"],
+            )["init_intstor_up"],
             4.826,
         )
 

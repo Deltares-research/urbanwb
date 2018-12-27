@@ -102,7 +102,7 @@ class TestOpenPaved(unittest.TestCase):
         # time level t = 1/7/1986 10:00
         self.uz_1.theta_uz_prevt = 193.4439006  # update state
         self.assertAlmostEqual(
-            self.uz_1.sol(1.830653459, 0, 0, 0.081752162, 1.52326266, 1 / 24)[
+            self.uz_1.sol(1.830653459, 0, 0.081752162, 0, 1.52326266, 1 / 24)[
                 "t_atm_uz"
             ],
             0.081752162,
@@ -112,7 +112,7 @@ class TestOpenPaved(unittest.TestCase):
         # time level t = 1/4/1986 12:00
         self.uz_1.theta_uz_prevt = 193.6718515310  # update state
         self.assertAlmostEqual(
-            self.uz_1.sol(2.00000000, 0, 0, 0.082017161, 1.5151371876, 1 / 24)[
+            self.uz_1.sol(2.00000000, 0, 0.082017161, 0, 1.5151371876, 1 / 24)[
                 "capris_max_uz"
             ],
             1.5102715093,
@@ -122,7 +122,7 @@ class TestOpenPaved(unittest.TestCase):
         # time level t = 1/4/1986 12:00
         self.uz_1.theta_uz_prevt = 193.6718515310  # update state
         self.assertAlmostEqual(
-            self.uz_1.sol(2.00000000, 0, 0, 0.0820171606, 1.5151371876, 0.041666667)[
+            self.uz_1.sol(2.00000000, 0, 0.0820171606, 0, 1.5151371876, 0.041666667)[
                 "capris_max_uz"
             ],
             1.5102715093,
