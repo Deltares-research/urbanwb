@@ -65,12 +65,12 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
     while t <= iters - 1:
         data_py.append(
             m.sol(
-                P_atm[t],
-                E_pot_OW[t],
-                r_pr_up[t],
-                r_cp_up[t],
-                r_op_up[t],
-                theta_rz[t - 1],
+                p_atm=P_atm[t],
+                e_pot_ow=E_pot_OW[t],
+                r_pr_up=r_pr_up[t],
+                r_cp_up=r_cp_up[t],
+                r_op_up=r_op_up[t],
+                theta_uz_prevt=theta_rz[t - 1],
                 pr_no_meas_area=1560,
                 cp_no_meas_area=803.39,
                 op_no_meas_area=481.61,

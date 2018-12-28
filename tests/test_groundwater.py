@@ -71,9 +71,9 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
     while t <= iters - 1:
         data_py.append(
             m.sol(
-                p_uz_gw[t],
-                uz_no_meas_area,
-                p_op_gw[t],
+                p_uz_gw=p_uz_gw[t],
+                uz_no_meas_area=uz_no_meas_area,
+                p_op_gw=p_op_gw[t],
                 op_no_meas_area=300,
                 tot_meas_area=c,
                 meas_gw=meas_gw[t],

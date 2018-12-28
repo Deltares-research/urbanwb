@@ -58,10 +58,10 @@ def validate(a, b, c, d, e, Dec, Num):
     while t <= iters - 1:
         data_py.append(
             m.sol(
-                i_up_uz[t],
-                meas_uz[t],
-                tot_meas_area,
-                Ref_grass[t],
+                i_up_uz=i_up_uz[t],
+                meas_uz=meas_uz[t],
+                e_ref=Ref_grass[t],
+                tot_meas_area=tot_meas_area,
                 gwl_prevt=gwl[t - 1],
                 delta_t=1 / 24,
             )
@@ -72,6 +72,7 @@ def validate(a, b, c, d, e, Dec, Num):
     data_ex = pd.read_csv(path / "integration_test" / filename_excel)
     keys = data_py.keys()
     none_list = []
+    # data_py.to_csv(path / "integration_test/ fordebug.csv")
     for key in keys:
         none_list.append(
             npt.assert_array_almost_equal(
@@ -133,7 +134,7 @@ class TestUnsaturatedZone(unittest.TestCase):
         """
         runs integration tests (validate with excel using different coefficient sets for all time steps)
         """
-        for n in validate(1.5, 6855, 0, 2, 1, Dec=4, Num=0):  # default
+        for n in validate(1.5, 6855, 0, 2, 1, Dec=7, Num=0):  # default
             self.assertIsNone(n)
         for n in validate(
             1.5, 6855, 0, 3, 1, Dec=7, Num=1
