@@ -53,10 +53,10 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
             "sum_r_up": 0,
             "init_intstor_up": 0,
             "actl_infilcap_up": 0,
-            "tfac_up": 0,
+            "timefac_up": 0,
             "e_atm_up": 0,
             "i_up_uz": 0,
-            "fin_stor_up": 0,
+            "fin_intstor_up": 0,
             "r_up_meas": 0,
             "r_up_ow": 0,
         }

@@ -1,4 +1,4 @@
-sum_r_up,init_stor_up,act_infilcap_up,tfac_up,e_atm_up,i_up_uz,fin_stor_up,r_up_meas,r_up_ow
+sum_r_up,init_intstor_up,actl_infilcap_up,timefac_up,e_atm_up,i_up_uz,fin_intstor_up,r_up_meas,r_up_ow
 ,,,,,,0,,
 0,0,2,0,0,0,0,0,0
 0,0,2,0,0,0,0,0,0

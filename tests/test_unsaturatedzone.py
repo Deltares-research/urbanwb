@@ -84,7 +84,7 @@ def validate(a, b, c, d, e, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
+class TestUnsaturatedZone(unittest.TestCase):
     def setUp(self):
         """
         runs the code before every single test
@@ -133,7 +133,7 @@ class TestOpenPaved(unittest.TestCase):
         """
         runs integration tests (validate with excel using different coefficient sets for all time steps)
         """
-        for n in validate(1.5, 6855, 0, 2, 1, Dec=6, Num=0):  # default
+        for n in validate(1.5, 6855, 0, 2, 1, Dec=4, Num=0):  # default
             self.assertIsNone(n)
         for n in validate(
             1.5, 6855, 0, 3, 1, Dec=7, Num=1
