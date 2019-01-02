@@ -4,22 +4,23 @@
 
 class OpenWater:
     """
-    Creates an instance of OpenWater class with given stats and properties, iterates sol() function to compute fluxes
-    and states of open water at each time step.
+    Creates an instance of OpenWater class with given initial states and properties, iterates sol() function to compute
+    states and fluxes of open water at each time step.
 
     Args:
-        ow_no_meas_area (float): area of open water without measure [m^2].
+        ow_no_meas_area (float): area of open water without measure [m^2]
         q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d]
         ow_level (float): predefined target open water level, also the initial open water level (at t=0) [m-SL]
     """
 
-    def __init__(self, ow_no_meas_area, ow_level, q_ow_out_cap, **kwargs):
+    def __init__(self, ow_no_meas_area, q_ow_out_cap, ow_level, **kwargs):
         """
         Creates an instance of OpenWater class.
         """
 
         # state
-        # self.owl_prevt (float): open water level at previous time step [m-SL], i.e. initial open water level.
+
+        # self.owl_prevt (float): open water level at previous time step [m-SL]
         self.owl_prevt = ow_level
 
         # properties
@@ -55,14 +56,14 @@ class OpenWater:
             r_up_ow (float): runoff from unpaved to open water during current time step [mm]
             d_gw_ow (float): drainage from groundwater to open water during current time step [mm]
             q_swds_ow (float): Outflow from storm water drainage system (SWDS) to open water during current time step [mm]
-            q_mss_ow (float): Outflow from mixed sewer system (MSS) to open water during current time step [mm]
+            q_mss_ow (float): Outflow from combined sewer system (MSS) to open water during current time step [mm]
             so_swds_ow (float): Sewer overflow of storm water drainage system (SWDS) during current time step [mm]
-            so_mss_ow (float): Sewer overflow of mixed sewer system (MSS) during current time step [mm]
-            meas_ow (float): inflow from measure to open water during current time step [mm]
+            so_mss_ow (float): Sewer overflow of combined sewer system (MSS) during current time step [mm]
+            meas_ow (float): inflow from measure (if applicable) to open water during current time step [mm]
             up_no_meas_area (float): area of unpaved without measure [m^2]
             gw_no_meas_area (float): area of groundwater without measure [m^2]
-            swds_no_meas_area (float): area of storm water drainage system without measure [m^2]
-            mss_no_meas_area (float): area of mixed sewer system without measure [m^2]
+            swds_no_meas_area (float): area of storm water drainage system (SWDS) without measure [m^2]
+            mss_no_meas_area (float): area of combined sewer system (MSS) without measure [m^2]
             tot_meas_area (float): total area of measure [m^2]
             total_area (float): total area of study area [m^2]
             delta_t (float): length of time step [d]
@@ -80,13 +81,12 @@ class OpenWater:
             * **q_ow_out** -- Discharge from open water to outside water during current time step [mm]
          """
 
-        # parameters
         if self.ow_no_meas_area == 0.0:
             prec_ow = (
                 e_atm_ow
             ) = sum_r_ow = sum_d_ow = sum_q_ow = sum_so_ow = r_meas_ow = q_ow_out = 0.0
 
-            # if no area of open water without measure is defined, then ow_level means fixed drainage level.
+            # if no area of open water without measure is defined, open water level is then a fixed drainage level.
             owl = self.ow_level
 
         else:
@@ -108,9 +108,9 @@ class OpenWater:
 
             r_meas_ow = meas_ow * tot_meas_area / self.ow_no_meas_area
 
-            q_ow_out = (self.ow_no_meas_area / total_area) * min(
+            q_ow_out = min(
                 delta_t * self.q_ow_out_cap * (total_area / self.ow_no_meas_area),
-                1000 * (self.ow_level - self.owl_prevt)
+                1000.0 * (self.ow_level - self.owl_prevt)
                 + prec_ow
                 - e_atm_ow
                 + sum_r_ow
@@ -132,7 +132,7 @@ class OpenWater:
                     + r_meas_ow
                     - (total_area / self.ow_no_meas_area) * q_ow_out
                 )
-                / 1000
+                / 1000.0
             )
 
             # update state

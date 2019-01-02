@@ -78,8 +78,8 @@ class Model(object):
         )
         # it takes too many parameters to initialise a measure instance.
 
-        k_sat_uz = 10 * soil_selector(soiltype, croptype)[0]["k_sat"]
-        k_sat_uz=10*soil_selector(self.param["soiltype"],self.param["croptype"])[0]["k_sat"]
+        # k_sat_uz = 10 * soil_selector(soiltype, croptype)[0]["k_sat"]
+        # k_sat_uz=10*soil_selector(self.param["soiltype"],self.param["croptype"])[0]["k_sat"]
         self.measure = Measure(meas_area=self.param["meas_area"], runoff_to_stor_layer=self.param["runoff_to_stor_layer"],
                                intstor_meas_t0=self.param["intstor_meas_t0"], ev_evaporation=self.param["ev_evaporation"],
                                num_stor_lvl=self.param["num_stor_lvl"], infil_cap_meas=self.param["infil_cap_meas"],
@@ -101,13 +101,13 @@ class Model(object):
                                surf_runoff_meas_swds=self.param["surf_runoff_meas_swds"], ctrl_runoff_meas_swds=self.param["ctrl_runoff_meas_swds"], overflow_meas_swds=self.param["overflow_meas_swds"],
                                surf_runoff_meas_mss=self.param["surf_runoff_meas_mss"], ctrl_runoff_meas_mss=self.param["ctrl_runoff_meas_mss"], overflow_meas_mss=self.param["overflow_meas_mss"],
                                surf_runoff_meas_out=self.param["surf_runoff_meas_out"], ctrl_runoff_meas_out=self.param["ctrl_runoff_meas_out"], overflow_meas_out=self.param["overflow_meas_out"], isgreenroofdd=self.param["isgreenroofdd"])
-        if self.param["waterbalance_check"]:
-                self.waterbalancechecker = WaterBalanceChecker(tot_area=self.param["tot_area"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
-                                                       cp_no_meas_area=self.param["tot_cp_area"]-self.param["cp_meas_area"], op_no_meas_area=self.param["tot_op_area"]-self.param["op_meas_area"],
-                                                       up_no_meas_area=self.param["tot_up_area"]-self.param["up_meas_area"], ow_no_meas_area=self.param["tot_ow_area"]-self.param["ow_meas_area"],
-                                                       uz_no_meas_area=self.param["tot_uz_area"]-self.param["uz_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
-                                                       swds_no_meas_area=self.param["tot_swds_area"]-self.param["swds_meas_area"],mss_no_meas_area=self.param["tot_mss_area"]-self.param["mss_meas_area"],
-                                                       meas_area=self.param["meas_area"],meas_top_area=self.param["ts_area_meas"],meas_bot_area=self.param["bs_area_meas"],meas_inflow_area=self.param["op_meas_inflow_area"],inflowareaIsoparea=True)  # need to make this op_meas_inflow_area adaptive, not just open paved but it is applicable to other area.
+        # if self.param["waterbalance_check"]:
+        #         self.waterbalancechecker = WaterBalanceChecker(tot_area=self.param["tot_area"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
+        #                                                cp_no_meas_area=self.param["tot_cp_area"]-self.param["cp_meas_area"], op_no_meas_area=self.param["tot_op_area"]-self.param["op_meas_area"],
+        #                                                up_no_meas_area=self.param["tot_up_area"]-self.param["up_meas_area"], ow_no_meas_area=self.param["tot_ow_area"]-self.param["ow_meas_area"],
+        #                                                uz_no_meas_area=self.param["tot_uz_area"]-self.param["uz_meas_area"], gw_no_meas_area=self.param["tot_gw_area"]-self.param["gw_meas_area"],
+        #                                                swds_no_meas_area=self.param["tot_swds_area"]-self.param["swds_meas_area"],mss_no_meas_area=self.param["tot_mss_area"]-self.param["mss_meas_area"],
+        #                                                meas_area=self.param["meas_area"],meas_top_area=self.param["ts_area_meas"],meas_bot_area=self.param["bs_area_meas"],meas_inflow_area=self.param["op_meas_inflow_area"],inflowareaIsoparea=True)  # need to make this op_meas_inflow_area adaptive, not just open paved but it is applicable to other area.
 
     def __iter__(self):
         return self
@@ -235,7 +235,7 @@ def read_inputdata(dyn_inp):
     """
     path = Path.cwd() / ".." / "input"
 
-    # add checker of the data here.
+    # may add checker of the data here.
     return pd.read_csv(str(path) + "\\" + dyn_inp)
 
 

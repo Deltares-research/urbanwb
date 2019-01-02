@@ -8,7 +8,7 @@ from urbanwb.gwlcalculator import gwlcalc
 class UnsaturatedZone:
     """
     Creates an instance of UnsaturatedZone class with given initial states and properties, iterates sol() function to
-    compute fluxes and states of unsaturated zone at each time step.
+    compute states and fluxes of unsaturated zone at each time step.
 
     Args:
         theta_uz_t0 (float): initial (volumetric) moisture content of soil in the root zone (at t=0) [mm]

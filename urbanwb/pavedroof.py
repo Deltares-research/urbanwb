@@ -5,7 +5,7 @@
 class PavedRoof:
     """
     Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function to compute
-    fluxes and states of paved roof at each time step.
+    states and fluxes of paved roof at each time step.
 
     Args:
         intstor_pr_t0 (float): initial interception storage on paved roof (at t=0) [mm]

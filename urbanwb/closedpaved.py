@@ -5,7 +5,7 @@
 class ClosedPaved:
     """
     Creates an instance of ClosedPaved class with given initial states and properties, iterates sol() function to
-    compute fluxes and states of closed paved at each time step.
+    compute states and fluxes of closed paved at each time step.
 
     Args:
         intstor_cp_t0 (float): initial interception storage on closed paved (at t=0) [mm]

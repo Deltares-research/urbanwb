@@ -5,7 +5,7 @@
 class SewerSystem:
     """
     creates an instance of SewerSystem class with given initial states and properties, iterates sol() function to
-    compute fluxes and states of sewer system at each time step.
+    compute states and fluxes of sewer system at each time step.
 
     Args:
         swds_no_meas_area (float): area of storm water drainage system (SWDS) without measure [m^2]
@@ -13,12 +13,12 @@ class SewerSystem:
         stor_swds_t0 (float): initial storage in storm water drainage system (SWDS) (at t=0) [mm]
         so_swds_t0 (float): initial sewer overflow from storm water drainage system (SWDS) (at t=0) [mm]
         stor_mss_t0 (float): initial storage in combined sewer system (MSS) (at t=0) [mm]
-        so_mss_t0 (float): initial sewer overflow from mixed sewer system (MSS) (at t=0) [mm]
-        q_swds_ow_cap (float): predefined discharge capacity of storm water drainage system (SWDS) to open water [mm/hr]
-        q_mss_out_cap (float): predefined discharge capacity of combined sewer system to WWTP [mm/hr]
-        q_mss_ow_cap (float): predefined discharge capacity of combined sewer system to open water [mm/hr]
-        stor_swds_cap (float): predefined storage capacity of storm water drainage system [mm]
-        stor_mss_cap (float): predefined storage capacity of combined sewer system [mm]
+        so_mss_t0 (float): initial sewer overflow from combined sewer system (MSS) (at t=0) [mm]
+        q_swds_ow_cap (float): predefined discharge capacity of storm water drainage system (SWDS) to open water [mm/timestep]
+        q_mss_out_cap (float): predefined discharge capacity of combined sewer system (MSS) to waste water treatment plant (WWTP) [mm/timestep]
+        q_mss_ow_cap (float): predefined discharge capacity of combined sewer system (MSS) to open water [mm/timestep]
+        stor_swds_cap (float): predefined storage capacity of storm water drainage system (SWDS) [mm]
+        stor_mss_cap (float): predefined storage capacity of combined sewer system (MSS) [mm]
     """
 
     def __init__(
@@ -83,39 +83,37 @@ class SewerSystem:
             r_pr_mss (float): runoff from paved roof to combined sewer system during current time step [mm]
             r_cp_mss (float): runoff from closed paved to combined sewer system during current time step [mm]
             r_op_mss (float): runoff from open paved to combined sewer system during current time step [mm]
-            meas_swds (float): inflow from measure to storm water drainage system during current time step [mm]
-            meas_mss (float): inflow from measure to combined sewer system during current time step [mm]
+            meas_swds (float): inflow from measure (if applicable) to storm water drainage system during current time step [mm]
+            meas_mss (float): inflow from measure (if applicable) to combined sewer system during current time step [mm]
             ow_no_meas_area (float): area of open water without measure [m^2]
             tot_meas_area (float): total area of measure [m^2]
 
         Returns:
             (dictionary): A dictionary of computed states and fluxes of sewer system during current time step:
 
-            * **sum_r_swds** -- Total runoff to storm water drainage system during current time step [mm]
-            * **r_meas_swds** -- Inflow from measure (if applicable) to SWDS during current time step [mm]
-            * **sum_r_mss** -- Total runoff to combined sewer system during current time step [mm]
-            * **r_meas_mss** -- Inflow from measure (if applicable) to MSS during current time step [mm]
+            * **sum_r_swds** -- Sum of runoff from paved area to storm water drainage system during current time step [mm]
+            * **r_meas_swds** -- Inflow from measure (if applicable) to storm water drainage system during current time step [mm]
+            * **sum_r_mss** -- Sum of runoff from pave area to combined sewer system during current time step [mm]
+            * **r_meas_mss** -- Inflow from measure (if applicable) to combined sewer system during current time step [mm]
             * **q_swds_ow** -- Outflow from storm water drainage system to open water during current time step [mm]
-            * **q_mss_out** -- Discharge from mixed sewer system to Waste Water Treatment Plant (WWTP) during current time step [mm]
-            * **q_mss_ow** -- Outflow from mixed sewer system to open water during current time step [mm]
+            * **q_mss_out** -- Discharge from combined sewer system to Waste Water Treatment Plant (WWTP) during current time step [mm]
+            * **q_mss_ow** -- Outflow from combined sewer system to open water during current time step [mm]
             * **so_swds** -- Sewer overflow from storm water drainage system during current time step [mm]
-            * **so_mss** -- Sewer overflow from mixed sewer system during current time step [mm]
+            * **so_mss** -- Sewer overflow from combined sewer system during current time step [mm]
             * **stor_swds** -- Storage in storm water drainage system at the end of current time step [mm]
-            * **stor_mss** -- Storage in mixed sewer system at the end of current time step [mm]
+            * **stor_mss** -- Storage in combined sewer system at the end of current time step [mm]
         """
 
-        # parameters
         if self.swds_no_meas_area == 0.0:
-
             sum_r_swds = r_meas_swds = q_swds_ow = so_swds = stor_swds = 0.0
 
         else:
-
             sum_r_swds = (
                 pr_no_meas_area * r_pr_swds
                 + cp_no_meas_area * r_cp_swds
                 + op_no_meas_area * r_op_swds
             ) / self.swds_no_meas_area
+
             r_meas_swds = meas_swds * tot_meas_area / self.swds_no_meas_area
 
             if ow_no_meas_area == 0.0:
@@ -170,6 +168,7 @@ class SewerSystem:
 
             # update state
             self.stor_swds_prevt = stor_swds
+
             self.so_swds_prevt = so_swds
 
         if self.mss_no_meas_area == 0.0:
@@ -182,6 +181,7 @@ class SewerSystem:
                 + cp_no_meas_area * r_cp_mss
                 + op_no_meas_area * r_op_mss
             ) / self.mss_no_meas_area
+
             r_meas_mss = meas_mss * tot_meas_area / self.mss_no_meas_area
 
             if ow_no_meas_area == 0.0:
@@ -259,6 +259,7 @@ class SewerSystem:
 
             # update state
             self.stor_mss_prevt = stor_mss
+
             self.so_mss_prevt = so_mss
         return {
             "sum_r_swds": sum_r_swds,

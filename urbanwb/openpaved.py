@@ -5,7 +5,7 @@
 class OpenPaved:
     """
     Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function to compute
-    fluxes and states of open paved at each time step.
+    states and fluxes of open paved at each time step.
 
     Args:
         intstor_op_t0 (float): initial interception storage on open paved (at t=0) [mm]
@@ -82,7 +82,7 @@ class OpenPaved:
             delta_t (float): length of time step [d]
 
         Returns:
-            (dictionary): A dictionary of computed storage and fluxes of open paved during current time step:
+            (dictionary): A dictionary of computed states and fluxes of open paved during current time step:
 
             * **int_op** -- Interception storage on open paved after rainfall at the beginning of current time step [mm]
             * **e_atm_op** -- Evaporation from interception storage on open paved during current time step [mm]

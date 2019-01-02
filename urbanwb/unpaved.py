@@ -7,7 +7,7 @@ from urbanwb.selector import soil_selector
 class Unpaved:
     """
     creates an instance of Unpaved class with given initial states and properties, iterates sol() function to compute
-    fluxes and states of unpaved at each time step.
+    states and fluxes of unpaved at each time step.
 
     Args:
         fin_intstor_up_t0: initial final remaining interception storage on unpaved (at t=0) [mm]
