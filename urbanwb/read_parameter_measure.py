@@ -15,10 +15,10 @@ def read_parameter_measure(stat2_inp):
     """
     path = Path.cwd() / ".." / "input"
     cf = toml.load(str(path) + "\\" + stat2_inp, _dict=dict)
-    choice = cf["choice"]
+    choice = cf["measure_applied"]
     validinput = False
     while not validinput:
-        if choice == 0:  # input choice: no measure
+        if choice:  # input choice: no measure
             pr_meas_area = (
                 cp_meas_area
             ) = (
@@ -29,7 +29,7 @@ def read_parameter_measure(stat2_inp):
                 uz_meas_area
             ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = 0
             validinput = True
-        elif choice == 1:  # input choice: there is measure
+        elif not choice:  # input choice: there is measure
             pr_meas_area = cf["pr_meas_area"]
             cp_meas_area = cf["cp_meas_area"]
             op_meas_area = cf["op_meas_area"]
@@ -41,108 +41,108 @@ def read_parameter_measure(stat2_inp):
             ow_meas_area = cf["ow_meas_area"]
             validinput = True
         else:
-            raise ValueError("Error: Choice can only be 0 or 1.")
+            raise ValueError("Error: Choice can only be true or false.")
     # these parameters are parameters for measure. As you can see in the configuration file,
     # these so many parameters are confusing and overview of parameters is not as good as excel.
     # Hence, it may be possible that we build a GUI to handle this problem. But for the time being,
     # we just build like this to make it run first.
 
-    # meas_area -- predefined measure area [m^2]
+    # tot_meas_area -- predefined measure area [m^2]
     # Button_BW17 --- predefined selection at which measure layer runoff from other areas is stored (1 or 3), Inflow from other areas can only take place at interception level (1) or at the bottom storage level (3).
-    # * prev_intstor_meas --- interception storage on the measure at previous time step [mm]
+    # * intstor_meas_prevt --- interception storage on the measure at previous time step [mm]
     # intstor_meas_t0 --- predefined interception storage on the measure at t=0 [mm]
-    # ev_evaporation --- predefined selection if evaporation from measure is possible (1) or not (0)
+    # EV_evaporation --- predefined selection if evaporation from measure is possible (1) or not (0)
     # num_stor_lvl --- predefined number of storage levels (1, 2 or 3)
-    # infil_cap_meas --- predefined infiltration capacity of measure [mm/d] (4800mm/d)
-    # top_storcap_meas --- predefined storage capacity in top layer of measure (76.2mm)
-    # bot_storcap_meas --- predefined storage capacity in bottom layer of measure (182.88mm)
-    # * prev_top_stor_meas --- top layer storage at the end of previous time step [mm]
+    # infilcap_int_meas --- predefined infiltration capacity of measure [mm/d] (4800mm/d)
+    # storcap_top_meas --- predefined storage capacity in top layer of measure (76.2mm)
+    # storcap_btm_meas --- predefined storage capacity in bottom layer of measure (182.88mm)
+    # * stor_top_meas_prevt --- top layer storage at the end of previous time step [mm]
     # top_stor_meas_t0 --- top layer storage at t = 0 [mm] (0 mm)
-    # * prev_bot_stor_meas --- bottom layer storage at the end of previous time step [mm]
+    # * stor_btm_meas_prevt --- bottom layer storage at the end of previous time step [mm]
     # bot_stor_meas_t0 --- bottom layer storage at t = 0 [mm] (0 mm)
 
-    # int_cap_meas --- predefined interception storage capacity of measure [mm] (20mm)
-    # ts_area_meas --- predefined area of top layer storage area of measure [m^2]
-    # et_transpiration --- predefined selection if transpiration from measure is possible (1) or not (0)
-    # e_fac_meas --- predefined evaporation factor of measure [-]
-    # tinf_cap_meas --- predefined infiltration capacity of top layer of measure [mm/d] (480mm/d)
+    # storcap_int_meas --- predefined interception storage capacity of measure [mm] (20mm)
+    # top_meas_area --- predefined area of top layer storage area of measure [m^2]
+    # ET_transpiration --- predefined selection if transpiration from measure is possible (1) or not (0)
+    # evaporation_factor_meas --- predefined evaporation factor of measure [-]
+    # infilcap_top_meas --- predefined infiltration capacity of top layer of measure [mm/d] (480mm/d)
 
-    # bs_area_meas --- predefined area of bottom layer storage area of measure [m^2]
-    # btm_et_transpiration --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
+    # btm_meas_area --- predefined area of bottom layer storage area of measure [m^2]
+    # btm_meas_transpiration --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
     # connection_to_gw --- predefined selection if percolation (connection) from measure to groundwater is possible (1) or not (0)
-    # gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
-    # b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
+    # limited_by_gwl --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
+    # btm_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
     # btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = down_seepage_flux limited, 1 = level difference over resistance)
-    # br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (down_seepage_flux=15mm/d)
-    # bdl_meas --- predefined discharge level from bottom layer of measure [mm]
-    # bdr_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
+    # runoffcap_btm_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (down_seepage_flux=15mm/d)
+    # dischlvl_btm_meas --- predefined discharge level from bottom layer of measure [mm]
+    # c_btm_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
 
-    # surf_runoff_meas_ow --- predefined definition of surface runoff from measure to open water (0 = no, 1 = yes)
-    # ctrl_runoff_meas_ow --- predefined definition of controlled runoff from measure to open water (0 = no, 1 = yes)
-    # overflow_meas_ow --- predefined definition of overflow from measure to open water (0 = no, 1 = yes)
-    # surf_runoff_meas_uz --- predefined definition of surface runoff from measure to unsaturated zone (0 = no, 1 = yes)
-    # ctrl_runoff_meas_uz --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
-    # overflow_meas_uz --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
-    # surf_runoff_meas_gw --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
-    # ctrl_runoff_meas_gw --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
-    # overflow_meas_gw --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
-    # surf_runoff_meas_swds --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
-    # ctrl_runoff_meas_swds --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
-    # overflow_meas_gw --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
-    # surf_runoff_meas_mss --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
-    # ctrl_runoff_meas_mss --- predefined definition of controlled runoff from measure to mixed sewer system (0 = no, 1 = yes)
-    # overflow_meas_gw--- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
-    # surf_runoff_meas_out --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
-    # ctrl_runoff_meas_out --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
-    # overflow_meas_out --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
+    # surf_runoff_meas_OW --- predefined definition of surface runoff from measure to open water (0 = no, 1 = yes)
+    # ctrl_runoff_meas_OW --- predefined definition of controlled runoff from measure to open water (0 = no, 1 = yes)
+    # overflow_meas_OW --- predefined definition of overflow from measure to open water (0 = no, 1 = yes)
+    # surf_runoff_meas_UZ --- predefined definition of surface runoff from measure to unsaturated zone (0 = no, 1 = yes)
+    # ctrl_runoff_meas_UZ --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
+    # overflow_meas_UZ --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
+    # surf_runoff_meas_GW --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
+    # ctrl_runoff_meas_GW --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
+    # overflow_meas_GW --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
+    # surf_runoff_meas_SWDS --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
+    # ctrl_runoff_meas_SWDS --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
+    # overflow_meas_GW --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
+    # surf_runoff_meas_MSS --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
+    # ctrl_runoff_meas_MSS --- predefined definition of controlled runoff from measure to mixed sewer system (0 = no, 1 = yes)
+    # overflow_meas_GW--- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
+    # surf_runoff_meas_Out --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
+    # ctrl_runoff_meas_Out --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
+    # overflow_meas_Out --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
 
-    meas_area = cf["meas_area"]
+    tot_meas_area = cf["tot_meas_area"]
     runoff_to_stor_layer = cf["runoff_to_stor_layer"]
     intstor_meas_t0 = cf["intstor_meas_t0"]
-    ev_evaporation = cf["ev_evaporation"]
+    EV_evaporation = cf["EV_evaporation"]
     num_stor_lvl = cf["num_stor_lvl"]
-    infil_cap_meas = cf["infil_cap_meas"]
-    top_storcap_meas = cf["top_storcap_meas"]
-    bot_storcap_meas = cf["bot_storcap_meas"]
-    top_stor_meas_t0 = cf["top_stor_meas_t0"]
-    bot_stor_meas_t0 = cf["bot_stor_meas_t0"]
-    int_cap_meas = cf["int_cap_meas"]
-    ts_area_meas = cf["ts_area_meas"]
-    et_transpiration = cf["et_transpiration"]
-    e_fac_meas = cf["e_frac_meas"]
-    in_infiltration = cf["in_infiltration"]
-    tinf_cap_meas = cf["tinf_cap_meas"]
-    bs_area_meas = cf["bs_area_meas"]
-    btm_et_transpiration = cf["btm_et_transpiration"]
+    infilcap_int_meas = cf["infilcap_int_meas"]
+    storcap_top_meas = cf["storcap_top_meas"]
+    storcap_btm_meas = cf["storcap_btm_meas"]
+    stor_top_meas_t0 = cf["stor_top_meas_t0"]
+    stor_btm_meas_t0 = cf["stor_btm_meas_t0"]
+    storcap_int_meas = cf["storcap_int_meas"]
+    top_meas_area = cf["top_meas_area"]
+    ET_transpiration = cf["ET_transpiration"]
+    evaporation_factor_meas = cf["evaporation_factor_meas"]
+    IN_infiltration = cf["IN_infiltration"]
+    infilcap_top_meas = cf["infilcap_top_meas"]
+    bs_area_meas = cf["btm_meas_area"]
+    btm_meas_transpiration = cf["btm_meas_transpiration"]
     connection_to_gw = cf["connection_to_gw"]
-    gwl_limit_meas = cf["gwl_limit_meas"]
-    b_level_meas = cf["b_level_meas"]
+    limited_by_gwl = cf["limited_by_gwl"]
+    btm_level_meas = cf["btm_level_meas"]
     btm_discharge_type = cf["btm_discharge_type"]
-    br_cap_meas = cf["br_cap_meas"]
-    bdl_meas = cf["bdl_meas"]
-    bdr_meas = cf["bdr_meas"]
+    runoffcap_btm_meas = cf["runoffcap_btm_meas"]
+    dischlvl_btm_meas = cf["dischlvl_btm_meas"]
+    c_btm_meas = cf["c_btm_meas"]
     # temporary
     waterbalance_check = cf["waterbalance_check"]
 
     # Buttons:
-    surf_runoff_meas_ow = cf["surf_runoff_meas_ow"]
-    ctrl_runoff_meas_ow = cf["ctrl_runoff_meas_ow"]
-    overflow_meas_ow = cf["overflow_meas_ow"]
-    surf_runoff_meas_uz = cf["surf_runoff_meas_uz"]
-    ctrl_runoff_meas_uz = cf["ctrl_runoff_meas_uz"]
-    overflow_meas_uz = cf["overflow_meas_uz"]
-    surf_runoff_meas_gw = cf["surf_runoff_meas_gw"]
-    ctrl_runoff_meas_gw = cf["ctrl_runoff_meas_gw"]
-    overflow_meas_gw = cf["overflow_meas_gw"]
-    surf_runoff_meas_swds = cf["surf_runoff_meas_swds"]
-    ctrl_runoff_meas_swds = cf["ctrl_runoff_meas_swds"]
-    overflow_meas_swds = cf["overflow_meas_swds"]
-    surf_runoff_meas_mss = cf["surf_runoff_meas_mss"]
-    ctrl_runoff_meas_mss = cf["ctrl_runoff_meas_mss"]
-    overflow_meas_mss = cf["overflow_meas_mss"]
-    surf_runoff_meas_out = cf["surf_runoff_meas_out"]
-    ctrl_runoff_meas_out = cf["ctrl_runoff_meas_out"]
-    overflow_meas_out = cf["overflow_meas_out"]
+    surf_runoff_meas_OW = cf["surf_runoff_meas_OW"]
+    ctrl_runoff_meas_OW = cf["ctrl_runoff_meas_OW"]
+    overflow_meas_OW = cf["overflow_meas_OW"]
+    surf_runoff_meas_UZ = cf["surf_runoff_meas_UZ"]
+    ctrl_runoff_meas_UZ = cf["ctrl_runoff_meas_UZ"]
+    overflow_meas_UZ = cf["overflow_meas_UZ"]
+    surf_runoff_meas_GW = cf["surf_runoff_meas_GW"]
+    ctrl_runoff_meas_GW = cf["ctrl_runoff_meas_GW"]
+    overflow_meas_GW = cf["overflow_meas_GW"]
+    surf_runoff_meas_SWDS = cf["surf_runoff_meas_SWDS"]
+    ctrl_runoff_meas_SWDS = cf["ctrl_runoff_meas_SWDS"]
+    overflow_meas_SWDS = cf["overflow_meas_SWDS"]
+    surf_runoff_meas_MSS = cf["surf_runoff_meas_MSS"]
+    ctrl_runoff_meas_MSS = cf["ctrl_runoff_meas_MSS"]
+    overflow_meas_MSS = cf["overflow_meas_MSS"]
+    surf_runoff_meas_Out = cf["surf_runoff_meas_Out"]
+    ctrl_runoff_meas_Out = cf["ctrl_runoff_meas_Out"]
+    overflow_meas_Out = cf["overflow_meas_Out"]
 
     # Note that pr_meas_inflow_area should be within the range (pr_meas_area, tot_pr_area), it should be specified.
     # But for the time being we assume it is equal to pr_meas_area.
@@ -162,11 +162,11 @@ def read_parameter_measure(stat2_inp):
         + mss_meas_area
         + ow_meas_area
     )
-    isgreenroofdd = cf["isgreenroofdd"]
+    greenroof_type_measure = cf["greenroof_type_measure"]
     # 0 or 1 check. check some parameters (some buttons) which can only be selected from 0 or 1
-    k = [surf_runoff_meas_ow, ctrl_runoff_meas_ow, overflow_meas_ow, surf_runoff_meas_uz, ctrl_runoff_meas_uz, overflow_meas_uz, surf_runoff_meas_gw, ctrl_runoff_meas_gw, overflow_meas_gw,
-         surf_runoff_meas_swds, ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out,
-         gwl_limit_meas, connection_to_gw, btm_et_transpiration, btm_discharge_type]
+    k = [surf_runoff_meas_OW, ctrl_runoff_meas_OW, overflow_meas_OW, surf_runoff_meas_UZ, ctrl_runoff_meas_UZ, overflow_meas_UZ, surf_runoff_meas_GW, ctrl_runoff_meas_GW, overflow_meas_GW,
+         surf_runoff_meas_SWDS, ctrl_runoff_meas_SWDS, overflow_meas_SWDS, surf_runoff_meas_MSS, ctrl_runoff_meas_MSS, overflow_meas_MSS, surf_runoff_meas_Out, ctrl_runoff_meas_Out, overflow_meas_Out,
+         limited_by_gwl, connection_to_gw, btm_meas_transpiration, btm_discharge_type]
     check = [n for n in k if n != 0 and n != 1]
     if len(check) != 0:
         print(check)
@@ -191,51 +191,50 @@ def read_parameter_measure(stat2_inp):
         "cp_meas_inflow_area": cp_meas_inflow_area,
         "op_meas_inflow_area": op_meas_inflow_area,
         "up_meas_inflow_area": up_meas_inflow_area,
-        "meas_area": meas_area,
         "runoff_to_stor_layer": runoff_to_stor_layer,
         "intstor_meas_t0": intstor_meas_t0,
-        "ev_evaporation": ev_evaporation,
+        "EV_evaporation": EV_evaporation,
         "num_stor_lvl": num_stor_lvl,
-        "infil_cap_meas": infil_cap_meas,
-        "top_storcap_meas": top_storcap_meas,
-        "bot_storcap_meas": bot_storcap_meas,
-        "top_stor_meas_t0": top_stor_meas_t0,
-        "bot_stor_meas_t0": bot_stor_meas_t0,
-        "int_cap_meas": int_cap_meas,
-        "ts_area_meas": ts_area_meas,
-        "et_transpiration": et_transpiration,
-        "e_fac_meas": e_fac_meas,
-        "in_infiltration": in_infiltration,
-        "tinf_cap_meas": tinf_cap_meas,
-        "bs_area_meas": bs_area_meas,
-        "btm_et_transpiration": btm_et_transpiration,
+        "infilcap_int_meas": infilcap_int_meas,
+        "storcap_top_meas": storcap_top_meas,
+        "storcap_btm_meas": storcap_btm_meas,
+        "stor_top_meas_t0": stor_top_meas_t0,
+        "stor_btm_meas_t0": stor_btm_meas_t0,
+        "storcap_int_meas": storcap_int_meas,
+        "top_meas_area": top_meas_area,
+        "ET_transpiration": ET_transpiration,
+        "evaporation_factor_meas": evaporation_factor_meas,
+        "IN_infiltration": IN_infiltration,
+        "infilcap_top_meas": infilcap_top_meas,
+        "btm_meas_area": bs_area_meas,
+        "btm_meas_transpiration": btm_meas_transpiration,
         "connection_to_gw": connection_to_gw,
-        "gwl_limit_meas": gwl_limit_meas,
-        "b_level_meas": b_level_meas,
+        "limited_by_gwl": limited_by_gwl,
+        "btm_level_meas": btm_level_meas,
         "btm_discharge_type": btm_discharge_type,
-        "br_cap_meas": br_cap_meas,
-        "bdl_meas": bdl_meas,
-        "bdr_meas": bdr_meas,
-        "surf_runoff_meas_ow": surf_runoff_meas_ow,
-        "ctrl_runoff_meas_ow": ctrl_runoff_meas_ow,
-        "overflow_meas_ow": overflow_meas_ow,
-        "surf_runoff_meas_uz": surf_runoff_meas_uz,
-        "ctrl_runoff_meas_uz": ctrl_runoff_meas_uz,
-        "overflow_meas_uz": overflow_meas_uz,
-        "surf_runoff_meas_gw": surf_runoff_meas_gw,
-        "ctrl_runoff_meas_gw": ctrl_runoff_meas_gw,
-        "overflow_meas_gw": overflow_meas_gw,
-        "surf_runoff_meas_swds": surf_runoff_meas_swds,
-        "ctrl_runoff_meas_swds": ctrl_runoff_meas_swds,
-        "overflow_meas_swds": overflow_meas_swds,
-        "surf_runoff_meas_mss": surf_runoff_meas_mss,
-        "ctrl_runoff_meas_mss": ctrl_runoff_meas_swds,
-        "overflow_meas_mss": overflow_meas_mss,
-        "surf_runoff_meas_out": surf_runoff_meas_out,
-        "ctrl_runoff_meas_out": ctrl_runoff_meas_out,
-        "overflow_meas_out": overflow_meas_out,
+        "runoffcap_btm_meas": runoffcap_btm_meas,
+        "dischlvl_btm_meas": dischlvl_btm_meas,
+        "c_btm_meas": c_btm_meas,
+        "surf_runoff_meas_OW": surf_runoff_meas_OW,
+        "ctrl_runoff_meas_OW": ctrl_runoff_meas_OW,
+        "overflow_meas_OW": overflow_meas_OW,
+        "surf_runoff_meas_UZ": surf_runoff_meas_UZ,
+        "ctrl_runoff_meas_UZ": ctrl_runoff_meas_UZ,
+        "overflow_meas_UZ": overflow_meas_UZ,
+        "surf_runoff_meas_GW": surf_runoff_meas_GW,
+        "ctrl_runoff_meas_GW": ctrl_runoff_meas_GW,
+        "overflow_meas_GW": overflow_meas_GW,
+        "surf_runoff_meas_SWDS": surf_runoff_meas_SWDS,
+        "ctrl_runoff_meas_SWDS": ctrl_runoff_meas_SWDS,
+        "overflow_meas_SWDS": overflow_meas_SWDS,
+        "surf_runoff_meas_MSS": surf_runoff_meas_MSS,
+        "ctrl_runoff_meas_MSS": ctrl_runoff_meas_MSS,
+        "overflow_meas_MSS": overflow_meas_MSS,
+        "surf_runoff_meas_Out": surf_runoff_meas_Out,
+        "ctrl_runoff_meas_Out": ctrl_runoff_meas_Out,
+        "overflow_meas_Out": overflow_meas_Out,
         "waterbalance_check": waterbalance_check,
-        "isgreenroofdd": isgreenroofdd
+        "greenroof_type_measure": greenroof_type_measure
     }
 
 

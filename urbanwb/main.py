@@ -204,7 +204,7 @@ class Model(object):
                 mss_no_meas_area=self.param["tot_mss_area"]
                 - self.param["mss_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
-                total_area=self.param["tot_area"],
+                tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
             dictmerged = OrderedDict(dict(a, **b, **c, **d, **e, **f, **g, **h))

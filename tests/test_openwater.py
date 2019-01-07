@@ -79,7 +79,7 @@ def validate(a, b, c, Dec, Num):
                 swds_no_meas_area=2845,
                 mss_no_meas_area=0,
                 tot_meas_area=0,
-                total_area=10000,
+                tot_area=10000,
                 delta_t=1 / 24,
             )
         )

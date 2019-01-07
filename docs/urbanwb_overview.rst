@@ -582,6 +582,26 @@ Code and input parameters
     :undoc-members:
     :show-inheritance:
 
+
+Measure
+~~~~~~~
+
+
+Assumption
+^^^^^^^^^^
+
+Calculation orders
+^^^^^^^^^^^^^^^^^^
+
+Code and input parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: urbanwb.measure
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 FAQ
 ---
 1. What is measure inflow area ( ,area with measure and area without measure)?

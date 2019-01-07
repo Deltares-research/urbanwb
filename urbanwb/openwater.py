@@ -44,7 +44,7 @@ class OpenWater:
         swds_no_meas_area,
         mss_no_meas_area,
         tot_meas_area,
-        total_area,
+        tot_area,
         delta_t=1 / 24,
     ):
         """
@@ -65,7 +65,7 @@ class OpenWater:
             swds_no_meas_area (float): area of storm water drainage system (SWDS) without measure [m^2]
             mss_no_meas_area (float): area of combined sewer system (MSS) without measure [m^2]
             tot_meas_area (float): total area of measure [m^2]
-            total_area (float): total area of study area [m^2]
+            tot_area (float): total area of study area [m^2]
             delta_t (float): length of time step [d]
 
         Returns:
@@ -109,7 +109,7 @@ class OpenWater:
             r_meas_ow = meas_ow * tot_meas_area / self.ow_no_meas_area
 
             q_ow_out = min(
-                delta_t * self.q_ow_out_cap * (total_area / self.ow_no_meas_area),
+                delta_t * self.q_ow_out_cap * (tot_area / self.ow_no_meas_area),
                 1000.0 * (self.ow_level - self.owl_prevt)
                 + prec_ow
                 - e_atm_ow
@@ -123,14 +123,14 @@ class OpenWater:
             owl = (
                 self.owl_prevt
                 - (
-                    prec_ow
-                    - e_atm_ow
-                    + sum_r_ow
-                    + sum_d_ow
-                    + sum_q_ow
-                    + sum_so_ow
-                    + r_meas_ow
-                    - (total_area / self.ow_no_meas_area) * q_ow_out
+                        prec_ow
+                        - e_atm_ow
+                        + sum_r_ow
+                        + sum_d_ow
+                        + sum_q_ow
+                        + sum_so_ow
+                        + r_meas_ow
+                        - q_ow_out
                 )
                 / 1000.0
             )

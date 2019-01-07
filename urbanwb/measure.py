@@ -1,290 +1,316 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 class Measure:
     """
-    Creates an instance of Measure example (Grassed-swale) class with given states and properties
+    Creates an instance of Measure class with given initial states and properties, iterates sol() function to compute
+    states and fluxes of measure at each time step.
 
     Args:
-        meas_area -- predefined measure area [m^2]
-        runoff_to_stor_layer --- predefined selection at which measure layer runoff from other areas is stored (1 or 3), Inflow from other areas can only take place at interception level (1) or at the bottom storage level (3).
-        * prev_intstor_meas --- interception storage on the measure at previous time step [mm]
-        intstor_meas_t0 --- predefined interception storage on the measure at t=0 [mm]
-        ev_evaporation --- predefined selection if evaporation from measure is possible (1) or not (0)
-        num_stor_lvl --- predefined number of storage levels (1, 2 or 3)
-        infil_cap_meas --- predefined infiltration capacity of measure [mm/d] (4800mm/d)
-        top_storcap_meas --- predefined storage capacity in top layer of measure (76.2mm)
-        bot_storcap_meas --- predefined storage capacity in bottom layer of measure (182.88mm)
-        * prev_top_stor_meas --- top layer storage at the end of previous time step [mm]
-        top_stor_meas_t0 --- top layer storage at t = 0 [mm] (0 mm)
-        * prev_bot_stor_meas --- bottom layer storage at the end of previous time step [mm]
-        bot_stor_meas_t0 --- bottom layer storage at t = 0 [mm] (0 mm)
+        tot_meas_area (float): total area of measure [m^2]
+        num_stor_lvl (int): predefined number of storage layers [1, 2 or 3]
+        runoff_to_stor_layer (int): predefined selection at which measure layer runoff from other area is stored, inflow \
+        runoff can only take place at interception layer (1) or at bottom storage layer (3) [1 or 3]
 
-        int_cap_meas --- predefined interception storage capacity of measure [mm] (20mm)
-        ts_area_meas --- predefined area of top layer storage area of measure [m^2]
-        et_transpiration --- predefined selection if evapotranspiration from measure is possible (1) or not (0)
-        e_fac_meas --- predefined evaporation factor of measure [-]
-        in_infiltration --- predefined selection if infiltration from measure is possible (1) or not (0)
-        tinf_cap_meas --- predefined infiltration capacity of top layer of measure [mm/d] (480mm/d)
+        # Active processes:
+        EV_evaporation (int): predefined selection if evaporation from measure interception layer is possible (1) or not (0) [0 or 1]
+        ET_transpiration (int): predefined selection if evapotranspiration from measure is possible (1) or not (0) [0 or 1]
+        IN_infiltration (int): predefined selection if infiltration from measure is possible (1) or not (0) [0 or 1]
+        SD_delay (int): predefined selection if slow drainage from measure is possible (1) or not (0) [0 or 1]
+        FD_pumping (int): predefined selection if fast drainage from measure is possible (1) or not (0) [0 or 1]
+        # RTC_realtime (int): predefined selection if real-time-control release from measure is possible (1) or not (0) [0 or 1]
 
-        bs_area_meas --- predefined area of bottom layer storage area of measure [m^2]
-        btm_et_transpiration --- predefined selection if transpiration from bottom layer of measure is possible (1) or not (0)
-        connection_to_gw --- predefined percolation (connection) from measure to groundwater is possible (1) or not (0)
-        gwl_limit_meas --- predefined limitation of percolation from measure to groundwater if groundwater level is below measure bottom level (1=yes; 0=no)
-        k_sat_uz --- saturation permeability of soil [mm/d] (this parameter will be put into the paramter matrix of static_base.ini which is linked with soil type)
-        b_level_meas --- predefined bottom level of measure [m -SL] (0.6858)
-        btm_discharge_type --- predefined definition of discharge type from bottom layer of measure (0 = down_seepage_flux limited, 1 = level difference over resistance)
-        br_cap_meas --- predefined runoff capacity from bottom layer of measure [mm/d] (down_seepage_flux=15mm/d)
-        bdl_meas --- predefined discharge level from bottom layer of measure [mm]
-        bdr_meas --- predefined hydraulic resistance for level induced discharge from bottom layer of measure [d]
+        # Interception layer:
+        storcap_int_meas (float): predefined storage capacity of interception layer of measure [mm]
+        infilcap_int_meas (float): predefined infiltration capacity of interception layer of measure [mm/d]
+        stor_int_meas_t0 (float): initial storage in interception layer of measure (at t=0) [mm]
 
-        surf_runoff_meas_ow --- predefined definition of surface runoff from measure storage 1 (interception level) to open water (0 = no, 1 = yes)
-        ctrl_runoff_meas_ow --- predefined definition of controlled runoff from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
-        overflow_meas_ow --- predefined definition of overflow from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
-        surf_runoff_meas_uz --- predefined definition of surface runoff from measure storage 1 (interception level) to unsaturated zone (0 = no, 1 = yes)
-        ctrl_runoff_meas_uz --- predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
-        overflow_meas_uz --- predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
-        surf_runoff_meas_gw --- predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
-        ctrl_runoff_meas_gw --- predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
-        overflow_meas_gw --- predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
-        surf_runoff_meas_swds --- predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        ctrl_runoff_meas_swds --- predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
-        overflow_meas_swds --- predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
-        surf_runoff_meas_mss --- predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
-        ctrl_runoff_meas_mss --- predefined definition of controlledrunoff from measure to mixed sewer system (0 = no, 1 = yes)
-        overflow_meas_mss --- predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
-        surf_runoff_meas_out --- predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
-        ctrl_runoff_meas_out --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
-        overflow_meas_out --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
-        # Several buttons are not applied yet in the current measure. They will be added at later stage (other measures). (for e.g Button_BQ22)
-    Returns:
-        A dictionary of output variables
+        # Top storage layer:
+        top_meas_area (float): predefined area of top storage layer of measure [m^2]
+        storcap_top_meas (float): predefined storage capacity of top storage layer of measure [mm]
+        infilcap_top_meas (float): predefined infiltration capacity of top storage layer of measure [mm/d]
+        stor_top_meas_t0 (float): initial storage in top storage layer of measure (at t=0) [mm]
 
+        # Bottom storage layer:
+        btm_meas_area (float): predefined area of bottom storage layer of measure [m^2]
+        storcap_btm_meas (float): predefined storage capacity of bottom storage layer of measure [mm]
+        connection_to_gw (int): predefined percolation (connection) from measure bottom storage layer to groundwater is possible (1) or not (0) [0 or 1]
+        limited_by_gwl (int): predefined limitation of percolation from measure to groundwater if groundwater level is \
+        below measure bottom level, limited (1) or unlimited (0) [0 or 1]
+        btm_level_meas (float): predefined bottom level of measure [m-SL]
+        btm_meas_transpiration (int): predefined selection if transpiration from bottom storage layer of measure is possible (1) or not (0) [0 or 1]
+        btm_discharge_type (int): predefined discharge type from bottom storage layer of measure [0:flux or 1:level]
+        runoffcap_btm_meas (float): predefined runoff capacity from bottom storage layer of measure [mm/d]
+        dischlvl_btm_meas (float): predefined discharge level from bottom storage layer of measure [mm]
+        c_btm_meas (float): predefined hydraulic resistance for level induced discharge from bottom storage layer of measure [d]
+        k_sat_uz (float): saturation permeability of soil [mm/d]
+        evaporation_factor_meas (float): predefined evaporation factor of measure [-]
+        stor_btm_meas_t0 (float): initial storage in bottom storage layer of measure (at t=0) [mm]
 
+        # Runoff from measure flows to:
+        surf_runoff_meas_OW (int): predefined definition of surface runoff from measure storage 1 (interception level) to open water (0 = no, 1 = yes)
+        ctrl_runoff_meas_OW (int): predefined definition of controlled runoff from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
+        overflow_meas_OW (int): predefined definition of overflow from measure storage 3 (bottom level) to open water (0 = no, 1 = yes)
+        surf_runoff_meas_UZ (int): predefined definition of surface runoff from measure storage 1 (interception level) to unsaturated zone (0 = no, 1 = yes)
+        ctrl_runoff_meas_UZ (int): predefined definition of controlled runoff from measure to unsaturated zone (0 = no, 1 = yes)
+        overflow_meas_UZ (int): predefined definition of overflow from measure to unsaturated zone (0 = no, 1 = yes)
+        surf_runoff_meas_GW (int): predefined definition of surface runoff from measure to groundwater (0 = no, 1 = yes)
+        ctrl_runoff_meas_GW (int): predefined definition of controlled runoff from measure to groundwater (0 = no, 1 = yes)
+        overflow_meas_GW (int): predefined definition of overflow from measure to groundwater (0 = no, 1 = yes)
+        surf_runoff_meas_SWDS (int): predefined definition of surface runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        ctrl_runoff_meas_SWDS (int): predefined definition of controlled runoff from measure to storm water drainage system (0 = no, 1 = yes)
+        overflow_meas_SWDS (int): predefined definition of overflow from measure to storm water drainage system (0 = no, 1 = yes)
+        surf_runoff_meas_MSS (int): predefined definition of surface runoff from measure to mixed sewer system (0 = no, 1 = yes)
+        ctrl_runoff_meas_MSS (int): predefined definition of controlledrunoff from measure to mixed sewer system (0 = no, 1 = yes)
+        overflow_meas_MSS (int): predefined definition of overflow from measure to mixed sewer system (0 = no, 1 = yes)
+        surf_runoff_meas_Out (int): predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
+        ctrl_runoff_meas_Out (int): predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
+        overflow_meas_Out (int): predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
     """
-    def __init__(self, meas_area, runoff_to_stor_layer, intstor_meas_t0, ev_evaporation, num_stor_lvl, infil_cap_meas,
-                top_storcap_meas, bot_storcap_meas, top_stor_meas_t0, bot_stor_meas_t0, int_cap_meas, ts_area_meas,
-                et_transpiration, e_fac_meas, in_infiltration, tinf_cap_meas, bs_area_meas, btm_et_transpiration, connection_to_gw, gwl_limit_meas,
-                k_sat_uz, b_level_meas, btm_discharge_type, br_cap_meas, bdl_meas, bdr_meas, surf_runoff_meas_ow, ctrl_runoff_meas_ow,
-                overflow_meas_ow, surf_runoff_meas_uz, ctrl_runoff_meas_uz, overflow_meas_uz, surf_runoff_meas_gw, ctrl_runoff_meas_gw, overflow_meas_gw, surf_runoff_meas_swds,
-                ctrl_runoff_meas_swds, overflow_meas_swds, surf_runoff_meas_mss, ctrl_runoff_meas_mss, overflow_meas_mss, surf_runoff_meas_out, ctrl_runoff_meas_out, overflow_meas_out, isgreenroofdd):
+
+    def __init__(self, tot_meas_area, runoff_to_stor_layer, intstor_meas_t0, EV_evaporation, num_stor_lvl, infilcap_int_meas,
+                 storcap_top_meas, storcap_btm_meas, stor_top_meas_t0, stor_btm_meas_t0, storcap_int_meas, top_meas_area,
+                 ET_transpiration, evaporation_factor_meas, IN_infiltration, infilcap_top_meas, btm_meas_area, btm_meas_transpiration, connection_to_gw, limited_by_gwl,
+                 k_sat_uz, btm_level_meas, btm_discharge_type, runoffcap_btm_meas, dischlvl_btm_meas, c_btm_meas, surf_runoff_meas_OW, ctrl_runoff_meas_OW,
+                 overflow_meas_OW, surf_runoff_meas_UZ, ctrl_runoff_meas_UZ, overflow_meas_UZ, surf_runoff_meas_GW, ctrl_runoff_meas_GW, overflow_meas_GW, surf_runoff_meas_SWDS,
+                 ctrl_runoff_meas_SWDS, overflow_meas_SWDS, surf_runoff_meas_MSS, ctrl_runoff_meas_MSS, overflow_meas_MSS, surf_runoff_meas_Out, ctrl_runoff_meas_Out, overflow_meas_Out, greenroof_type_measure, **kwargs):
         """
         Creates an instance of Measure class.
         """
 
-        self.meas_area = meas_area
-        self.runoff_to_stor_layer = runoff_to_stor_layer
-        self.prev_intstor_meas = intstor_meas_t0
-        self.ev_evaporation = ev_evaporation
+        self.tot_meas_area = tot_meas_area
         self.num_stor_lvl = num_stor_lvl
-        self.infil_cap_meas = infil_cap_meas
-        self.top_storcap_meas = top_storcap_meas
-        self.bot_storcap_meas = bot_storcap_meas
-        self.prev_top_stor_meas = top_stor_meas_t0
-        self.prev_bot_stor_meas = bot_stor_meas_t0
+        self.runoff_to_stor_layer = runoff_to_stor_layer
 
-        self.int_cap_meas = int_cap_meas
-        self.ts_area_meas = ts_area_meas
-        self.et_transpiration = et_transpiration
-        self.e_fac_meas = e_fac_meas
-        self.in_infiltration = in_infiltration
-        self.tinf_cap_meas = tinf_cap_meas
+        # active processes
+        self.EV_evaporation = EV_evaporation
+        self.ET_transpiration = ET_transpiration
+        self.IN_infiltration = IN_infiltration
+        # self.SD_delay = SD_delay
+        # self.FD_pumping = FD_pumping
 
-        self.bs_area_meas = bs_area_meas
-        self.btm_et_transpiration = btm_et_transpiration
+        # interception layer
+        self.storcap_int_meas = storcap_int_meas
+        self.infilcap_int_meas = infilcap_int_meas
+        # self.intstor_meas_prevt (float): storage in interception layer at the end of previous time step [mm]
+        self.intstor_meas_prevt = intstor_meas_t0
+
+        # top storage layer
+        self.top_meas_area = top_meas_area
+        self.storcap_top_meas = storcap_top_meas
+        self.infilcap_top_meas = infilcap_top_meas
+        # self.stor_top_meas_prevt (float): storage in top storage layer at the end of previous time step [mm]
+        self.stor_top_meas_prevt = stor_top_meas_t0
+
+        # bottom storage layer
+        self.btm_meas_area = btm_meas_area
+        self.storcap_btm_meas = storcap_btm_meas
         self.connection_to_gw = connection_to_gw
-        self.gwl_limit_meas = gwl_limit_meas
-        self.k_sat_uz = k_sat_uz
-        self.b_level_meas = b_level_meas
+        self.limited_by_gwl = limited_by_gwl
+        self.btm_level_meas = btm_level_meas
+        self.btm_meas_transpiration = btm_meas_transpiration
         self.btm_discharge_type = btm_discharge_type
-        self.br_cap_meas = br_cap_meas
-        self.bdl_meas = bdl_meas
-        self.bdr_meas = bdr_meas
+        self.runoffcap_btm_meas = runoffcap_btm_meas
+        self.dischlvl_btm_meas = dischlvl_btm_meas
+        self.c_btm_meas = c_btm_meas
+        # self.stor_btm_meas_prevt (float): storage in bottom storage layer at the end of previous time step [mm]
+        self.stor_btm_meas_prevt = stor_btm_meas_t0
+        self.evaporation_factor_meas = evaporation_factor_meas
+        self.k_sat_uz = k_sat_uz
 
-        self.surf_runoff_meas_ow = surf_runoff_meas_ow
-        self.ctrl_runoff_meas_ow = ctrl_runoff_meas_ow
-        self.overflow_meas_ow = overflow_meas_ow
-        self.surf_runoff_meas_uz = surf_runoff_meas_uz
-        self.ctrl_runoff_meas_uz = ctrl_runoff_meas_uz
-        self.overflow_meas_uz = overflow_meas_uz
-        self.surf_runoff_meas_gw = surf_runoff_meas_gw
-        self.ctrl_runoff_meas_gw = ctrl_runoff_meas_gw
-        self.overflow_meas_gw = overflow_meas_gw
-        self.surf_runoff_meas_swds = surf_runoff_meas_swds
-        self.ctrl_runoff_meas_swds = ctrl_runoff_meas_swds
-        self.overflow_meas_swds = overflow_meas_swds
-        self.surf_runoff_meas_mss = surf_runoff_meas_mss
-        self.ctrl_runoff_meas_mss = ctrl_runoff_meas_mss
-        self.overflow_meas_mss = overflow_meas_mss
-        self.surf_runoff_meas_out = surf_runoff_meas_out
-        self.ctrl_runoff_meas_out = ctrl_runoff_meas_out
-        self.overflow_meas_out = overflow_meas_out
-        self.isgreenroofdd = isgreenroofdd
+        # water from measure flows to
+        self.surf_runoff_meas_OW = surf_runoff_meas_OW
+        self.ctrl_runoff_meas_OW = ctrl_runoff_meas_OW
+        self.overflow_meas_OW = overflow_meas_OW
+        self.surf_runoff_meas_UZ = surf_runoff_meas_UZ
+        self.ctrl_runoff_meas_UZ = ctrl_runoff_meas_UZ
+        self.overflow_meas_UZ = overflow_meas_UZ
+        self.surf_runoff_meas_GW = surf_runoff_meas_GW
+        self.ctrl_runoff_meas_GW = ctrl_runoff_meas_GW
+        self.overflow_meas_GW = overflow_meas_GW
+        self.surf_runoff_meas_SWDS = surf_runoff_meas_SWDS
+        self.ctrl_runoff_meas_SWDS = ctrl_runoff_meas_SWDS
+        self.overflow_meas_SWDS = overflow_meas_SWDS
+        self.surf_runoff_meas_MSS = surf_runoff_meas_MSS
+        self.ctrl_runoff_meas_MSS = ctrl_runoff_meas_MSS
+        self.overflow_meas_MSS = overflow_meas_MSS
+        self.surf_runoff_meas_Out = surf_runoff_meas_Out
+        self.ctrl_runoff_meas_Out = ctrl_runoff_meas_Out
+        self.overflow_meas_Out = overflow_meas_Out
+
+        self.greenroof_type_measure = greenroof_type_measure
 
     def sol(self, p_atm, e_pot_ow, r_pr_meas, r_cp_meas, r_op_meas, r_up_meas, pr_no_meas_area, cp_no_meas_area,
-            op_no_meas_area, up_no_meas_area, gw_no_meas_area, prev_gwl_gw, delta_t,
+            op_no_meas_area, up_no_meas_area, gw_no_meas_area, gwl_prevt, delta_t,
             ):
-            """
-            sol function
-            Args:
-                _no_meas_area --- areas of the different land use elements where no measure is applied [m^2]
-                p_atm --- rainfall during current time step [mm]
-                e_pot_ow --- potential open water evaporation [mm]
-                r_pr_meas --- runoff from paved roof to measure [mm]
-                r_cp_meas --- runoff from closed paved to measure [mm]
-                r_op_meas --- runoff from open paved to measure [mm]
-                r_up_meas --- runoff from unpaved to measure [mm]
-                pr_no_meas_area --- area of paved roof (without a measure) [m^2]
-                cp_no_meas_area --- area of closed paved (without a measure) [m^2]
-                op_no_meas_area --- area of open paved (without a measure) [m^2]
-                up_no_meas_area --- area of unpaved (without a measure) [m^2]
-                gw_no_meas_area --- area of groundwater (without a measure) [m^2]
-                prev_gwl_gw --- groundwater level at previous time step [m -SL]
-                delta_t --- time step size [d]
+        """
+        Calculates states and fluxes in measure during current time step.
 
-            returns:
-                prec_meas --- direct rainfall on measure during the current time step [mm]
-                sum_r_meas --- total runoff from paved roof, closed paved, open paved, unpaved to the measure during current time step [mm]
-                int_meas --- interception on the measure after rainfall during current time step [mm]
-                e_atm_meas --- evaporation form the storage layer1 (surface) during current time step [mm]
-                int_down_meas --- downward flow from measure interception layer during current time step [mm]
-                sr_meas --- surface runoff from measure during current time step [mm]
-                intstor_meas --- interception storage on measure during current time step [mm]
-                ts_ini_meas --- top layer storage at the beginning of current time step [mm]
-                tt_atm_meas --- transpiration from top layer of measure at the current time step [mm]
-                pt_meas --- percolation from top layer of measure at the current time step [mm]
-                top_stor_meas --- top layer storage at the end of current time step [mm]
-                bs_ini_meas --- bottom layer storage at the beginning of current time step [mm]
-                tb_atm_meas --- transpiration from bottom layer of measure at the current time step [mm]
-                pb_meas_gw --- percolation from bottom layer of measure to groundwater during current time step [mm]
-                br_meas --- runoff from the bottom layer of the measure during current time step [mm]
-                bot_stor_meas --- bottom storage at the end of the current time step [mm]
-                bo_meas --- bottom storage overflow during current time step [mm]
-                q_meas_ow --- Measure outflow to open water during current time step [mm]
-                q_meas_uz --- Measure outflow to unsaturated zone during current time step [mm]
-                q_meas_gw --- Measure outflow to groundwater during current time step [mm]
-                q_meas_swds --- Measure outflow to storm water drainage system during current time step [mm]
-                q_meas_mss --- Measure outflow to mixed sewer system during current time step [mm]
-                q_meas_out --- Measure outflow to outside water during current time step [mm]
-            """
+        Args:
+            p_atm (float): rainfall during current time step [mm]
+            e_pot_ow (float): potential open water evaporation during current time step [mm]
+            r_pr_meas (float): runoff from paved roof to measure during current time step [mm]
+            r_cp_meas (float): runoff from closed paved to measure during current time step [mm]
+            r_op_meas (float): runoff from open paved to measure during current time step [mm]
+            r_up_meas (float): runoff from unpaved to measure during current time step [mm]
+            pr_no_meas_area (float): area of paved roof without measure [m^2]
+            cp_no_meas_area (float): area of closed pave without measure [m^2]
+            op_no_meas_area (float): area of open paved without measure [m^2]
+            up_no_meas_area (float): area of unpaved without measure [m^2]
+            gw_no_meas_area (float): area of groundwater without measure [m^2]
+            gwl_prevt (float): groundwater level at previous time step [m-SL]
+            delta_t (float): length of time step [d]
 
-            if self.meas_area == 0:
-                prec_meas = sum_r_meas = int_meas = e_atm_meas = int_down_meas = sr_meas = intstor_meas = ts_ini_meas = \
-                            tt_atm_meas = pt_meas = top_stor_meas = bs_ini_meas = tb_atm_meas = pb_meas_gw = br_meas = \
-                            bot_stor_meas = bo_meas = q_meas_ow = q_meas_uz = q_meas_gw = q_meas_swds = q_meas_mss = \
-                            q_meas_out = 0
+        Returns:
+            (dictionary): A dictionary of computed states and fluxes of measure during current time step:
+
+            * **prec_meas** -- Direct rainfall on measure during current time step [mm]
+            * **sum_r_meas** -- Total runoff from paved roof, closed paved, open paved, unpaved to measure during current time step [mm]
+            * **int_meas** -- Interception storage on interception layer of measure after rainfall at the beginning of current time step [mm]
+            * **e_atm_meas** -- Evaporation form interception layer of measure during current time step [mm]
+            * **interc_down_meas** -- Downward flow from interception layer of measure during current time step [mm]
+            * **surf_runoff_meas** -- Surface runoff from interception layer of measure during current time step [mm]
+            * **intstor_meas** -- Remaining interception storage on interception layer of measure during current time step [mm]
+            * **ini_stor_top_meas** -- Storage in top storage layer of measure at the beginning of current time step [mm]
+            * **t_atm_top_meas** -- Transpiration from top storage layer of measure during current time step [mm]
+            * **perc_top_meas** -- Percolation from top layer of measure at the current time step [mm]
+            * **fin_stor_top_meas** -- top layer storage at the end of current time step [mm]
+            * **ini_stor_btm_meas** -- bottom layer storage at the beginning of current time step [mm]
+            * **t_atm_btm_meas** -- transpiration from bottom layer of measure at the current time step [mm]
+            * **p_gw_btm_meas** -- percolation from bottom layer of measure to groundwater during current time step [mm]
+            * **runoff_btm_meas** -- runoff from the bottom layer of the measure during current time step [mm]
+            * **fin_stor_btm_meas** -- bottom storage at the end of the current time step [mm]
+            * **overflow_btm_meas** -- bottom storage overflow during current time step [mm]
+            * **q_meas_ow** -- Measure outflow to open water during current time step [mm]
+            * **q_meas_uz** -- Measure outflow to unsaturated zone during current time step [mm]
+            * **q_meas_gw** -- Measure outflow to groundwater during current time step [mm]
+            * **q_meas_swds** -- Measure outflow to storm water drainage system during current time step [mm]
+            * **q_meas_mss** -- Measure outflow to mixed sewer system during current time step [mm]
+            * **q_meas_out** -- Measure outflow to outside water during current time step [mm]
+        """
+
+        if self.tot_meas_area == 0:
+            prec_meas = sum_r_meas = int_meas = e_atm_meas = interc_down_meas = surf_runoff_meas = intstor_meas = \
+                ini_stor_top_meas = t_atm_top_meas = perc_top_meas = fin_stor_top_meas = ini_stor_btm_meas = \
+                t_atm_btm_meas = p_gw_btm_meas = runoff_btm_meas = fin_stor_btm_meas = overflow_btm_meas = q_meas_ow = \
+                q_meas_uz = q_meas_gw = q_meas_swds = q_meas_mss = q_meas_out = 0.0
+
+        else:
+            prec_meas = p_atm
+
+            sum_r_meas = (r_pr_meas * pr_no_meas_area + r_cp_meas * cp_no_meas_area + r_op_meas * op_no_meas_area +
+                          r_up_meas * up_no_meas_area) / self.tot_meas_area
+
+            int_meas = self.intstor_meas_prevt + prec_meas + (sum_r_meas if self.runoff_to_stor_layer == 1 else 0.0)
+
+            e_atm_meas = self.EV_evaporation * min(int_meas, e_pot_ow)
+
+            if self.num_stor_lvl > 1.5:  # needs update state here.
+
+                if not self.greenroof_type_measure:
+
+                    interc_down_meas = max(0.0, min(int_meas - e_atm_meas, delta_t * self.infilcap_int_meas,
+                                               ((self.storcap_top_meas - self.stor_top_meas_prevt) if self.num_stor_lvl > 2.5 else
+                                         (self.storcap_btm_meas - self.stor_btm_meas_prevt))))
+                else:
+                    interc_down_meas = max(0.0, min(int_meas - e_atm_meas - self.storcap_int_meas, delta_t * self.infilcap_int_meas))
+
             else:
-                prec_meas = p_atm
 
-                sum_r_meas = (r_pr_meas * pr_no_meas_area + r_cp_meas * cp_no_meas_area + r_op_meas * op_no_meas_area + r_up_meas * up_no_meas_area) / self.meas_area
+                interc_down_meas = 0.0
 
-                int_meas = self.prev_intstor_meas + prec_meas + (sum_r_meas if self.runoff_to_stor_layer == 1 else 0)
+            surf_runoff_meas = max(0.0, int_meas - e_atm_meas - interc_down_meas - self.storcap_int_meas)
 
-                e_atm_meas = self.ev_evaporation * min(int_meas, e_pot_ow)
+            intstor_meas = max(0.0, int_meas - e_atm_meas - interc_down_meas - surf_runoff_meas)
 
-                if self.num_stor_lvl > 1.5:  # needs update state here.
+            if self.num_stor_lvl < 2.5:
+                ini_stor_top_meas = 0.0
+            else:
+                ini_stor_top_meas = 0.0 if self.top_meas_area == 0.0 else self.stor_top_meas_prevt + interc_down_meas * (self.tot_meas_area / self.top_meas_area)
 
-                    if not self.isgreenroofdd:
+            t_atm_top_meas = 0.0 if self.num_stor_lvl < 2.5 else self.ET_transpiration * min(ini_stor_top_meas, self.evaporation_factor_meas * e_pot_ow)
 
-                        int_down_meas = max(0, min(int_meas - e_atm_meas, delta_t * self.infil_cap_meas,
-                                            ((self.top_storcap_meas - self.prev_top_stor_meas) if self.num_stor_lvl > 2.5 else
-                                             (self.bot_storcap_meas - self.prev_bot_stor_meas))))
-                    else:
-                        int_down_meas = max(0, min(int_meas - e_atm_meas - self.int_cap_meas, delta_t * self.infil_cap_meas))
+            if self.num_stor_lvl < 2.5:
 
+                perc_top_meas = 0.0
+
+            else:
+                if not self.greenroof_type_measure:
+                    perc_top_meas = max(0.0, min(ini_stor_top_meas - t_atm_top_meas, delta_t * self.infilcap_top_meas))
                 else:
+                    perc_top_meas = max(0.0, min(ini_stor_top_meas - t_atm_top_meas - self.storcap_top_meas, delta_t * self.infilcap_top_meas))
 
-                    int_down_meas = 0
+            # perc_top_meas = 0.0 if self.num_stor_lvl < 2.5 else max(0, min(ini_stor_top_meas - t_atm_top_meas, delta_t * self.infilcap_top_meas))
 
-                sr_meas = max(0, int_meas - e_atm_meas - int_down_meas - self.int_cap_meas)
+            fin_stor_top_meas = min(self.storcap_top_meas, ini_stor_top_meas - t_atm_top_meas - perc_top_meas)
 
-                intstor_meas = max(0, int_meas - e_atm_meas - int_down_meas - sr_meas)
+            if self.num_stor_lvl < 1.5:
+                ini_stor_btm_meas = 0.0
+            else:
+                if self.btm_meas_area == 0.0:
+                    ini_stor_btm_meas = 0.0
+                else:
+                    ini_stor_btm_meas = self.stor_btm_meas_prevt + \
+                                  (0.0 if self.runoff_to_stor_layer == 1 else sum_r_meas) + \
+                                  ((interc_down_meas * (self.tot_meas_area / self.btm_meas_area)) if self.num_stor_lvl < 2.5 else (perc_top_meas * (self.top_meas_area / self.btm_meas_area)))
 
+            if self.btm_meas_transpiration < 0.5:
+                t_atm_btm_meas = 0.0
+            else:
                 if self.num_stor_lvl < 2.5:
-                    ts_ini_meas = 0
+                    t_atm_btm_meas = self.ET_transpiration * min(ini_stor_btm_meas, self.evaporation_factor_meas * e_pot_ow)
                 else:
-                    ts_ini_meas = 0 if self.ts_area_meas == 0 else self.prev_top_stor_meas + int_down_meas * (self.meas_area / self.ts_area_meas)
+                    t_atm_btm_meas = self.ET_transpiration * min(ini_stor_btm_meas, self.evaporation_factor_meas * e_pot_ow - t_atm_top_meas)
 
-                tt_atm_meas = 0 if self.num_stor_lvl < 2.5 else self.et_transpiration * min(ts_ini_meas, self.e_fac_meas * e_pot_ow)
-                # removed the in__infiltration button
-
-                if self.num_stor_lvl < 2.5:
-
-                    pt_meas = 0
-
+            if self.connection_to_gw < 0.5:
+                p_gw_btm_meas = 0.0
+            else:
+                if self.limited_by_gwl < 0.5:
+                    p_gw_btm_meas = max(0.0, min(ini_stor_btm_meas - t_atm_btm_meas, delta_t * self.k_sat_uz))
                 else:
-                    if not self.isgreenroofdd:
-                        pt_meas = max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
+                    if gwl_prevt < self.btm_level_meas:
+                        p_gw_btm_meas = 0.0
                     else:
-                        pt_meas = max(0, min(ts_ini_meas - tt_atm_meas - self.top_storcap_meas, delta_t * self.tinf_cap_meas))
+                        p_gw_btm_meas = min(0.0 if self.btm_meas_area == 0.0 else 1000.0 * (gwl_prevt - self.btm_level_meas) * (gw_no_meas_area / self.btm_meas_area), max(0.0, min(ini_stor_btm_meas - t_atm_btm_meas, delta_t * self.k_sat_uz)))
 
-                # pt_meas = 0 if self.num_stor_lvl < 2.5 else max(0, min(ts_ini_meas - tt_atm_meas, delta_t * self.tinf_cap_meas))
-
-                top_stor_meas = min(self.top_storcap_meas, ts_ini_meas - tt_atm_meas - pt_meas)
-
-                if self.num_stor_lvl < 1.5:
-                    bs_ini_meas = 0
+            if self.btm_discharge_type < 0.5:
+                runoff_btm_meas = min(delta_t * self.runoffcap_btm_meas, ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas)
+            else:
+                if self.c_btm_meas == 0.0:
+                    runoff_btm_meas = min(max(0.0, ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas - self.dischlvl_btm_meas), 0.0)
                 else:
-                    if self.bs_area_meas == 0:
-                        bs_ini_meas = 0
-                    else:
-                        bs_ini_meas = self.prev_bot_stor_meas + \
-                                      (0 if self.runoff_to_stor_layer == 1 else sum_r_meas) + \
-                                      ((int_down_meas * (self.meas_area / self.bs_area_meas)) if self.num_stor_lvl < 2.5 else (pt_meas * (self.ts_area_meas / self.bs_area_meas)))
+                    runoff_btm_meas = min(max(0.0, ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas - self.dischlvl_btm_meas), delta_t * max(0.0, (ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas - self.dischlvl_btm_meas)) / self.c_btm_meas)
 
-                if self.btm_et_transpiration < 0.5:
-                    tb_atm_meas = 0
-                else:
-                    if self.num_stor_lvl < 2.5:
-                        tb_atm_meas = self.et_transpiration * min(bs_ini_meas, self.e_fac_meas * e_pot_ow)
-                    else:
-                        tb_atm_meas = self.et_transpiration * min(bs_ini_meas, self.e_fac_meas * e_pot_ow - tt_atm_meas)
+            fin_stor_btm_meas = min(self.storcap_btm_meas, ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas - runoff_btm_meas)
 
-                if self.connection_to_gw < 0.5:
-                    pb_meas_gw = 0
-                else:
-                    if self.gwl_limit_meas < 0.5:
-                        pb_meas_gw = max(0, min(bs_ini_meas - tb_atm_meas, delta_t * self.k_sat_uz))
-                    else:
-                        if prev_gwl_gw < self.b_level_meas:
-                            pb_meas_gw = 0
-                        else:
-                            pb_meas_gw = min(0 if self.bs_area_meas == 0 else 1000*(prev_gwl_gw - self.b_level_meas) * (gw_no_meas_area / self.bs_area_meas), max(0, min(bs_ini_meas - tb_atm_meas, delta_t * self.k_sat_uz)))
+            overflow_btm_meas = max(0.0, ini_stor_btm_meas - t_atm_btm_meas - p_gw_btm_meas - runoff_btm_meas - fin_stor_btm_meas)
 
-                if self.btm_discharge_type < 0.5:
-                    br_meas = min(delta_t * self.br_cap_meas, bs_ini_meas - tb_atm_meas - pb_meas_gw)
-                else:
-                    if self.bdr_meas == 0:
-                        br_meas = min(max(0, bs_ini_meas - tb_atm_meas - pb_meas_gw - self.bdl_meas), 0)
-                    else:
-                        br_meas = min(max(0, bs_ini_meas - tb_atm_meas - pb_meas_gw - self.bdl_meas), delta_t * max(0, (bs_ini_meas - tb_atm_meas - pb_meas_gw - self.bdl_meas)) / self.bdr_meas)
+            q_meas_ow = self.surf_runoff_meas_OW * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_OW * runoff_btm_meas + self.overflow_meas_OW * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                bot_stor_meas = min(self.bot_storcap_meas, bs_ini_meas - tb_atm_meas - pb_meas_gw - br_meas)
+            q_meas_uz = self.surf_runoff_meas_UZ * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_UZ * runoff_btm_meas + self.overflow_meas_UZ * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                bo_meas = max(0, bs_ini_meas - tb_atm_meas - pb_meas_gw - br_meas - bot_stor_meas)
+            q_meas_gw = self.surf_runoff_meas_GW * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (p_gw_btm_meas + self.ctrl_runoff_meas_GW * runoff_btm_meas + self.overflow_meas_GW * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                q_meas_ow = self.surf_runoff_meas_ow * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_ow * br_meas + self.overflow_meas_ow * bo_meas) * self.meas_area / self.bs_area_meas)
+            q_meas_swds = self.surf_runoff_meas_SWDS * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_SWDS * runoff_btm_meas + self.overflow_meas_SWDS * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                q_meas_uz = self.surf_runoff_meas_uz * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_uz * br_meas + self.overflow_meas_uz * bo_meas) * self.meas_area / self.bs_area_meas)
+            q_meas_mss = self.surf_runoff_meas_MSS * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_MSS * runoff_btm_meas + self.overflow_meas_MSS * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                q_meas_gw = self.surf_runoff_meas_gw * sr_meas + (0 if self.bs_area_meas == 0 else (pb_meas_gw + self.ctrl_runoff_meas_gw * br_meas + self.overflow_meas_gw * bo_meas) * self.meas_area / self.bs_area_meas)
+            q_meas_out = self.surf_runoff_meas_Out * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_Out * runoff_btm_meas + self.overflow_meas_Out * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
-                q_meas_swds = self.surf_runoff_meas_swds * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_swds * br_meas + self.overflow_meas_swds * bo_meas) * self.meas_area / self.bs_area_meas)
+            # update state:
+            # update interception storage
+            self.stor_top_meas_prevt = fin_stor_top_meas
+            self.stor_btm_meas_prevt = fin_stor_btm_meas
+            self.intstor_meas_prevt = intstor_meas
 
-                q_meas_mss = self.surf_runoff_meas_mss * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_mss * br_meas + self.overflow_meas_mss * bo_meas) * self.meas_area / self.bs_area_meas)
-
-                q_meas_out = self.surf_runoff_meas_out * sr_meas + (0 if self.bs_area_meas == 0 else (self.ctrl_runoff_meas_out * br_meas + self.overflow_meas_out * bo_meas) * self.meas_area / self.bs_area_meas)
-
-                # update state:
-                # update interception storage
-                self.prev_top_stor_meas = top_stor_meas
-                self.prev_bot_stor_meas = bot_stor_meas
-                self.prev_intstor_meas = intstor_meas
-
-            return {"prec_meas": prec_meas, "sum_r_meas": sum_r_meas, "int_meas": int_meas, "e_atm_meas": e_atm_meas,
-                    "int_down_meas": int_down_meas, "sr_meas": sr_meas, "intstor_meas": intstor_meas,
-                    "ts_ini_meas": ts_ini_meas, "tt_atm_meas": tt_atm_meas, "pt_meas": pt_meas,
-                    "top_stor_meas": top_stor_meas, "bs_ini_meas": bs_ini_meas, "tb_atm_meas": tb_atm_meas,
-                    "pb_meas_gw": pb_meas_gw, "br_meas": br_meas, "bot_stor_meas": bot_stor_meas, "bo_meas": bo_meas,
-                    "q_meas_ow": q_meas_ow, "q_meas_uz": q_meas_uz, "q_meas_gw": q_meas_gw,
-                    "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss,"q_meas_out": q_meas_out}
+        return {"prec_meas": prec_meas, "sum_r_meas": sum_r_meas, "int_meas": int_meas, "e_atm_meas": e_atm_meas,
+                "interc_down_meas": interc_down_meas, "surf_runoff_meas": surf_runoff_meas, "intstor_meas": intstor_meas,
+                "ini_stor_top_meas": ini_stor_top_meas, "t_atm_top_meas": t_atm_top_meas, "perc_top_meas": perc_top_meas,
+                "fin_stor_top_meas": fin_stor_top_meas, "ini_stor_btm_meas": ini_stor_btm_meas, "t_atm_btm_meas": t_atm_btm_meas,
+                "p_gw_btm_meas": p_gw_btm_meas, "runoff_btm_meas": runoff_btm_meas, "fin_stor_btm_meas": fin_stor_btm_meas, "overflow_btm_meas": overflow_btm_meas,
+                "q_meas_ow": q_meas_ow, "q_meas_uz": q_meas_uz, "q_meas_gw": q_meas_gw,
+                "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss,"q_meas_out": q_meas_out}
 
 
 

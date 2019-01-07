@@ -179,12 +179,12 @@ class Groundwater:
                     sum_p_gw
                     + r_meas_gw
                     - s_gw_out
-                    - sc_gw * (self.gwl_prevt + self.gwl_sl_prevt - h_gw) * 1000.0
+                    - sc_gw * (self.gwl_prevt + self.gwl_sl_prevt / sc_gw - h_gw) * 1000.0  # div sc_gw
             )
 
             gwl = max(
                 0.0,
-                self.gwl_prevt
+                self.gwl_prevt + self.gwl_sl_prevt / sc_gw  #  add gwl_sl (t-1) / sc
                 - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw),
             )
 
@@ -193,7 +193,7 @@ class Groundwater:
                 (
                     0.0
                     - (
-                        self.gwl_prevt
+                        self.gwl_prevt + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
                         - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw)
                     )
                 )

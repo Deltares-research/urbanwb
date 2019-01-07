@@ -16,36 +16,34 @@ def read_parameter_base(stat1_inp):
     """
     path = Path.cwd() / ".." / "input"
     cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
-    delta_t = cf["timestep"] / 86400  # delta_t, converted from second to day
-    tot_area = cf["tot_area"]  # total area
+    delta_t = cf["timestep"] / 86400  # length of timestep, converted from second (s) to day (d)
+    tot_area = cf["tot_area"]  # total area of study area (model) [m^2]
     soiltype = cf["soiltype"]  # soil type
     croptype = cf["croptype"]  # crop type
-    choice = cf["type"]
+    area_type = cf["area_type"]  # area input type [0: fraction, 1: area]
     validinput = False
     while not validinput:
-        if choice == 0:  # input type: fraction
-            pr_frac = cf["pr_frac"]  # Paved roof fraction of total [-]
+        if area_type == 0:  # input area type: fraction
+            pr_frac = cf["pr_frac"]  # paved roof fraction of total [-]
             cp_frac = cf["cp_frac"]  # closed paved fraction of total [-]
             op_frac = cf["op_frac"]  # open paved fraction of total [-]
             up_frac = cf["up_frac"]  # unpaved fraction of total [-]
             ow_frac = cf["ow_frac"]  # open water fraction of total [-]
-            tot_pr_area = pr_frac * tot_area
-            frac_pr_aboveGW = cf["frac_pr_aboveGW"]  # part of buildings above GW [-]
-            tot_cp_area = cp_frac * tot_area
-            tot_op_area = op_frac * tot_area
-            tot_up_area = up_frac * tot_area
-            tot_ow_area = ow_frac * tot_area
+            tot_pr_area = pr_frac * tot_area  # total area of paved roof [m^2]
+            frac_pr_aboveGW = cf["frac_pr_aboveGW"]  # part of buildings (PR) above GW [-]
+            tot_cp_area = cp_frac * tot_area  # total area of closed paved [m^2]
+            tot_op_area = op_frac * tot_area  # total area of open paved [m^2]
+            tot_up_area = up_frac * tot_area  # total area of unpaved [m^2]
+            tot_ow_area = ow_frac * tot_area  # total area of open water [m^2]
             frac_ow_aboveGW = cf["frac_ow_aboveGW"]  # part of open water above GW [-]
-            tot_uz_area = (
-                tot_up_area
-            )  # total area of unsaturated zone [m^2] (Assumed to be equal to area of unpaved)
+            tot_uz_area = tot_up_area  # total area of unsaturated zone (Assumed equal to total area of unpaved) [m^2]
             gw_frac = (
                 pr_frac * frac_pr_aboveGW
                 + cp_frac
                 + op_frac
                 + up_frac
                 + ow_frac * frac_ow_aboveGW
-            )
+            )  # groundwater fraction of total [-]
             tot_gw_area = gw_frac * tot_area  # total area of groundwater [m^2]
             if math.isclose(
                 pr_frac + cp_frac + op_frac + up_frac + ow_frac,
@@ -55,20 +53,18 @@ def read_parameter_base(stat1_inp):
             ):
                 validinput = True
             else:
-                raise ValueError("Error: Area fractions do not add up to 1 (type = 0).")
-                # print('Area fractions do not add up to 1.')
-                # return
-        elif choice == 1:  # input type: area
-            tot_pr_area = cf["tot_pr_area"]  # total area of paved roof [m^2]
+                raise ValueError("Error: Land use fractions do not add up to 1.")
+        elif area_type == 1:  # input area type: area
+            tot_pr_area = cf["tot_pr_area"]
             pr_frac = tot_pr_area / tot_area
             frac_pr_aboveGW = cf["frac_pr_aboveGW"]
-            tot_cp_area = cf["tot_cp_area"]  # total area of closed paved [m^2]
+            tot_cp_area = cf["tot_cp_area"]
             cp_frac = tot_cp_area / tot_area
-            tot_op_area = cf["tot_op_area"]  # total area of open paved [m^2]
+            tot_op_area = cf["tot_op_area"]
             op_frac = tot_op_area / tot_area
-            tot_up_area = cf["tot_up_area"]  # total area of unpaved [m^2]
+            tot_up_area = cf["tot_up_area"]
             up_frac = tot_up_area / tot_area
-            tot_ow_area = cf["tot_ow_area"]  # total area of open water [m^2]
+            tot_ow_area = cf["tot_ow_area"]
             ow_frac = tot_ow_area / tot_area
             frac_ow_aboveGW = cf["frac_ow_aboveGW"]
             tot_uz_area = tot_up_area
@@ -89,27 +85,23 @@ def read_parameter_base(stat1_inp):
                 validinput = True
             else:
                 raise ValueError(
-                    "Error: Areas do not sum up to the total area (type = 1)."
+                    "Error: land use areas do not add up to total area."
                 )
-                # print('Areas do not sum up to the total area.')
-                # return
         else:
-            raise ValueError("Error: Type can only be 0 or 1.")
-            # print("The input 'type' can only be 0 or 1.")
-            # return
+            raise ValueError("Error: Input area type can only be 0-fraction or 1-area.")
 
-    # fraction of area that is disconnected from the sewer [-]
+    # part of paved area disconnected from sewer system
     discfrac_pr = cf[
         "discfrac_pr"
-    ]  # fraction of paved roof area disconnected from sewer [-]
+    ]  # part of paved roof disconnected from sewer system [-]
     discfrac_cp = cf[
         "discfrac_cp"
-    ]  # fraction of closed paved area disconnected from sewer [-]
+    ]  # part of closed paved disconnected from sewer system [-]
     discfrac_op = cf[
         "discfrac_op"
-    ]  # fraction of open paved area disconnected from sewer [-]
+    ]  # part of open paved disconnected from sewer system [-]
 
-    # interception storage capacity [mm]
+    # interception storage capacity
     intstorcap_pr = cf[
         "intstorcap_pr"
     ]  # interception storage capacity on paved roof [mm]
@@ -120,25 +112,25 @@ def read_parameter_base(stat1_inp):
         "intstorcap_op"
     ]  # interception storage capacity on open paved [mm]
     intstorcap_up = cf["intstorcap_up"]  # interception storage capacity on unpaved [mm]
-    storcap_ow = cf["storcap_ow"]  # open water storage capacity [mm]
+    storcap_ow = cf["storcap_ow"]  # storage capacity of open water [mm]
 
-    # infiltration capacity parameters
+    # infiltration capacity
     infilcap_op = cf[
         "infilcap_op"
-    ]  # infiltration capacity of the open paved area [mm/d]
-    infilcap_up = cf["infilcap_up"]  # infiltration capacity of the unpaved area [mm/d]
+    ]  # infiltration capacity of open paved [mm/d]
+    infilcap_up = cf["infilcap_up"]  # infiltration capacity of unpaved [mm/d]
 
     # rainfall statistics
     rainfall_swds_so = cf[
         "rainfall_swds_so"
-    ]  # rainfall intensity (when swds overflow on the street [mm/dt])
+    ]  # rainfall intensity when sewer overflow occurs on the street, in NL, it is T=2yr rainfall intensity [mm/dt]
     rainfall_mss_ow = cf[
         "rainfall_mss_ow"
-    ]  # rainfall intensity (when mss overflow to open water [mm/dt])
+    ]  # rainfall intensity when combined sewer overflow to open water occurs, in NL, it is T=1/6yr rainfall intensity [mm/dt]
 
     # sewer system parameters
     swds_frac = cf["swds_frac"]  # storm water drainage system fraction [-]
-    mss_frac = 1 - swds_frac  # mixed sewer system fraction [-]
+    mss_frac = 1.0 - swds_frac  # combined sewer system fraction [-]
     tot_disc_area = (
         tot_pr_area * discfrac_pr
         + tot_cp_area * discfrac_cp
@@ -151,39 +143,43 @@ def read_parameter_base(stat1_inp):
     storcap_swds = cf[
         "storcap_swds"
     ]  # storage capacity of storm water drainage system [mm]
-    storcap_mss = cf["storcap_mss"]  # storage capacity of mixed sewer system [mm]
+    storcap_mss = cf["storcap_mss"]  # storage capacity of combined sewer system [mm]
+    # discharge capacity of SWDS to open water [mm/dt], i.e. sewer discharge capacity of SWDS above which sewer overflow
+    # onto street occurs, in NL, the design standard is it occurs once every two year.
     q_swds_ow_cap = (
         rainfall_swds_so - intstorcap_cp - storcap_swds
-    )  # discharge cap of SWDS to open water [mm/dt]
+    )
+    # discharge capacity of MSS to open water [mm/dt], i.e. sewer discharge capacity of MSS above which sewer overflow
+    # onto street occurs, in NL, the design standard is it occurs once every two year.
     q_mss_ow_cap = (
         rainfall_swds_so - intstorcap_cp - storcap_mss
-    )  # discharge cap of MSS to open water [mm/dt]
+    )
+    # discharge capacity of MSS to WWTP [mm/dt], i.e. sewer discharge capacity of MSS above which combined sewer
+    # overflow to open water through CSO weir occurs, in NL, the design standard is it occurs six times per year.
     q_mss_out_cap = (
         rainfall_mss_ow - intstorcap_cp
-    )  # discharge capacity of MSS to WWTP [mm/dt]
+    )
 
-    # groundwater calculation parameters
-    w = cf["w"]  # groundwater drainage resistance w [d]
-    seep_def = cf["seepage_define"]  # defined seepage [type: 0=down_seepage_flux, 1=level]
-    if seep_def == 0 or seep_def == 1:
-        flux = cf[
+    # groundwater parameters
+    w = cf["w"]  # drainage resistance w from groundwater to open water [d]
+    seepage_define = cf["seepage_define"]  # defined seepage [0: flux, 1: level]
+    if seepage_define == 0 or seepage_define == 1:
+        down_seepage_flux = cf[
             "down_seepage_flux"
-        ]  # defined constant downward seepage down_seepage_flux [mm/d] (can be negative [upward])
-        init_gwl = cf["gwl_t0"]
-        h_deepgw = cf["head_deep_gw"]  # defined hydraulic head of deep groundwater [m-SL]
-        vc = cf["vc"]  # flow resistance between deep and shallow groundwater vc [d]
+        ]  # constant downward flux from shallow groundwater to deep groundwater [mm/d] (negative means upward)
+        gwl_t0 = cf["gwl_t0"]
+        head_deep_gw = cf["head_deep_gw"]  # hydraulic head of deep groundwater [m-SL]
+        vc = cf["vc"]  # vertical flow resistance from shallow groundwater to deep groundwater vc [d]
     else:
         raise ValueError(
-            "Error: 'seepage_define' (defined seepage) can only be 0(flux) or 1(level)."
+            "Error: Seepage to deep groundwater can only be defined as either 0-flux or 1-level."
         )
 
-    # open water calculation parameters.
-    # q_ow_out_cap needs to be dealt with carefully as it can be problematic in the batch run.
-    q_ow_out_cap = (cf["q_ow_out_cap"]
-    )  # predefined discharge capacity from open water to outside water [mm/d]
+    # open water parameters.
+    q_ow_out_cap = (cf["q_ow_out_cap"])  # discharge capacity from open water to outside water over entire area [mm/d]
     ow_level = (
-        storcap_ow / 1000
-    )  # predefined target open water level/ initial open water level [m-Sl]
+        storcap_ow / 1000.0
+    )  # predefined target open water level, also initial open water level (at t=0) [m-Sl]
 
     # Non-negative check
     list1 = [
@@ -191,7 +187,7 @@ def read_parameter_base(stat1_inp):
         tot_area,
         soiltype,
         croptype,
-        choice,
+        area_type,
         tot_pr_area,
         tot_cp_area,
         tot_op_area,
@@ -220,9 +216,9 @@ def read_parameter_base(stat1_inp):
         q_mss_ow_cap,
         q_mss_out_cap,
         w,
-        seep_def,
-        init_gwl,
-        h_deepgw,
+        seepage_define,
+        gwl_t0,
+        head_deep_gw,
         vc,
         q_ow_out_cap,
         ow_level,
@@ -289,10 +285,10 @@ def read_parameter_base(stat1_inp):
         "infilcap_op": infilcap_op,
         "infilcap_up": infilcap_up,
         "w": w,
-        "seepage_define": seep_def,
-        "down_seepage_flux": flux,
-        "gwl_t0": init_gwl,
-        "head_deep_gw": h_deepgw,
+        "seepage_define": seepage_define,
+        "down_seepage_flux": down_seepage_flux,
+        "gwl_t0": gwl_t0,
+        "head_deep_gw": head_deep_gw,
         "vc": vc,
         "q_swds_ow_cap": q_swds_ow_cap,
         "q_mss_ow_cap": q_mss_ow_cap,
@@ -311,5 +307,4 @@ def read_parameter_base(stat1_inp):
 
 
 if __name__ == "__main__":
-    # print(read_parameter_base("static_form.ini"))
     fire.Fire(read_parameter_base)
