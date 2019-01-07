@@ -101,12 +101,12 @@ def validate(a, b, c, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
+class TestOpenWater(unittest.TestCase):
     def setUp(self):
         """
         runs the code before every single test
         """
-        self.ow_1 = OpenWater(300, 1.5, q_ow_out_cap=200)
+        self.ow_1 = OpenWater(ow_no_meas_area=300, ow_level=1.5, q_ow_out_cap=200)
 
     def test_sol(self):
         """

@@ -177,7 +177,7 @@ class TestOpenPaved(unittest.TestCase):
         ):  # w = 10000
             self.assertIsNone(n)
         for n in validate(
-            1.5, 8140, 0, 0, 0.1, 20000, 21.5, 1, 2, 1, Dec=3, Num=5
+            1.5, 8140, 0, 0, 0.1, 20000, 21.5, 1, 2, 1, Dec=, Num=5
         ):  # w = 0.1 (cannot be 0 otherwise DIV0 ERROR)
             self.assertIsNone(n)
         for n in validate(
