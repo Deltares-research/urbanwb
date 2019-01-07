@@ -208,7 +208,7 @@ def read_parameters(stat1_inp, stat2_inp):
              ow_no_meas_area=parameter_base["tot_ow_area"] - parameter_measure["ow_meas_area"],
              )
     rv = {**parameter_base, **parameter_measure, **d}
-    print(rv)
+    # print(rv)
     return rv
 
 
@@ -255,14 +255,14 @@ def running(input_data, dict_param):
             "r_pr_up": np.nan,
             "int_cp": np.nan,
             "e_atm_cp": np.nan,
-            "intstor_cp": dict_param["intstor_cp_t0"],  # 0
+            "intstor_cp": dict_param["intstor_cp_t0"],
             "r_cp_meas": np.nan,
             "r_cp_swds": np.nan,
             "r_cp_mss": np.nan,
             "r_cp_up": np.nan,
             "int_op": np.nan,
             "e_atm_op": np.nan,
-            "intstor_op": dict_param["intstor_op_t0"],  # 0
+            "intstor_op": dict_param["intstor_op_t0"],
             "p_op_gw": np.nan,
             "r_op_meas": np.nan,
             "r_op_swds": np.nan,
@@ -274,7 +274,7 @@ def running(input_data, dict_param):
             "timefac_up": np.nan,
             "e_atm_up": np.nan,
             "i_up_uz": np.nan,
-            "fin_intstor_up": dict_param["fin_intstor_up_t0"],  # 0
+            "fin_intstor_up": dict_param["fin_intstor_up_t0"],
             "r_up_meas": np.nan,
             "r_up_ow": np.nan,
             "sum_i_uz": np.nan,
@@ -378,20 +378,62 @@ def running(input_data, dict_param):
     df.insert(1, "P_atm", P_atm)
     df.insert(2, "E_pot_OW", E_pot_OW)
     df.insert(3, "Ref.grass", Ref_grass)
-    # water balance check.
-    # sum_prec = sum(df["prec_meas"].iloc[1:])
-    # sum_evap = sum(df["evaporation_mia"].iloc[1:])
-    # intstor_change = df["storage_mia"].iloc[-1] - df["storage_mia"].iloc[0]
-    # ow_recharge = sum(df["toOW_mia"].iloc[1:])
-    # gw_recharge = sum(df["toGW_mia"].iloc[1:])
-    # discharge = sum(df["runofftoSWDS_mia"].iloc[1:])
-    # balance_check = sum_prec - sum_evap - intstor_change - ow_recharge - gw_recharge - discharge
-    # stat = {"sum_prec": sum_prec, "sum_evap": sum_evap, "intstor_change": intstor_change,"ow_recharge": ow_recharge,
-    #         "gw_recharge": gw_recharge, "discharge": discharge, "balance_check": balance_check}
-    # print("results statistics", stat)
-    # print("Water balance is closed? ", math.isclose(balance_check, 0, abs_tol=0.001))
+    water_balance_checker(df, dict_param, iters)
     return df  # df,stat
 
+
+def water_balance_checker(df, dict_param, iters):
+
+    # Check water balance over entire area.
+
+    # precipitation (Neerslag)
+    sum_prec = sum(df["P_atm"].iloc[1:])
+
+    # evaporation (Verdamping)
+    sum_evap_pr = sum(df["e_atm_pr"].iloc[1:]) * dict_param["pr_no_meas_area"] / dict_param["tot_area"]
+    sum_evap_cp = sum(df["e_atm_cp"].iloc[1:]) * dict_param["cp_no_meas_area"] / dict_param["tot_area"]
+    sum_evap_op = sum(df["e_atm_op"].iloc[1:]) * dict_param["op_no_meas_area"] / dict_param["tot_area"]
+    sum_evap_up = sum(df["e_atm_up"].iloc[1:]) * dict_param["up_no_meas_area"] / dict_param["tot_area"]
+    sum_evap_uz = sum(df["t_atm_uz"].iloc[1:]) * dict_param["uz_no_meas_area"] / dict_param["tot_area"]
+    sum_evap_ow = sum(df["e_atm_ow"].iloc[1:]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
+    evaporation = sum_evap_pr + sum_evap_cp + sum_evap_op + sum_evap_up + sum_evap_uz + sum_evap_ow
+
+    # discharge out (Bemaling)
+    sum_q_out = sum(df["q_ow_out"].iloc[1:]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
+
+    # seepage to deep groundwater (Neerwaartse kwel)
+    sum_s_deepgw = sum(df["s_gw_out"].iloc[1:]) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+
+    # change in storages
+    sum_ds_pr = (df["intstor_pr"].iloc[-1] - df["intstor_pr"].iloc[0]) * dict_param["pr_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_cp = (df["intstor_cp"].iloc[-1] - df["intstor_cp"].iloc[0]) * dict_param["cp_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_op = (df["intstor_op"].iloc[-1] - df["intstor_op"].iloc[0]) * dict_param["op_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_up = (df["fin_intstor_up"].iloc[-1] - df["fin_intstor_up"].iloc[0]) * dict_param["up_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_uz = (df["theta_uz"].iloc[-1] - df["theta_uz"].iloc[0]) * dict_param["uz_no_meas_area"] / dict_param["tot_area"]
+    storage_coef = df["sc_gw"]
+    groundwater_level = df["gwl"]
+    ds_gw = np.zeros_like(groundwater_level)
+    for t in range(1, iters):
+        ds_gw[t] = 1000 * storage_coef[t] * (groundwater_level[t-1] - groundwater_level[t])
+    sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_gw_sl = 1000 * (df["gwl_sl"].iloc[-1] - df["gwl_sl"].iloc[0]) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_swds = (df["stor_swds"].iloc[-1] - df["stor_swds"].iloc[0]) * dict_param["swds_no_meas_area"] / dict_param["tot_area"]
+    sum_ds_mss = (df["stor_mss"].iloc[-1] - df["stor_mss"].iloc[0]) * dict_param["mss_no_meas_area"] / dict_param["tot_area"]
+    # sum_ds_so
+    sum_ds_ow = 1000 * (df["owl"].iloc[-1] - df["owl"].iloc[0]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
+
+    d_storage = sum_ds_pr + sum_ds_cp + sum_ds_op + sum_ds_up + sum_ds_up + sum_ds_uz + sum_ds_gw + sum_ds_gw_sl + sum_ds_swds + sum_ds_mss + sum_ds_ow
+
+    balance_check = sum_prec - evaporation - sum_q_out - sum_s_deepgw - d_storage
+    stat = {"Precipitation": "%.2f" % sum_prec, "Evaporation": "%.2f" % evaporation, "Discharging": "%.2f" % sum_q_out, "Downward seepage": "%.2f" % sum_s_deepgw,
+            "Storage change": "%.2f" % d_storage, "Water balance different": balance_check}
+    print("Water balance statistics: ")
+    print(f"Over entire area: Precipitation {sum_prec:.2f} mm; Evaporation {evaporation:.2f} mm; Discharge outside {sum_q_out:.2f} mm; "
+          f"Seepage {sum_s_deepgw:.2f} mm; Storage change {d_storage:.2f} mm; Difference: {balance_check} mm")
+    if math.isclose(balance_check, 0, abs_tol=0.001):
+        print("Water balance is closed for entire model.")
+    else:
+        raise SystemExit("Water balance is not closed. Please recheck.")
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
     """
