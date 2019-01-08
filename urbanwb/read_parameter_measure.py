@@ -18,7 +18,7 @@ def read_parameter_measure(stat2_inp):
     choice = cf["measure_applied"]
     validinput = False
     while not validinput:
-        if choice:  # input choice: no measure
+        if not choice:  # input choice: no measure
             pr_meas_area = (
                 cp_meas_area
             ) = (
@@ -27,9 +27,9 @@ def read_parameter_measure(stat2_inp):
                 up_meas_area
             ) = (
                 uz_meas_area
-            ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = 0
+            ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = 0.0
             validinput = True
-        elif not choice:  # input choice: there is measure
+        elif choice:  # input choice: there is measure
             pr_meas_area = cf["pr_meas_area"]
             cp_meas_area = cf["cp_meas_area"]
             op_meas_area = cf["op_meas_area"]
@@ -121,8 +121,6 @@ def read_parameter_measure(stat2_inp):
     runoffcap_btm_meas = cf["runoffcap_btm_meas"]
     dischlvl_btm_meas = cf["dischlvl_btm_meas"]
     c_btm_meas = cf["c_btm_meas"]
-    # temporary
-    waterbalance_check = cf["waterbalance_check"]
 
     # Buttons:
     surf_runoff_meas_OW = cf["surf_runoff_meas_OW"]
@@ -233,7 +231,6 @@ def read_parameter_measure(stat2_inp):
         "surf_runoff_meas_Out": surf_runoff_meas_Out,
         "ctrl_runoff_meas_Out": ctrl_runoff_meas_Out,
         "overflow_meas_Out": overflow_meas_Out,
-        "waterbalance_check": waterbalance_check,
         "greenroof_type_measure": greenroof_type_measure
     }
 

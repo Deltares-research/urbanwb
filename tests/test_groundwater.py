@@ -100,7 +100,7 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
+class TestGroundwater(unittest.TestCase):
     def setUp(self):
         """runs the code before every single test"""
         self.gw_1 = Groundwater(

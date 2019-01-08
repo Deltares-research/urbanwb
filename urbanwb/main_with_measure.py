@@ -22,7 +22,7 @@ from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.measure import Measure
-from urbanwb.waterbalance_checker import WaterBalanceChecker
+from urbanwb.waterbalance_checker import WaterBalanceChecker, water_balance_checker
 from time import sleep
 from urbanwb.sdf_curve import SDF_curve2
 
@@ -53,6 +53,7 @@ class BasicModel(object):
         self.groundwater = Groundwater(**self.param)
         self.sewersystem = SewerSystem(**self.param)
         self.openwater = OpenWater(**self.param)
+        self.measure = Measure(k_sat_uz=self.unsaturatedzone.k_sat_uz, **self.param)
 
     def __iter__(self):
         return self
@@ -87,14 +88,14 @@ class BasicModel(object):
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 delta_t=self.param["delta_t"],
             )
-            # meas_sol = self.measure.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
-            #                             r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
-            #                             cp_no_meas_area=self.param["cp_no_meas_area"], op_no_meas_area=self.param["op_no_meas_area"],
-            #                             up_no_meas_area=self.param["up_no_meas_area"], gw_no_meas_area=self.param["gw_no_meas_area"],
-            #                             gwl_prevt=prev_lst["gwl"], delta_t=self.param["delta_t"])
+            meas_sol = self.measure.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
+                                        r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
+                                        cp_no_meas_area=self.param["cp_no_meas_area"], op_no_meas_area=self.param["op_no_meas_area"],
+                                        up_no_meas_area=self.param["up_no_meas_area"], gw_no_meas_area=self.param["gw_no_meas_area"],
+                                        gwl_prevt=prev_lst["gwl"], delta_t=self.param["delta_t"])
             uz_sol = self.unsaturatedzone.sol(
                 i_up_uz=up_sol["i_up_uz"],
-                meas_uz=0,  # meas_sol["q_meas_uz"]
+                meas_uz=meas_sol["q_meas_uz"],  # meas_sol["q_meas_uz"]
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
                 gwl_prevt=prev_lst["gwl"],
@@ -106,7 +107,7 @@ class BasicModel(object):
                 p_op_gw=op_sol["p_op_gw"],
                 op_no_meas_area=self.param["op_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
-                meas_gw=0,  # meas_sol["q_meas_gw"]
+                meas_gw=meas_sol["q_meas_gw"],  # meas_sol["q_meas_gw"]
                 owl_prevt=prev_lst["owl"],
                 delta_t=self.param["delta_t"],
             )
@@ -120,8 +121,8 @@ class BasicModel(object):
                 r_pr_mss=pr_sol["r_pr_mss"],
                 r_cp_mss=cp_sol["r_cp_mss"],
                 r_op_mss=op_sol["r_op_mss"],
-                meas_swds=0,  # meas_sol["q_meas_swds"]
-                meas_mss=0,  # meas_sol["q_meas_mss"]
+                meas_swds=meas_sol["q_meas_swds"],  # meas_sol["q_meas_swds"]
+                meas_mss=meas_sol["q_meas_mss"],  # meas_sol["q_meas_mss"]
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
             )
@@ -134,7 +135,7 @@ class BasicModel(object):
                 q_mss_ow=ss_sol["q_mss_ow"],
                 so_swds_ow=ss_sol["so_swds_ow"],
                 so_mss_ow=ss_sol["so_mss_ow"],
-                meas_ow=0,  #meas_sol["q_meas_ow"]
+                meas_ow=meas_sol["q_meas_ow"],  #meas_sol["q_meas_ow"]
                 up_no_meas_area=self.param["up_no_meas_area"],
                 gw_no_meas_area=self.param["gw_no_meas_area"],
                 swds_no_meas_area=self.param["swds_no_meas_area"],
@@ -143,25 +144,8 @@ class BasicModel(object):
                 tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
-            # water balance should be endogenous. There should be no choice for waterbalancecheck. it should be done after every iteration.
-            # if self.param["waterbalance_check"]:
-            #     wbc = self.waterbalancechecker.sol(P_atm=p_atm, e_atm_pr=pr_sol["e_atm_pr"],e_atm_cp=cp_sol["e_atm_cp"],e_atm_op=op_sol["e_atm_op"],
-            #                                    e_atm_up=up_sol["e_atm_up"],e_atm_ow=ow_sol["e_atm_ow"], t_atm_uz=uz_sol["t_atm_uz"],e_atm_meas=meas_sol["e_atm_meas"],
-            #                                    tt_atm_meas=meas_sol["tt_atm_meas"],tb_atm_meas=meas_sol["tb_atm_meas"],s_gw_out=gw_sol["s_gw_out"],d_gw_ow=gw_sol["d_gw_ow"],
-            #                                    q_swds_ow=ss_sol["q_swds_ow"],q_mss_ow=ss_sol["q_mss_ow"],sum_so_ow=ow_sol["sum_so_ow"],q_mss_out=ss_sol["q_mss_out"],q_ow_out=ow_sol["q_ow_out"],
-            #                                    q_meas_out=meas_sol["q_meas_out"],intstor_pr=pr_sol["intstor_pr"],intstor_pr_prevt=prev_lst["intstor_pr"],intstor_cp=cp_sol["intstor_cp"],
-            #                                    intstor_cp_prevt=prev_lst["intstor_cp"],intstor_op=op_sol["intstor_op"],intstor_op_prevt=prev_lst["intstor_op"],
-            #                                    intstor_up=up_sol["fin_intstor_up"],intstor_up_prevt=prev_lst["fin_intstor_up"],theta_uz=uz_sol["theta_uz"],theta_uz_prevt=prev_lst["theta_uz"],
-            #                                    sc_gw=gw_sol["sc_gw"],gwl_prevt=prev_lst["gwl"],gwl=gw_sol["gwl"],gwl_sl=gw_sol["gwl_sl"],gwl_sl_prevt=prev_lst["gwl_sl"],
-            #                                    so_swds=ss_sol["so_swds_ow"],so_swds_prevt=prev_lst["so_swds_ow"],so_mss=ss_sol["so_mss_ow"],so_mss_prevt=prev_lst["so_mss_ow"],
-            #                                    stor_swds=ss_sol["stor_swds"],stor_swds_prevt=prev_lst["stor_swds"],stor_mss=ss_sol["stor_mss"],stor_mss_prevt=prev_lst["stor_mss"],
-            #                                    owl_prevt=prev_lst["owl"],owl=ow_sol["owl"],intstor_meas=meas_sol["intstor_meas"],intstor_meas_prevt=prev_lst["intstor_meas"],top_stor_meas=meas_sol["top_stor_meas"],
-            #                                    top_stor_meas_prevt=prev_lst["top_stor_meas"],bot_stor_meas=meas_sol["bot_stor_meas"],bot_stor_meas_prevt=prev_lst["bot_stor_meas"],
-            #                                    meas_ow=meas_sol["q_meas_ow"],meas_gw=meas_sol["q_meas_gw"],meas_swds=meas_sol["q_meas_swds"]) # the last part about measure should be kindof adapative.
-            #     dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol, **wbc))
-            # else:
-            #     dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol))
-            dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, ))  # newly added line.
+
+            dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol))  # newly added line.
         except IndexError:
             raise StopIteration
         return dictmerged
@@ -320,29 +304,29 @@ def running(input_data, dict_param):
             "r_meas_ow": np.nan,
             "q_ow_out": np.nan,
             "owl": dict_param["ow_level"],
-            # "prec_meas": np.nan,
-            # "sum_r_meas": np.nan,
-            # "int_meas": np.nan,
-            # "e_atm_meas": np.nan,
-            # "interc_down_meas": np.nan,
-            # "surf_runoff_meas": np.nan,
-            # "intstor_meas": dict_param["intstor_meas_t0"],
-            # "ini_stor_top_meas": np.nan,
-            # "t_atm_top_meas": np.nan,
-            # "perc_top_meas": np.nan,
-            # "fin_stor_top_meas": dict_param["stor_top_meas_t0"],
-            # "ini_stor_btm_meas": np.nan,
-            # "t_atm_btm_meas": np.nan,
-            # "p_gw_btm_meas": np.nan,
-            # "runoff_btm_meas": np.nan,
-            # "fin_stor_btm_meas": dict_param["stor_top_meas_t0"],
-            # "overflow_btm_meas": np.nan,
-            # "q_meas_ow": np.nan,
-            # "q_meas_uz": np.nan,
-            # "q_meas_gw": np.nan,
-            # "q_meas_swds": np.nan,
-            # "q_meas_mss": np.nan,
-            # "q_meas_out": np.nan,
+            "prec_meas": np.nan,
+            "sum_r_meas": np.nan,
+            "int_meas": np.nan,
+            "e_atm_meas": np.nan,
+            "interc_down_meas": np.nan,
+            "surf_runoff_meas": np.nan,
+            "intstor_meas": dict_param["intstor_meas_t0"],
+            "ini_stor_top_meas": np.nan,
+            "t_atm_top_meas": np.nan,
+            "perc_top_meas": np.nan,
+            "fin_stor_top_meas": dict_param["stor_top_meas_t0"],
+            "ini_stor_btm_meas": np.nan,
+            "t_atm_btm_meas": np.nan,
+            "p_gw_btm_meas": np.nan,
+            "runoff_btm_meas": np.nan,
+            "fin_stor_btm_meas": dict_param["stor_top_meas_t0"],
+            "overflow_btm_meas": np.nan,
+            "q_meas_ow": np.nan,
+            "q_meas_uz": np.nan,
+            "q_meas_gw": np.nan,
+            "q_meas_swds": np.nan,
+            "q_meas_mss": np.nan,
+            "q_meas_out": np.nan,
             # # delete below part
             # "rainfall_tot": 0,  # waterbalance checker lst from here on
             # "evaporation_tot": 0,
@@ -380,60 +364,6 @@ def running(input_data, dict_param):
     df.insert(3, "Ref.grass", Ref_grass)
     water_balance_checker(df, dict_param, iters)
     return df  # df,stat
-
-
-def water_balance_checker(df, dict_param, iters):
-
-    # Check water balance over entire area.
-
-    # precipitation (Neerslag)
-    sum_prec = sum(df["P_atm"].iloc[1:])
-
-    # evaporation (Verdamping)
-    sum_evap_pr = sum(df["e_atm_pr"].iloc[1:]) * dict_param["pr_no_meas_area"] / dict_param["tot_area"]
-    sum_evap_cp = sum(df["e_atm_cp"].iloc[1:]) * dict_param["cp_no_meas_area"] / dict_param["tot_area"]
-    sum_evap_op = sum(df["e_atm_op"].iloc[1:]) * dict_param["op_no_meas_area"] / dict_param["tot_area"]
-    sum_evap_up = sum(df["e_atm_up"].iloc[1:]) * dict_param["up_no_meas_area"] / dict_param["tot_area"]
-    sum_evap_uz = sum(df["t_atm_uz"].iloc[1:]) * dict_param["uz_no_meas_area"] / dict_param["tot_area"]
-    sum_evap_ow = sum(df["e_atm_ow"].iloc[1:]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
-    evaporation = sum_evap_pr + sum_evap_cp + sum_evap_op + sum_evap_up + sum_evap_uz + sum_evap_ow
-
-    # discharge out (Bemaling)
-    sum_q_out = sum(df["q_ow_out"].iloc[1:]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
-
-    # seepage to deep groundwater (Neerwaartse kwel)
-    sum_s_deepgw = sum(df["s_gw_out"].iloc[1:]) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
-
-    # change in storages
-    sum_ds_pr = (df["intstor_pr"].iloc[-1] - df["intstor_pr"].iloc[0]) * dict_param["pr_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_cp = (df["intstor_cp"].iloc[-1] - df["intstor_cp"].iloc[0]) * dict_param["cp_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_op = (df["intstor_op"].iloc[-1] - df["intstor_op"].iloc[0]) * dict_param["op_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_up = (df["fin_intstor_up"].iloc[-1] - df["fin_intstor_up"].iloc[0]) * dict_param["up_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_uz = (df["theta_uz"].iloc[-1] - df["theta_uz"].iloc[0]) * dict_param["uz_no_meas_area"] / dict_param["tot_area"]
-    storage_coef = df["sc_gw"]
-    groundwater_level = df["gwl"]
-    ds_gw = np.zeros_like(groundwater_level)
-    for t in range(1, iters):
-        ds_gw[t] = 1000 * storage_coef[t] * (groundwater_level[t-1] - groundwater_level[t])
-    sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_gw_sl = 1000 * (df["gwl_sl"].iloc[-1] - df["gwl_sl"].iloc[0]) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_swds = (df["stor_swds"].iloc[-1] - df["stor_swds"].iloc[0]) * dict_param["swds_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_mss = (df["stor_mss"].iloc[-1] - df["stor_mss"].iloc[0]) * dict_param["mss_no_meas_area"] / dict_param["tot_area"]
-    # sum_ds_so
-    sum_ds_ow = 1000 * (df["owl"].iloc[-1] - df["owl"].iloc[0]) * dict_param["ow_no_meas_area"] / dict_param["tot_area"]
-
-    d_storage = sum_ds_pr + sum_ds_cp + sum_ds_op + sum_ds_up + sum_ds_up + sum_ds_uz + sum_ds_gw + sum_ds_gw_sl + sum_ds_swds + sum_ds_mss + sum_ds_ow
-
-    balance_check = sum_prec - evaporation - sum_q_out - sum_s_deepgw - d_storage
-    stat = {"Precipitation": "%.2f" % sum_prec, "Evaporation": "%.2f" % evaporation, "Discharging": "%.2f" % sum_q_out, "Downward seepage": "%.2f" % sum_s_deepgw,
-            "Storage change": "%.2f" % d_storage, "Water balance different": balance_check}
-    print("Water balance statistics: ")
-    print(f"Over entire area: Precipitation {sum_prec:.2f} mm; Evaporation {evaporation:.2f} mm; Discharge outside {sum_q_out:.2f} mm; "
-          f"Seepage {sum_s_deepgw:.2f} mm; Storage change {d_storage:.2f} mm; Difference: {balance_check} mm")
-    if math.isclose(balance_check, 0, abs_tol=0.001):
-        print("Water balance is closed for entire model.")
-    else:
-        raise SystemExit("Water balance is not closed. Please recheck.")
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
     """

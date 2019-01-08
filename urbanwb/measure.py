@@ -300,9 +300,9 @@ class Measure:
 
             # update state:
             # update interception storage
+            self.intstor_meas_prevt = intstor_meas
             self.stor_top_meas_prevt = fin_stor_top_meas
             self.stor_btm_meas_prevt = fin_stor_btm_meas
-            self.intstor_meas_prevt = intstor_meas
 
         return {"prec_meas": prec_meas, "sum_r_meas": sum_r_meas, "int_meas": int_meas, "e_atm_meas": e_atm_meas,
                 "interc_down_meas": interc_down_meas, "surf_runoff_meas": surf_runoff_meas, "intstor_meas": intstor_meas,
@@ -310,7 +310,7 @@ class Measure:
                 "fin_stor_top_meas": fin_stor_top_meas, "ini_stor_btm_meas": ini_stor_btm_meas, "t_atm_btm_meas": t_atm_btm_meas,
                 "p_gw_btm_meas": p_gw_btm_meas, "runoff_btm_meas": runoff_btm_meas, "fin_stor_btm_meas": fin_stor_btm_meas, "overflow_btm_meas": overflow_btm_meas,
                 "q_meas_ow": q_meas_ow, "q_meas_uz": q_meas_uz, "q_meas_gw": q_meas_gw,
-                "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss,"q_meas_out": q_meas_out}
+                "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss, "q_meas_out": q_meas_out}
 
 
 
