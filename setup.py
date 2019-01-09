@@ -12,7 +12,7 @@ setup(
     packages=["urbanwb"],
     test_suite="tests",
     python_requires=">=3.6",
-    install_requires=["numpy", "pandas", "toml", "fire", "tqdm"],
+    install_requires=["numpy", "pandas", "toml", "fire", "tqdm", "tabulate"],
     extras_require={"dev": ["sphinx"]},
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers

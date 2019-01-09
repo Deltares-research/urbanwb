@@ -16,10 +16,26 @@ def read_parameter_measure(stat2_inp):
     path = Path.cwd() / ".." / "input"
     cf = toml.load(str(path) + "\\" + stat2_inp, _dict=dict)
     choice = cf["measure_applied"]
+
+    tot_meas_area = cf["tot_meas_area"]
+    top_meas_area = cf["top_meas_area"]
+    btm_meas_area = cf["btm_meas_area"]
+
+    pr_meas_inflow_area = cf["pr_meas_inflow_area"]
+    cp_meas_inflow_area = cf["cp_meas_inflow_area"]
+    op_meas_inflow_area = cf["op_meas_inflow_area"]
+    up_meas_inflow_area = cf["up_meas_inflow_area"]
+    ow_meas_inflow_area = cf["ow_meas_inflow_area"]
+    tot_meas_inflow_area = pr_meas_inflow_area + cp_meas_inflow_area + op_meas_inflow_area + up_meas_inflow_area + \
+                           ow_meas_inflow_area
+    # deal with initial values here later
     validinput = False
     while not validinput:
         if not choice:  # input choice: no measure
-            pr_meas_area = (
+            # to make it as foolproof as possible, when measure is not applied, measure-related area will all be set as
+            # zeros regardless of what is in the configuration file.
+
+            tot_meas_area = pr_meas_area = (
                 cp_meas_area
             ) = (
                 op_meas_area
@@ -27,7 +43,11 @@ def read_parameter_measure(stat2_inp):
                 up_meas_area
             ) = (
                 uz_meas_area
-            ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = 0.0
+            ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = top_meas_area = btm_meas_area = 0.0
+
+            pr_meas_inflow_area = cp_meas_inflow_area = op_meas_inflow_area = up_meas_inflow_area = ow_meas_inflow_area \
+                = tot_meas_inflow_area = 0.0
+
             validinput = True
         elif choice:  # input choice: there is measure
             pr_meas_area = cf["pr_meas_area"]
@@ -96,7 +116,6 @@ def read_parameter_measure(stat2_inp):
     # ctrl_runoff_meas_Out --- predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
     # overflow_meas_Out --- predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
 
-    tot_meas_area = cf["tot_meas_area"]
     runoff_to_stor_layer = cf["runoff_to_stor_layer"]
     intstor_meas_t0 = cf["intstor_meas_t0"]
     EV_evaporation = cf["EV_evaporation"]
@@ -107,12 +126,10 @@ def read_parameter_measure(stat2_inp):
     stor_top_meas_t0 = cf["stor_top_meas_t0"]
     stor_btm_meas_t0 = cf["stor_btm_meas_t0"]
     storcap_int_meas = cf["storcap_int_meas"]
-    top_meas_area = cf["top_meas_area"]
     ET_transpiration = cf["ET_transpiration"]
     evaporation_factor_meas = cf["evaporation_factor_meas"]
     IN_infiltration = cf["IN_infiltration"]
     infilcap_top_meas = cf["infilcap_top_meas"]
-    bs_area_meas = cf["btm_meas_area"]
     btm_meas_transpiration = cf["btm_meas_transpiration"]
     connection_to_gw = cf["connection_to_gw"]
     limited_by_gwl = cf["limited_by_gwl"]
@@ -145,21 +162,10 @@ def read_parameter_measure(stat2_inp):
     # Note that pr_meas_inflow_area should be within the range (pr_meas_area, tot_pr_area), it should be specified.
     # But for the time being we assume it is equal to pr_meas_area.
     # Assume for the time being, measure inflow area = component_area
-    pr_meas_inflow_area = cf["pr_meas_inflow_area"]
-    cp_meas_inflow_area = cf["cp_meas_inflow_area"]
-    op_meas_inflow_area = cf["op_meas_inflow_area"]
-    up_meas_inflow_area = cf["up_meas_inflow_area"]
-    tot_meas_area = (
-        pr_meas_area
-        + cp_meas_area
-        + op_meas_area
-        + up_meas_area
-        + uz_meas_area
-        + gw_meas_area
-        + swds_meas_area
-        + mss_meas_area
-        + ow_meas_area
-    )
+
+    if tot_meas_area != (pr_meas_area + cp_meas_area+ op_meas_area + up_meas_area + uz_meas_area + gw_meas_area
+        + swds_meas_area + mss_meas_area + ow_meas_area):
+        raise ValueError("Error: Measure area info error")
     greenroof_type_measure = cf["greenroof_type_measure"]
     # 0 or 1 check. check some parameters (some buttons) which can only be selected from 0 or 1
     k = [surf_runoff_meas_OW, ctrl_runoff_meas_OW, overflow_meas_OW, surf_runoff_meas_UZ, ctrl_runoff_meas_UZ, overflow_meas_UZ, surf_runoff_meas_GW, ctrl_runoff_meas_GW, overflow_meas_GW,
@@ -189,6 +195,7 @@ def read_parameter_measure(stat2_inp):
         "cp_meas_inflow_area": cp_meas_inflow_area,
         "op_meas_inflow_area": op_meas_inflow_area,
         "up_meas_inflow_area": up_meas_inflow_area,
+        "ow_meas_inflow_area": ow_meas_inflow_area,
         "runoff_to_stor_layer": runoff_to_stor_layer,
         "intstor_meas_t0": intstor_meas_t0,
         "EV_evaporation": EV_evaporation,
@@ -204,7 +211,7 @@ def read_parameter_measure(stat2_inp):
         "evaporation_factor_meas": evaporation_factor_meas,
         "IN_infiltration": IN_infiltration,
         "infilcap_top_meas": infilcap_top_meas,
-        "btm_meas_area": bs_area_meas,
+        "btm_meas_area": btm_meas_area,
         "btm_meas_transpiration": btm_meas_transpiration,
         "connection_to_gw": connection_to_gw,
         "limited_by_gwl": limited_by_gwl,
@@ -231,7 +238,8 @@ def read_parameter_measure(stat2_inp):
         "surf_runoff_meas_Out": surf_runoff_meas_Out,
         "ctrl_runoff_meas_Out": ctrl_runoff_meas_Out,
         "overflow_meas_Out": overflow_meas_Out,
-        "greenroof_type_measure": greenroof_type_measure
+        "greenroof_type_measure": greenroof_type_measure,
+        "tot_meas_inflow_area": tot_meas_inflow_area,  # note
     }
 
 

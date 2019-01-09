@@ -22,7 +22,7 @@ from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.measure import Measure
-from urbanwb.waterbalance_checker import WaterBalanceChecker, water_balance_checker
+from urbanwb.waterbalance_checker import water_balance_checker
 from time import sleep
 from urbanwb.sdf_curve import SDF_curve2
 
@@ -196,6 +196,40 @@ def read_parameters(stat1_inp, stat2_inp):
     return rv
 
 
+def check_parameters(dict_param):
+    """
+    used in batch_run_measure() where simulations go from "with measure" cases to "without measure" baseline case in
+    order to make sure all area-related parameters are correctly modified
+    """
+    if not dict_param["measure_applied"]:
+        # update area-related parameters
+        # measure inflow area
+        dict_param["pr_meas_inflow_area"] = dict_param["cp_meas_inflow_area"] = dict_param["op_meas_inflow_area"] = \
+            dict_param["up_meas_inflow_area"] = dict_param["ow_meas_inflow_area"] = 0.0
+        # area of xx with measure
+        dict_param["pr_meas_area"] = dict_param["cp_meas_area"] = dict_param["op_meas_area"] = \
+            dict_param["up_meas_area"] = dict_param["uz_meas_area"] = dict_param["gw_meas_area"] = \
+            dict_param["swds_meas_area"] = dict_param["mss_meas_area"] = dict_param["ow_meas_area"] = 0.0
+        # area of interception layer, top storage layer and bottom storage layer of measure
+        dict_param["tot_meas_area"] = dict_param["top_meas_area"] = dict_param["btm_meas_area"] = 0.0
+    # print(dict_param)
+
+    # dictionary of area of xx without measure
+    d = dict(pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
+             cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
+             op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
+             up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
+             uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
+             gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
+             swds_no_meas_area=dict_param["tot_swds_area"] - dict_param["swds_meas_area"],
+             mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
+             ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
+             )
+    # update dict_param with values in d
+    rv = {**dict_param, **d}
+    return rv
+
+
 def timer(func):
     """
     a decorator that timings the function runtime.
@@ -227,6 +261,18 @@ def running(input_data, dict_param):
     Ref_grass = input_data["Ref.grass"]
     E_pot_OW = input_data["E_pot_OW"]
     iters = np.shape(date)[0]
+    # # print part of the dictionary
+    # print("tot_area", dict_param["tot_area"])
+    # print("tot_pr_area", dict_param["tot_pr_area"], "pr_no_meas_area", dict_param["pr_no_meas_area"], "pr_meas_area", dict_param["pr_meas_area"], "pr_meas_inflow_area", dict_param["pr_meas_inflow_area"])
+    # print("tot_cp_area", dict_param["tot_cp_area"], "cp_no_meas_area", dict_param["cp_no_meas_area"], "cp_meas_area", dict_param["cp_meas_area"], "cp_meas_inflow_area", dict_param["cp_meas_inflow_area"])
+    # print("tot_op_area", dict_param["tot_op_area"], "op_no_meas_area", dict_param["op_no_meas_area"], "op_meas_area", dict_param["op_meas_area"], "op_meas_inflow_area", dict_param["op_meas_inflow_area"])
+    # print("tot_up_area", dict_param["tot_up_area"], "up_no_meas_area", dict_param["up_no_meas_area"], "up_meas_area", dict_param["up_meas_area"], "up_meas_inflow_area", dict_param["up_meas_inflow_area"])
+    # print("tot_uz_area", dict_param["tot_uz_area"], "uz_no_meas_area", dict_param["uz_no_meas_area"], "uz_meas_area", dict_param["uz_meas_area"],)
+    # print("tot_gw_area", dict_param["tot_gw_area"], "gw_no_meas_area", dict_param["gw_no_meas_area"], "gw_meas_area", dict_param["gw_meas_area"],)
+    # print("tot_swds_area", dict_param["tot_swds_area"], "swds_no_meas_area", dict_param["swds_no_meas_area"], "swds_meas_area", dict_param["swds_meas_area"],)
+    # print("tot_mss_area", dict_param["tot_mss_area"], "mss_no_meas_area", dict_param["mss_no_meas_area"], "mss_meas_area", dict_param["mss_meas_area"],)
+    # print("tot_ow_area", dict_param["tot_ow_area"], "ow_no_meas_area", dict_param["ow_no_meas_area"], "ow_meas_area", dict_param["ow_meas_area"], "ow_meas_inflow_area", dict_param["ow_meas_inflow_area"])
+    # print("tot_meas_area", dict_param["tot_meas_area"], "top_meas_area", dict_param["top_meas_area"], "btm_meas_area", dict_param["btm_meas_area"])
     k = BasicModel(dict_param)
     lst = [
         {
@@ -365,6 +411,7 @@ def running(input_data, dict_param):
     water_balance_checker(df, dict_param, iters)
     return df  # df,stat
 
+
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
     """
     runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
@@ -410,9 +457,6 @@ def batch_run_multivalue_for_one_param(dyn_inp, stat1_inp, stat2_inp, dyn_out, v
         varkey (float): the key parameter to be updated
         vararr (float): values to update varkey.
 
-    Usage:
-        use in the cmd: python -m urbanwb.main_with_measure batch_run_multivalue_for_one_param timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas q_meas_swds 200 100 --inflowfac 20
-        For now is is usable.
     for now doesn't enable the matrix checker cause some parameters are just correlated.
     """
 
@@ -701,6 +745,76 @@ def batch_run_save_to_csv2(dyn_inp, stat1_inp, stat2_inp, output_filename, param
 #         df.to_csv(fullname, index=True)
 
 
+def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None,
+                      baseline_variable="r_op_swds", variable_to_save="q_meas_swds"):
+    """
+    batch run a series of simulations for one type of measure with various value for one parameter
+
+    Args:
+    dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+    stat1_inp (string): the filename of the static form of general parameters
+    stat2_inp (string): the filename of the static form of measure parameters
+    dyn_out (string): the filename of the output file of solutions
+    varkey (float): the key parameter to be updated
+    vararr (float): values to update varkey.
+
+    Usage:
+    use in the cmd: python -m urbanwb.main_with_measure batch_run_multivalue_for_one_param timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas q_meas_swds 200 100 --inflowfac 20
+    For now is is usable.
+    """
+    inputdata = read_inputdata(dyn_inp)
+    dict_param = read_parameters(stat1_inp, stat2_inp)
+
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # can delete this fraction if necessary.
+    date = inputdata["date"]
+    iters = np.shape(date)[0]
+    dt = dict_param["delta_t"]
+    num_year = round((dt * iters) / 365)
+    print(f"Total year of the input time series is {num_year} year")
+
+    database = []
+    statsbase = []
+    if correspvarkey is not None:
+        for a, b in zip(vararrlist1, vararrlist2):
+            dict_param[varkey] = a
+            dict_param[correspvarkey] = b
+            print("Case with measure: ", varkey, a, correspvarkey, b)
+            rv = running(inputdata, dict_param)
+            database.append(pd.DataFrame(rv)[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            print("------" * 20)
+            sleep(0.5)
+    else:
+        for a in vararrlist1:
+            dict_param[varkey] = a
+            print("Case with measure: ", varkey, a)
+            rv = running(inputdata, dict_param)
+            database.append(pd.DataFrame(rv)[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            print("------" * 20)
+            sleep(0.5)
+
+    df = pd.DataFrame(database, index=[v for v in vararrlist1])
+    df = df.T
+    df.insert(0, "Date", date)
+    df.insert(1, "P_atm", inputdata["P_atm"])
+
+    dict_param["measure_applied"] = False  # modify later
+    # print(dict_param)
+    print("Case with no measure (Baseline): ")
+    rv = running(inputdata, check_parameters(dict_param))
+    baseline_runoff = pd.DataFrame(rv)[baseline_variable]
+    print("------" * 20)
+    sleep(0.5)
+    df.insert(2, "Baseline", baseline_runoff)
+    outdir = Path("pysol")
+    outdir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(outdir / dyn_out, index=True)
+    # dyn_out_stat = "stats_" + ''.join(list(dyn_out)[:-4]) + ".txt"
+    # np.savetxt(outdir / dyn_out_stat, statsbase, delimiter=",", fmt='%s')
+
+
 def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vararr):
     """
     this batch_run function is mainly designed for getting the database for sdf_curve.
@@ -773,8 +887,10 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
         outdir.mkdir(parents=True, exist_ok=True)
         df.T.to_csv(outdir / dyn_out, index=True)
 
+
 from functools import reduce
 from itertools import groupby
+
 def running_counter(source_list):
     "function calculates, following the list sequence how many times a number is repeated"
     return [(k, sum(1 for i in g)) for k,g in groupby(source_list)]
@@ -805,102 +921,6 @@ def get_segment_index(owl):
         base_index += count_list[t][1]
         t += 1
     return segment_index
-
-# unit_list = {
-#             "int_pr": "mm",
-#             "e_atm_pr": "mm",
-#             "intstor_pr": "mm",  # 0
-#             "r_pr_meas": "mm",
-#             "r_pr_swds": "mm",
-#             "r_pr_mss": "mm",
-#             "r_pr_up": "mm",
-#             "int_cp": "mm",
-#             "e_atm_cp": "mm",
-#             "intstor_cp": "mm",  # 0
-#             "r_cp_meas": "mm",
-#             "r_cp_swds": "mm",
-#             "r_cp_mss": "mm",
-#             "r_cp_up": "mm",
-#             "int_op": "mm",
-#             "e_atm_op": "mm",
-#             "intstor_op": "mm",  # 0
-#             "p_op_gw": "mm",
-#             "r_op_meas": "mm",
-#             "r_op_swds": "mm",
-#             "r_op_mss": "mm",
-#             "r_op_up": "mm",
-#             "sum_r_up": "mm",
-#             "init_intstor_up": "mm",
-#             "actl_infilcap_up": "mm",
-#             "timefac_up": "mm",
-#             "e_atm_up": "mm",
-#             "i_up_uz": "mm",
-#             "fin_intstor_up": "mm",  # 0
-#             "r_up_meas": "mm",
-#             "r_up_ow": "mm",
-#             "sum_i_uz": "mm",
-#             "r_meas_uz": "mm",
-#             "theta_h3_uz": "mm",
-#             "t_alpha_uz": "mm",
-#             "t_atm_uz": "mm",
-#             "gwl_up": "mm",
-#             "gwl_low": "mm",
-#             "theta_eq_uz": "mm",
-#             "capris_max_uz": "mm",
-#             "p_uz_gw": "mm",
-#             "theta_uz": "mm",
-#             "sum_p_gw": "mm",
-#             "r_meas_gw": "mm",
-#             "sc_gw": "mm",
-#             "h_gw": "mm",
-#             "s_gw_out": "mm",
-#             "d_gw_ow": "mm",
-#             "gwl": "mm",
-#             "gwl_sl": "mm",
-#             "sum_r_swds": "mm",
-#             "r_meas_swds": "mm",
-#             "sum_r_mss": "mm",
-#             "r_meas_mss": "mm",
-#             "q_swds_ow": "mm",
-#             "q_mss_out": "mm",
-#             "q_mss_ow": "mm",
-#             "so_swds_ow": "mm",
-#             "so_mss_ow": "mm",
-#             "stor_swds": "mm",
-#             "stor_mss": "mm",
-#             "prec_ow": "mm",
-#             "e_atm_ow": "mm",
-#             "sum_r_ow": "mm",
-#             "sum_d_ow": "mm",
-#             "sum_q_ow": "mm",
-#             "sum_so_ow": "mm",
-#             "r_meas_ow": "mm",
-#             "q_ow_out": "mm",
-#             "owl": "mm",
-#             "prec_meas": "mm",
-#             "sum_r_meas": "mm",
-#             "int_meas": "mm",
-#             "e_atm_meas": "mm",
-#             "int_down_meas": "mm",
-#             "sr_meas": "mm",
-#             "intstor_meas": "mm",
-#             "ts_ini_meas": "mm",
-#             "tt_atm_meas": "mm",
-#             "pt_meas": "mm",
-#             "top_stor_meas": "mm",
-#             "bs_ini_meas": "mm",
-#             "tb_atm_meas": "mm",
-#             "pb_meas_gw": "mm",
-#             "br_meas": "mm",
-#             "bot_stor_meas": "mm",
-#             "bo_meas": "mm",
-#             "q_meas_ow": "mm",
-#             "q_meas_uz": "mm",
-#             "q_meas_gw": "mm",
-#             "q_meas_swds": "mm",
-#             "q_meas_mss": "mm",
-#             "q_meas_out": "mm",
-#         }
 
 
 if __name__ == "__main__":
