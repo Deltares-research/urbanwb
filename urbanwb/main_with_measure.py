@@ -394,6 +394,14 @@ def running(input_data, dict_param):
     wbc_results = water_balance_checker(df, dict_param, iters)
     return df, wbc_results  # df,stat
 
+    # rv = running(inputdata, dict_param)
+    # database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+    # logger.info(msg)
+    # wbc_statistics = rv[1]
+    # logger.info(f"Entire model: {wbc_statistics[0]}")
+    # logger.info(f"Measure itself: {wbc_statistics[1]}")
+    # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
     """
@@ -411,10 +419,19 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     Returns:
         A csv file of all computed results
     """
+    loggingfilename = ''.join(list(output_filename)[:-4]) + ".log"
+    logger = setuplog(loggingfilename, "STC_logger", thelevel=logging.INFO)
 
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
-    df = running(input_data, dict_param)  # [0]
+    # logger.info(f"Single run, with parameters{dict_param}")  # too many parameters
+    rv = running(input_data, dict_param)
+    df = rv[0]
+    wbc_statistics = rv[1]
+    logger.info(f"Entire model: {wbc_statistics[0]}")
+    logger.info(f"Measure itself: {wbc_statistics[1]}")
+    if dict_param["tot_meas_area"] != 0:
+        logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
     # print(dict_param)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -765,7 +782,10 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
         for a, b in zip(vararrlist1, vararrlist2):
             dict_param[varkey] = a
             dict_param[correspvarkey] = b
-            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}"
+            measure_area_info = dict_param["tot_meas_area"]
+            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
+                f"inflow area={measure_inflow_area_info}"
             print(msg)
             rv = running(inputdata, dict_param)
             database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
@@ -780,7 +800,9 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     else:
         for a in vararrlist1:
             dict_param[varkey] = a
-            msg = f"Case with measure: {varkey}={a}"
+            measure_area_info = dict_param["tot_meas_area"]
+            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+            msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
             print(msg)
             rv = running(inputdata, dict_param)
             database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
@@ -815,7 +837,6 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(outdir / dyn_out, index=True)
-    print("Exit!")
 
 
 def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vararr):
@@ -845,7 +866,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
     print("First, do baseline run:")
     print(f"It is when pumping capacity equals mean daily rainfall {mean_daily_rainfall:.2f} mm/d to make fixed marks for other Q")
     dict_param["q_ow_out_cap"] = mean_daily_rainfall
-    owl_data = np.append(running(input_data, dict_param)["owl"], 0)
+    owl_data = np.append(running(input_data, dict_param)[0]["owl"], 0)
     owl_baseline = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
     segment_marks = get_segment_index(owl_baseline)
     k_base = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
@@ -857,7 +878,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
         for varval in vararr:
             dict_param["q_ow_out_cap"] = varval
             print(f"pumping capacity from open water to outside is {varval} mm/d over entire area")
-            owl_data = pd.DataFrame(running(input_data, dict_param))["owl"]
+            owl_data = pd.DataFrame(running(input_data, dict_param)[0])["owl"]
             k = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
             rank_database.append(k.ranking)
             print(f"Maximum storage height above target water level over open water for Q = {varval} mm/d is {k.ranking[0]:.4f} m")
@@ -877,7 +898,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
         for val in array_num:
             dict_param["q_ow_out_cap"] = val
             print(f"pumping capacity from open water to outside is {val} mm/d over entire area")
-            owl_data = pd.DataFrame(running(input_data, dict_param))["owl"]
+            owl_data = pd.DataFrame(running(input_data, dict_param)[0])["owl"]
             k = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
             rank_database.append(k.ranking)
             print(

@@ -151,7 +151,7 @@ def find_corresponding_T_for_array(t_array, array, vararr = [1, 2, 3, 4, 5, 6, 7
 def getconstants(inputfilename,):
     m = Analyse("pysol/" + inputfilename, num_year=30)
     results = m.getconstants()
-    outputfilename = ''.join(list(inputfilename)[:-4]) + "_log.txt"
+    outputfilename = ''.join(list(inputfilename)[:-4]) + "_constants.txt"
     print(results)
     # np.savetxt(outputfilename, results, )
     with open(outputfilename, 'w') as f:

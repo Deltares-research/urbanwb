@@ -67,8 +67,8 @@ def water_balance_checker(df, dict_param, iters):
 
     # statistics of entire model for logging
     stat_tot = {"rain": round(sum_prec, 2), "evap": round(sum_evap, 2), "Q_out": round(sum_q_out, 2),
-            "seepage": round(sum_s_deepgw, 2), "storage diff":  round(sum_ds, 2),
-            "balance diff": balance_diff}
+                "seepage": round(sum_s_deepgw, 2), "storage diff":  round(sum_ds, 2),
+                "balance diff": balance_diff}
     print("\n")
     print("Entire model:")
     # display in the console the table of water balance statistics over entire area
@@ -79,10 +79,11 @@ def water_balance_checker(df, dict_param, iters):
 
     if math.isclose(balance_diff, 0, abs_tol=0.000001):
         pass
-        # print("Water balance is closed for entire model.")
+        print("Water balance is closed for entire model.")
     else:
+        print("Water balance is NOT closed for entire model. Please recheck.")
         # pass
-        raise SystemExit("Water balance is NOT closed for entire model. Please recheck.")
+        # raise SystemExit("Water balance is NOT closed for entire model. Please recheck.")
 
     # water balance for measure itself
     print("\n")
@@ -130,11 +131,12 @@ def water_balance_checker(df, dict_param, iters):
     print(tabulate(table_m, headers_m, tablefmt="presto"))
 
     if math.isclose(balance_diff_meas, 0, abs_tol=0.001):
-        pass
-        # print("Water balance is closed for measure itself.")
-    else:
         # pass
-        raise SystemExit("Water balance for measure is not closed. Please recheck.")
+        print("Water balance is closed for measure itself.")
+    else:
+        print("Water balance for measure is Not closed. Please recheck.")
+        # pass
+        # raise SystemExit("Water balance for measure is not closed. Please recheck.")
 
     # calculate statistics of measure's effectiveness on measure inflow area
     try:
