@@ -431,7 +431,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     logger.info(f"Entire model: {wbc_statistics[0]}")
     logger.info(f"Measure itself: {wbc_statistics[1]}")
     if dict_param["tot_meas_area"] != 0:
-        logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+        logger.info(f"Measure inflow area: {wbc_statistics[2]}")
     # print(dict_param)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -793,7 +793,7 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
             wbc_statistics = rv[1]
             logger.info(f"Entire model: {wbc_statistics[0]}")
             logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
             print("\n"*2)
             sleep(0.5)
@@ -810,7 +810,7 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
             wbc_statistics = rv[1]
             logger.info(f"Entire model: {wbc_statistics[0]}")
             logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
             print("\n" * 2)
             sleep(0.5)

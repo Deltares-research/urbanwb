@@ -138,33 +138,67 @@ def water_balance_checker(df, dict_param, iters):
         # pass
         # raise SystemExit("Water balance for measure is not closed. Please recheck.")
 
+    # water balance on measure inflow area
     # calculate statistics of measure's effectiveness on measure inflow area
+    # try:
+    #     inflow_factor = dict_param["tot_meas_inflow_area"] / dict_param["tot_meas_area"]
+    # except ZeroDivisionError:
+    #     inflow_factor = 0
+    # try:
+    #     e_meas_mia = e_meas / inflow_factor
+    #     ow_rech_meas_mia = ow_rech_meas / inflow_factor
+    #     gw_rech_meas_mia = gw_rech_meas / inflow_factor
+    #     q_swds_meas_mia = q_swds / inflow_factor
+    #     q_mss_meas_mia = q_mss / inflow_factor
+    #     q_out_meas_mia = q_out / inflow_factor
+    #     ds_meas_mia = ds_meas / inflow_factor
+    #
+    # except ZeroDivisionError:
+    #     e_meas_mia = ow_rech_meas_mia = gw_rech_meas_mia = q_swds_meas_mia = q_mss_meas_mia = q_out_meas_mia = ds_meas_mia = 0.0
+    #
+    # balance_diff_mia = sum_prec - e_meas_mia - ow_rech_meas_mia - gw_rech_meas_mia - q_swds_meas_mia - \
+    #                    q_mss_meas_mia - q_out_meas_mia - ds_meas_mia
+    # stat_mia = {"rain": round(sum_prec, 2), "evap": round(e_meas_mia, 2), "GW.rech": round(gw_rech_meas_mia, 2),
+    #             "OW.rech": round(ow_rech_meas_mia), "Q_swds": round(q_swds_meas_mia, 2),
+    #             "Q_mss": round(q_mss_meas_mia,2), "Q_Out": round(q_out_meas_mia, 2),
+    #             "storage diff": round(ds_meas_mia, 2), "balance diff": balance_diff_mia}
     try:
-        inflow_factor = dict_param["tot_meas_inflow_area"]/ dict_param["tot_meas_area"]
-    except ZeroDivisionError:
-        inflow_factor = 0
-    try:
-        e_meas_mia = e_meas / inflow_factor
-        ow_rech_meas_mia = ow_rech_meas / inflow_factor
-        gw_rech_meas_mia = gw_rech_meas / inflow_factor
-        q_swds_meas_mia = q_swds / inflow_factor
-        q_mss_meas_mia = q_mss / inflow_factor
-        q_out_meas_mia = q_out / inflow_factor
-        ds_meas_mia = ds_meas / inflow_factor
+        p_mia = sum_prec
+        e_mia = (sum(df["e_atm_meas"].iloc[1:]) * dict_param["tot_meas_area"] +
+                 sum(df["t_atm_top_meas"].iloc[1:]) * dict_param["top_meas_area"] +
+                 sum(df["t_atm_btm_meas"].iloc[1:] * dict_param["btm_meas_area"]) +
+                 sum(df["e_atm_pr"].iloc[1:]) * (dict_param["pr_meas_inflow_area"] - dict_param["pr_meas_area"]) +
+                 sum(df["e_atm_cp"].iloc[1:]) * (dict_param["cp_meas_inflow_area"] - dict_param["cp_meas_area"]) +
+                 sum(df["e_atm_op"].iloc[1:]) * (dict_param["op_meas_inflow_area"] - dict_param["op_meas_area"]) +
+                 sum(df["e_atm_up"].iloc[1:]) * (dict_param["up_meas_inflow_area"] - dict_param["up_meas_area"]) +
+                 sum(df["e_atm_ow"].iloc[1:]) * (dict_param["ow_meas_inflow_area"] - dict_param["ow_meas_area"])) \
+                / dict_param["tot_meas_inflow_area"]
+
+        #  (dict_param["uz_meas_inflow_area"] - dict_param["uz_meas_area"])
+        # (dict_param["swds_meas_inflow_area"] - dict_param["swds_meas_area"])
+
+        ds_mia = ((df["intstor_pr"].iloc[-1] - df["intstor_pr"].iloc[0]) * (dict_param["pr_meas_inflow_area"] - dict_param["pr_meas_area"]) + \
+                 (df["intstor_cp"].iloc[-1] - df["intstor_cp"].iloc[0]) * (dict_param["cp_meas_inflow_area"] - dict_param["cp_meas_area"]) + \
+                 (df["intstor_op"].iloc[-1] - df["intstor_op"].iloc[0]) * (dict_param["op_meas_inflow_area"] - dict_param["op_meas_area"]) + \
+                 (df["fin_intstor_up"].iloc[-1] - df["fin_intstor_up"].iloc[0]) * (dict_param["up_meas_inflow_area"] - dict_param["up_meas_area"]) + \
+                 1000 * (df["owl"].iloc[-1] - df["owl"].iloc[0]) * (dict_param["ow_meas_inflow_area"] - dict_param["ow_meas_area"]) + \
+                 (df["intstor_meas"].iloc[-1] - df["intstor_meas"].iloc[0]) * dict_param["tot_meas_area"] + \
+                 (df["fin_stor_top_meas"].iloc[-1] - df["fin_stor_top_meas"].iloc[0]) * dict_param["top_meas_area"] + \
+                 (df["fin_stor_btm_meas"].iloc[-1] - df["fin_stor_btm_meas"].iloc[0]) * dict_param["btm_meas_area"]) / dict_param["tot_meas_inflow_area"]
+
+        ow_rech_meas_mia = ow_rech_meas * dict_param["tot_meas_area"] / dict_param["tot_meas_inflow_area"]
+        gw_rech_meas_mia = gw_rech_meas * dict_param["tot_meas_area"] / dict_param["tot_meas_inflow_area"]
+        q_swds_meas_mia = q_swds * dict_param["tot_meas_area"] / dict_param["tot_meas_inflow_area"]
+        q_mss_meas_mia = q_mss * dict_param["tot_meas_area"] / dict_param["tot_meas_inflow_area"]
+        q_out_meas_mia = q_out * dict_param["tot_meas_area"] / dict_param["tot_meas_inflow_area"]
 
     except ZeroDivisionError:
-        e_meas_mia = ow_rech_meas_mia= gw_rech_meas_mia = q_swds_meas_mia =  q_mss_meas_mia = q_out_meas_mia = ds_meas_mia = 0.0
+        p_mia = e_mia = ds_mia = ow_rech_meas_mia = gw_rech_meas_mia = q_swds_meas_mia = q_mss_meas_mia = q_out_meas_mia =0.0
 
-    balance_diff_mia = sum_prec - e_meas_mia - ow_rech_meas_mia -gw_rech_meas_mia - q_swds_meas_mia - \
-                       q_mss_meas_mia - q_out_meas_mia - ds_meas_mia
-    stat_mia = {"rain": round(sum_prec,2), "evap": round(e_meas_mia, 2), "GW.rech": round(gw_rech_meas_mia, 2),
+    balance_diff_mia = p_mia - e_mia - ow_rech_meas_mia - gw_rech_meas_mia - q_swds_meas_mia - q_mss_meas_mia - q_out_meas_mia - ds_mia
+    stat_mia = {"rain": round(p_mia, 2), "evap": round(e_mia, 2), "GW.rech": round(gw_rech_meas_mia, 2),
                 "OW.rech": round(ow_rech_meas_mia), "Q_swds": round(q_swds_meas_mia, 2),
-                "Q_mss": round(q_mss_meas_mia,2), "Q_Out": round(q_out_meas_mia, 2),
-                "storage diff": round(ds_meas_mia, 2), "balance diff": balance_diff_mia}
-    # stat_mia = {"evap: "}
-    # # print("tot measure inflow area is", dict_param["tot_meas_inflow_area"])
-    # # print("Over measure inflow area: ", "P :", "%.2f" % p_meas, "E :", "%.2f" % e_meas_mia, "OW_recharge :", "%.2f" % ow_discharge_meas_mia,
-    # #       "GW_recharge :", "%.2f" % gw_recharge_meas_mia,
-    # #       "Runoff: ", "%.2f" % swds_discharge_meas_mia)
+                "Q_mss": round(q_mss_meas_mia, 2), "Q_Out": round(q_out_meas_mia, 2),
+                "storage diff": round(ds_mia, 2), "balance diff": balance_diff_mia}
 
     return stat_tot, stat_meas, stat_mia
