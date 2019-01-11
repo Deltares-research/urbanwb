@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import time
 import fire
+import logging
+from urbanwb.setlogger import setuplog
 import math
 from pathlib import Path
 from collections import OrderedDict
@@ -373,25 +375,6 @@ def running(input_data, dict_param):
             "q_meas_swds": np.nan,
             "q_meas_mss": np.nan,
             "q_meas_out": np.nan,
-            # # delete below part
-            # "rainfall_tot": 0,  # waterbalance checker lst from here on
-            # "evaporation_tot": 0,
-            # "seepage_tot": 0,
-            # "drainage_tot": 0,
-            # "sewerflow_tot": 0,
-            # "toWWTP_tot": 0,
-            # "OWtoOut_tot": 0,
-            # "StorChange_tot": 0,
-            # "BalanceClosed_tot": 0,
-            # "rainfall_mia": 0,
-            # "evaporation_mia": 0,
-            # "storage_mia": 0,  # "op_meas_inflow_area" - needs to be adaptive here, modify later, #(dict_param["intstor_meas_t0"]*dict_param["tot_meas_area"] + dict_param["bot_stor_meas_t0"] *
-            #                 #dict_param["btm_meas_area"] + dict_param["top_stor_meas_t0"] * dict_param["top_meas_area"] + 0 *
-            #                 #(dict_param["tot_op_area"] - dict_param["op_meas_area"])
-            #                 #)/dict_param["op_meas_inflow_area"]  # another way to modify it is to use another (new) waterbalance check method to avoid this divzero.
-            # "toOW_mia": 0,
-            # "toGW_mia": 0,
-            # "runofftoSWDS_mia": 0,
         }
     ]
     for t in trange(1, iters):  # time series first line is not relevant (initial), start from second line.
@@ -408,8 +391,8 @@ def running(input_data, dict_param):
     df.insert(1, "P_atm", P_atm)
     df.insert(2, "E_pot_OW", E_pot_OW)
     df.insert(3, "Ref.grass", Ref_grass)
-    water_balance_checker(df, dict_param, iters)
-    return df  # df,stat
+    wbc_results = water_balance_checker(df, dict_param, iters)
+    return df, wbc_results  # df,stat
 
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
@@ -762,6 +745,8 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     use in the cmd: python -m urbanwb.main_with_measure batch_run_multivalue_for_one_param timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas q_meas_swds 200 100 --inflowfac 20
     For now is is usable.
     """
+    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+    logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
 
@@ -774,25 +759,38 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     dt = dict_param["delta_t"]
     num_year = round((dt * iters) / 365)
     print(f"Total year of the input time series is {num_year} year")
-
+    print("\n")
     database = []
-    statsbase = []
     if correspvarkey is not None:
         for a, b in zip(vararrlist1, vararrlist2):
             dict_param[varkey] = a
             dict_param[correspvarkey] = b
-            print("Case with measure: ", varkey, a, correspvarkey, b)
+            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}"
+            print(msg)
             rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv)[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            logger.info(msg)
+            wbc_statistics = rv[1]
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
+            print("\n"*2)
             sleep(0.5)
     else:
         for a in vararrlist1:
             dict_param[varkey] = a
-            print("Case with measure: ", varkey, a)
+            msg = f"Case with measure: {varkey}={a}"
+            print(msg)
             rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv)[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            logger.info(msg)
+            wbc_statistics = rv[1]
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
+            print("\n" * 2)
             sleep(0.5)
 
     df = pd.DataFrame(database, index=[v for v in vararrlist1])
@@ -800,19 +798,24 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     df.insert(0, "Date", date)
     df.insert(1, "P_atm", inputdata["P_atm"])
 
-    dict_param["measure_applied"] = False  # modify later
+    dict_param["measure_applied"] = False
     # print(dict_param)
-    print("Case with no measure (Baseline): ")
+    msg = "Case without measure: Baseline"
+    print(msg)
     rv = running(inputdata, check_parameters(dict_param))
-    baseline_runoff = pd.DataFrame(rv)[baseline_variable]
+    baseline_runoff = pd.DataFrame(rv[0])[baseline_variable]
+    logger.info(msg)
+    wbc_statistics = rv[1]
+    logger.info(f"Entire model: {wbc_statistics[0]}")
+    logger.info(f"Measure itself: {wbc_statistics[1]}")
+    # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
     print("------" * 20)
     sleep(0.5)
     df.insert(2, "Baseline", baseline_runoff)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(outdir / dyn_out, index=True)
-    # dyn_out_stat = "stats_" + ''.join(list(dyn_out)[:-4]) + ".txt"
-    # np.savetxt(outdir / dyn_out_stat, statsbase, delimiter=",", fmt='%s')
+    print("Exit!")
 
 
 def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vararr):
@@ -886,6 +889,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
         outdir = Path("pysol")
         outdir.mkdir(parents=True, exist_ok=True)
         df.T.to_csv(outdir / dyn_out, index=True)
+
 
 
 from functools import reduce

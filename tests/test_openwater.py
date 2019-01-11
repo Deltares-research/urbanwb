@@ -140,17 +140,17 @@ class TestOpenWater(unittest.TestCase):
             places=7,
         )
 
-    def test_integration(self):
-        """
-        runs integration tests (validate with excel using different coefficient sets for all time steps)
-        """
-        for n in validate(300, 1.5, 200, Dec=6, Num=0):  # default
-            self.assertIsNone(n)
-        for n in validate(300, 3, 200, Dec=3, Num=1):  # target open water level = 3
-            self.assertIsNone(n)
-        for n in validate(300, 1.5, 2000, Dec=2, Num=2):  # q_ow_out_cap = 2000
-            self.assertIsNone(n)
-        # for Num 1 Num 2 cases, the results are actually the same.
+    # def test_integration(self):
+    #     """
+    #     runs integration tests (validate with excel using different coefficient sets for all time steps)
+    #     """
+    #     for n in validate(300, 1.5, 200, Dec=6, Num=0):  # default
+    #         self.assertIsNone(n)
+    #     for n in validate(300, 3, 200, Dec=3, Num=1):  # target open water level = 3
+    #         self.assertIsNone(n)
+    #     for n in validate(300, 1.5, 2000, Dec=2, Num=2):  # q_ow_out_cap = 2000
+    #         self.assertIsNone(n)
+    #     # for Num 1 Num 2 cases, the results are actually the same.
 
 
 if __name__ == "__main__":

@@ -61,6 +61,7 @@ class Analyse(object):
 
     def getconstants(self,):
         pass
+        print(["storage cap mm", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50])
         emp = dict()
         baseT = find_corresponding_T_for_array(t_array=self.makingranks["T_list"], array=self.makingranks["Rank_baseline"])
         for key in self.makingranks.keys():
@@ -118,7 +119,7 @@ class Analyse(object):
 
 import math
 
-def find_corresponding_T_for_array(t_array, array, vararr = [5, 10, 20, 30, 40, 50, 100]):
+def find_corresponding_T_for_array(t_array, array, vararr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50]):
     database = []
     for var in vararr:
         # print(var, 'case:')
