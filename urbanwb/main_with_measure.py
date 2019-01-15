@@ -6,11 +6,10 @@ import pandas as pd
 import time
 import fire
 import logging
-from urbanwb.setlogger import setuplog
-import math
 from pathlib import Path
 from collections import OrderedDict
 from tqdm import trange
+from time import sleep
 from urbanwb.pavedroof import PavedRoof
 from urbanwb.closedpaved import ClosedPaved
 from urbanwb.openpaved import OpenPaved
@@ -19,25 +18,25 @@ from urbanwb.groundwater import Groundwater
 from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
+from urbanwb.measure import Measure
 from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
-from urbanwb.measure import Measure
 from urbanwb.waterbalance_checker import water_balance_checker
-from time import sleep
+from urbanwb.setlogger import setuplog
 from urbanwb.sdf_curve import SDF_curve2
 
 
-class BasicModel(object):
+class UrbanwbModel(object):
     """
-    Creates an instance from Basic Model (without measure) class which consists of all eight components namely paved roof, closed paved,
-    open paved, unpaved, unsaturated zone, groundwater, sewer system and open water. Iterates __next__() as time
-    stepping to get solutions for all time steps.
+    Creates an instance of UrbanwbModel class which consists of all eight components namely paved roof,  closed paved,
+    open paved, unpaved, unsaturated zone, groundwater, sewer system and open water together with measure module.
+    Iterates __next__() as time stepping to get solutions for all time steps.
 
     Args:
-        dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood and measure configuration
-        files to initialize a basic model instance
+        dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood config file and measure
+        config file to initialize a model instance
     """
 
     def __init__(self, dict_param):
@@ -68,10 +67,9 @@ class BasicModel(object):
         prev_lst,
     ):
         """
-        Calculates storage, fluxes, coefficients and other required outcomes at current time step.
+        Calculates storage, fluxes, coefficients and other related results at current time step.
         """
         try:
-            # empty dictionary
             pr_sol = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             cp_sol = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             op_sol = self.openpaved.sol(
@@ -90,14 +88,20 @@ class BasicModel(object):
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 delta_t=self.param["delta_t"],
             )
-            meas_sol = self.measure.sol(p_atm=p_atm, e_pot_ow=e_pot_ow, r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
-                                        r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"], pr_no_meas_area=self.param["tot_pr_area"]-self.param["pr_meas_area"],
-                                        cp_no_meas_area=self.param["cp_no_meas_area"], op_no_meas_area=self.param["op_no_meas_area"],
-                                        up_no_meas_area=self.param["up_no_meas_area"], gw_no_meas_area=self.param["gw_no_meas_area"],
-                                        gwl_prevt=prev_lst["gwl"], delta_t=self.param["delta_t"])
+            meas_sol = self.measure.sol(p_atm=p_atm,
+                                        e_pot_ow=e_pot_ow,
+                                        r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
+                                        r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"],
+                                        pr_no_meas_area=self.param["pr_no_meas_area"],
+                                        cp_no_meas_area=self.param["cp_no_meas_area"],
+                                        op_no_meas_area=self.param["op_no_meas_area"],
+                                        up_no_meas_area=self.param["up_no_meas_area"],
+                                        gw_no_meas_area=self.param["gw_no_meas_area"],
+                                        gwl_prevt=prev_lst["gwl"],
+                                        delta_t=self.param["delta_t"])
             uz_sol = self.unsaturatedzone.sol(
                 i_up_uz=up_sol["i_up_uz"],
-                meas_uz=meas_sol["q_meas_uz"],  # meas_sol["q_meas_uz"]
+                meas_uz=meas_sol["q_meas_uz"],
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
                 gwl_prevt=prev_lst["gwl"],
@@ -109,7 +113,7 @@ class BasicModel(object):
                 p_op_gw=op_sol["p_op_gw"],
                 op_no_meas_area=self.param["op_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
-                meas_gw=meas_sol["q_meas_gw"],  # meas_sol["q_meas_gw"]
+                meas_gw=meas_sol["q_meas_gw"],
                 owl_prevt=prev_lst["owl"],
                 delta_t=self.param["delta_t"],
             )
@@ -123,8 +127,8 @@ class BasicModel(object):
                 r_pr_mss=pr_sol["r_pr_mss"],
                 r_cp_mss=cp_sol["r_cp_mss"],
                 r_op_mss=op_sol["r_op_mss"],
-                meas_swds=meas_sol["q_meas_swds"],  # meas_sol["q_meas_swds"]
-                meas_mss=meas_sol["q_meas_mss"],  # meas_sol["q_meas_mss"]
+                meas_swds=meas_sol["q_meas_swds"],
+                meas_mss=meas_sol["q_meas_mss"],
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
             )
@@ -137,7 +141,7 @@ class BasicModel(object):
                 q_mss_ow=ss_sol["q_mss_ow"],
                 so_swds_ow=ss_sol["so_swds_ow"],
                 so_mss_ow=ss_sol["so_mss_ow"],
-                meas_ow=meas_sol["q_meas_ow"],  #meas_sol["q_meas_ow"]
+                meas_ow=meas_sol["q_meas_ow"],
                 up_no_meas_area=self.param["up_no_meas_area"],
                 gw_no_meas_area=self.param["gw_no_meas_area"],
                 swds_no_meas_area=self.param["swds_no_meas_area"],
@@ -146,13 +150,27 @@ class BasicModel(object):
                 tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
-
-            dictmerged = OrderedDict(dict(pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol, **ow_sol, **meas_sol))  # newly added line.
+            merged_dict = OrderedDict(dict(**pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol,
+                                           **ow_sol, **meas_sol))
         except IndexError:
             raise StopIteration
-        return dictmerged
+        return merged_dict
 
 
+def timer(func):
+    """
+    a decorator that timings the function runtime.
+    """
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        rv = func(*args, **kwargs)
+        after = time.time()
+        print(f"Elapsed: {after - start:.2f}s")
+        return rv
+    return wrapper
+
+
+@timer
 def read_inputdata(dyn_inp):
     """
     reads input data (time series of precipitation and evaporation) from dynamic input file.
@@ -165,8 +183,16 @@ def read_inputdata(dyn_inp):
     """
     path = Path.cwd() / ".." / "input"
 
-    # may add checker of the data here.
-    return pd.read_csv(str(path) + "\\" + dyn_inp)
+    # Parsing date will takes additional 25 seconds for 30-yr timeseries before running. Besides, datetime format could
+    # also be problematic with user defined input. For robustness, it is better not to deal with datetime separately.
+    # rv = pd.read_csv(str(path) + "\\" + dyn_inp, parse_dates=["date"], dayfirst=True)
+    rv = pd.read_csv(str(path) + "\\" + dyn_inp)
+
+    # check whether there is missing value in the input forcing timeseries.
+    num_nan = rv.isnull().sum().sum()
+    if num_nan != 0:
+        raise SystemExit(f"There are {num_nan} missing values in timeseries. Please recheck input file of timeseries.")
+    return rv
 
 
 def read_parameters(stat1_inp, stat2_inp):
@@ -200,10 +226,12 @@ def read_parameters(stat1_inp, stat2_inp):
 
 def check_parameters(dict_param):
     """
-    used in batch_run_measure() where simulations go from "with measure" cases to "without measure" baseline case in
-    order to make sure all area-related parameters are correctly modified
+    used in batch_run_measure() when simulation switches from "with measure" cases to "without measure" i.e baseline
+    case in order to make sure all area-related parameters are correctly modified
     """
-    if not dict_param["measure_applied"]:
+    if dict_param["measure_applied"]:
+        return dict_param
+    else:
         # update area-related parameters
         # measure inflow area
         dict_param["pr_meas_inflow_area"] = dict_param["cp_meas_inflow_area"] = dict_param["op_meas_inflow_area"] = \
@@ -214,22 +242,22 @@ def check_parameters(dict_param):
             dict_param["swds_meas_area"] = dict_param["mss_meas_area"] = dict_param["ow_meas_area"] = 0.0
         # area of interception layer, top storage layer and bottom storage layer of measure
         dict_param["tot_meas_area"] = dict_param["top_meas_area"] = dict_param["btm_meas_area"] = 0.0
-    # print(dict_param)
+        # print(dict_param)
 
-    # dictionary of area of xx without measure
-    d = dict(pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
-             cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
-             op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
-             up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
-             uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
-             gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
-             swds_no_meas_area=dict_param["tot_swds_area"] - dict_param["swds_meas_area"],
-             mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
-             ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
-             )
-    # update dict_param with values in d
-    rv = {**dict_param, **d}
-    return rv
+        # dictionary of area of xx without measure
+        d = dict(pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
+                 cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
+                 op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
+                 up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
+                 uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
+                 gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
+                 swds_no_meas_area=dict_param["tot_swds_area"] - dict_param["swds_meas_area"],
+                 mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
+                 ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
+                 )
+        # update dict_param with values in d
+        rv = {**dict_param, **d}
+        return rv
 
 
 def timer(func):
@@ -248,10 +276,12 @@ def timer(func):
 @timer
 def running(input_data, dict_param):
     """
-    takes input data from input file and parameters from configuration files to run simulation once.
+    a basic running unit, which takes forcing from input_data and parameters from a dictionary of parameters to run
+    simulation once and returns results in a dataframe. After simulation, water balance for entire model, measure itself
+    and measure inflow area is strictly checked, and the stat is also returned.
 
     Args:
-        input_data (dataframe): a fixed-format dataframe of the time series of precipitation and evaporation
+        input_data (dataframe): a fixed-format dataframe of time series of forcing (precipitation and evaporation)
         dict_param (dictionary): a dictionary of all necessary parameters to initialize a model
 
     Returns:
@@ -275,12 +305,13 @@ def running(input_data, dict_param):
     # print("tot_mss_area", dict_param["tot_mss_area"], "mss_no_meas_area", dict_param["mss_no_meas_area"], "mss_meas_area", dict_param["mss_meas_area"],)
     # print("tot_ow_area", dict_param["tot_ow_area"], "ow_no_meas_area", dict_param["ow_no_meas_area"], "ow_meas_area", dict_param["ow_meas_area"], "ow_meas_inflow_area", dict_param["ow_meas_inflow_area"])
     # print("tot_meas_area", dict_param["tot_meas_area"], "top_meas_area", dict_param["top_meas_area"], "btm_meas_area", dict_param["btm_meas_area"])
-    k = BasicModel(dict_param)
+    k = UrbanwbModel(dict_param)
+    # first row of dataframe that stores initial values
     lst = [
         {
             "int_pr": np.nan,
             "e_atm_pr": np.nan,
-            "intstor_pr": dict_param["intstor_pr_t0"],  # 0
+            "intstor_pr": dict_param["intstor_pr_t0"],
             "r_pr_meas": np.nan,
             "r_pr_swds": np.nan,
             "r_pr_mss": np.nan,
@@ -392,15 +423,7 @@ def running(input_data, dict_param):
     df.insert(2, "E_pot_OW", E_pot_OW)
     df.insert(3, "Ref.grass", Ref_grass)
     wbc_results = water_balance_checker(df, dict_param, iters)
-    return df, wbc_results  # df,stat
-
-    # rv = running(inputdata, dict_param)
-    # database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
-    # logger.info(msg)
-    # wbc_statistics = rv[1]
-    # logger.info(f"Entire model: {wbc_statistics[0]}")
-    # logger.info(f"Measure itself: {wbc_statistics[1]}")
-    # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+    return df, wbc_results
 
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
@@ -424,7 +447,6 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
 
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
-    # logger.info(f"Single run, with parameters{dict_param}")  # too many parameters
     rv = running(input_data, dict_param)
     df = rv[0]
     wbc_statistics = rv[1]
@@ -432,7 +454,6 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     logger.info(f"Measure itself: {wbc_statistics[1]}")
     if dict_param["tot_meas_area"] != 0:
         logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-    # print(dict_param)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
 
@@ -444,7 +465,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
         df.to_csv(outdir / output_filename, index=True, columns=header)
 
 
-def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
+def batch_run_single(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
     """
     this batch_run function is to batch-run specified parameter with a set of parameters and save all results in csv
     for every case.
@@ -471,7 +492,8 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
 
 def batch_run_save_to_csv1(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, *args):
     """
-    this batch run function runs the model with a set of specified parameters and save all results in seperated csv"""
+    this batch run function runs the model with a set of specified parameters and save all results in seperated csv
+    I will keep this function"""
 
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -731,4 +753,5 @@ def get_segment_index(owl):
 
 if __name__ == "__main__":
     fire.Fire()
+
 
