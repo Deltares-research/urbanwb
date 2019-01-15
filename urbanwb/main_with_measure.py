@@ -367,7 +367,7 @@ def running(input_data, dict_param):
             "t_atm_btm_meas": np.nan,
             "p_gw_btm_meas": np.nan,
             "runoff_btm_meas": np.nan,
-            "fin_stor_btm_meas": dict_param["stor_top_meas_t0"],
+            "fin_stor_btm_meas": dict_param["stor_btm_meas_t0"],
             "overflow_btm_meas": np.nan,
             "q_meas_ow": np.nan,
             "q_meas_uz": np.nan,
