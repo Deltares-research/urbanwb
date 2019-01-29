@@ -148,8 +148,8 @@ def find_corresponding_T_for_array(t_array, array, vararr = [1, 2, 3, 4, 5, 6, 7
     return database
 
 
-def getconstants(inputfilename,):
-    m = Analyse("pysol/" + inputfilename, num_year=30)
+def getconstants(inputfilename, num_year=30):
+    m = Analyse("pysol/" + inputfilename, num_year=num_year)
     results = m.getconstants()
     outputfilename = ''.join(list(inputfilename)[:-4]) + "_constants.txt"
     print(results)

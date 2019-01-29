@@ -3,25 +3,27 @@ Running the model
 Overview
 --------
 
-In general the model is run from the windows command line or run ``run.bat`` file. The latter is highly recommended.
+The script model can be run from windows command prompt or with ``run.bat`` file. The latter choice is highly recommended.
 
-For the time being, the most commonly used function is ``savecsv`` and ``batch-run-sdf``.
+For the time being, the most commonly used function is **savecsv**, **batch-run-sdf** and **batch-run-measure**
 
-The ``running_sample`` folder in the package includes the sample of running the model for both basic model and model with measure.
-The model with measure is still under development. It is recommended for now to add you own running scripts in this folder.
+The ``running_sample`` folder in the Urbanwb package includes the sample of running the model for both basic model and model with measure.
 
-Two input are necessary to run the Urbanwb model:
+Two input are necessary to start the Urbanwb model:
 
-``Dynamic input``: The forcing --- Hourly time series of Precipitation, potential open water evaporation and potential reference crop evaporation. The user is responsible for data preprocessing --- clean data, fill vacancy, remove
-unrealistic data and make sure the data is in float type (We are considering to include an automatic converter to float type for user, but it is not
-relevant for now). Make sure the column name is the same because script use the column name to know which data is precipitation and evaporation.
+``Dynamic input``: The forcing --- Hourly time series of Precipitation, potential open water evaporation and potential reference crop evapotranspiration.
+The user is responsible for data preprocessing --- clean data, fill vacancy, remove unrealistic data and make sure the data is in float type.
+Make sure the column name is the same because script use the column name to index which data is precipitation and evaporation.
 
 ``Static input``: All the static input parameters are stored in the configuration file suffixed with ``.ini``.
-Currently, we have two static input file, one is for the basics of model (stat1.ini), the other is for the measure (stat2.ini).
-If no measure is included in the modelling, please specify ``choice=0`` in static input file for the measure (stat2.ini).
-
-Please modify the parameters according to the local context of your area of interest. Be aware of not changing the
-parameter name, otherwise the model may not work.
+Currently, two configuration files are indispensable for every function to use ---  one is neighbourhood configure file,
+the other is measure configuration file. If no measure is included in the modelling, please specify ``measure_appled=false``
+in measure configuration file. Though the script will automatically do some checks after reading the configuration file to make
+it fool proof, for example it will update the measure-related area with zero if no measure is applied even if it is not zero due to user's
+carelessness, it is highly recommended that user carefully deal with the configuration input. Besides, user should modify the
+parameters according to the local context of his area of interest and expected setups. Be aware of not changing the parameter
+name, otherwise the model goes wrong. The descriptions of the parameter are in the configuration file, documentation and script docstings
+for user's cross check.
 
 Input time series and parameters
 ------------------------------------------------
@@ -32,13 +34,16 @@ The forcing of Urbanwb model is the time series of:
 
 + precipitation (only rainfall considered)
 + potential open water evaporation (i.e. Penman evaporation [Penman]_.)
-+ potential reference crop evapotranspiration (i.e. Penman-Monteith evaporation [Monteith]_.)
++ potential reference crop evapotranspiration (i.e. Penman-Monteith evaporation [Monteith]_ or Makkink evaporation.)
 
 .. note::
 
     Sometimes, Penman evaporation is not directly available since it is not straightly measured, while (class-A) pan
     evaporation data is more easier to find. Pan evaporation Usually, pan evaporation is multiplied a correlation factor 0.77 to convert
     to Penman evaporation [Linacre]_. The model assumes potential open water evaporation actual interception evaporation on paved surface
+
+
+
 
 
 Even though
@@ -130,6 +135,57 @@ overflow to open water (CSO) will occur, and this discharge capacity is calculat
 1.6 = 26.3mm/hr.
 
 
+Functions
+---------
+1. save_to_csv
+~~~~~~~~~~~~~~~
+This function performs single run of the model. It can save all results or selected results in to an output csv file.
+
+.. code-block:: python
+
+   # save all results
+   #         module name               func name   timeseries name neighbourhood measure  outputfile
+   python -m urbanwb.main_with_measure save_to_csv timeseries.csv config1.ini config2.ini output.csv
+
+   # save selected results
+   #         module name               func name   timeseries name neighbourhood measure  outputfile variable to save        save_all is False -> save selected
+   python -m urbanwb.main_with_measure save_to_csv timeseries.csv config1.ini config2.ini output.csv owl r_pr_swds  theta_uz --save_all=False
+
+
+2. batch_run_sdf
+~~~~~~~~~~~~~~~~
+This function performs batch run on different pumping capacity to produce database which can be used to plot Storage-Discharge-Frequency (SDF) Curve
+
+.. code-block:: python
+
+   # mean daily rainfall as baseline q, batch run [4,5]
+   #         module name                  function      ts.csv    config1.ini          config2.ini    output.csv      random number     baseline q default
+   python -m urbanwb.main_with_measure batch_run_sdf ep_ts.csv ep_neighbourhood.ini ep_measure.ini ep2_results.csv --q_list=[4,5]
+
+   # 4 as baseline q, batch run [10,20]
+   #         module name                  function      ts.csv    config1.ini          config2.ini    output.csv      random number     baseline q predefined
+   python -m urbanwb.main_with_measure batch_run_sdf ep_ts.csv ep_neighbourhood.ini ep_measure.ini ep2_results1.csv --q_list=[10,20] --baseline_q=4
+
+   # 3 as baseline q, batch run [min,max,steps] --- [4,8,3]
+   #         module name                  function      ts.csv    config1.ini          config2.ini    output.csv      [min,max,steps]   baseline q:predefined AP:True to enable [min,max,steps]. if False, then q_list random numbers
+   python -m urbanwb.main_with_measure batch_run_sdf ep_ts.csv ep_neighbourhood.ini ep_measure.ini ep2_results2.csv --q_list=[4,8,3] --baseline_q=3 --arithmetic_progression=True
+
+
+3. batch_run_meas
+~~~~~~~~~~~~~~~~~
+This functoin performs batch run on measure. First do batch run with different (pairs of) values, then do baseline run (no measure).
+In the end, save the runoff time series into a csv file.
+
+It can vary one parameter with a list of values or vary two parameters at the same time.
+
+.. code-block:: python
+
+   #          module                    function          ts.csv    config1.ini          config2.ini    output.csv      var to change               value to update var   corresp var        value for corresp var  baseline runoff               measure runoff to save
+   python -m urbanwb.main_with_measure batch_run_measure ep_ts.csv ep_neighbourhood.ini ep_measure.ini ep3_results.csv --varkey="storcap_btm_meas" --vararrlist1=[1050,1200] --correspvarkey=None --vararrlist2=None --baseline_variable="r_cp_swds" --variable_to_save="q_meas_swds"
+
+   python -m urbanwb.main_with_measure batch_run_measure ep_ts.csv ep_neighbourhood.ini ep_measure.ini ep3_results.csv --varkey="storcap_btm_meas" --vararrlist1=[1050,1200] --correspvarkey="runoffcap_btm_meas" --vararrlist2=[30,40] --baseline_variable="r_cp_swds" --variable_to_save="q_meas_swds"
+
+   python -m urbanwb.getconstants ep3_results.csv --num_year=30
 
 
 References

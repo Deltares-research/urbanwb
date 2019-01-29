@@ -180,6 +180,8 @@ def read_parameter_measure(stat2_inp):
         raise ValueError("Error: Number of storage levels can only be (1, 2 or 3) (integer)")
     if runoff_to_stor_layer !=1 and runoff_to_stor_layer != 3:
         raise ValueError("Error: runoff_to_stor_layer (Runoff from other areas into storage layer) can only be (1 or 3)")
+
+    title = cf["title"]
     return {
         "pr_meas_area": pr_meas_area,
         "cp_meas_area": cp_meas_area,
@@ -240,6 +242,7 @@ def read_parameter_measure(stat2_inp):
         "overflow_meas_Out": overflow_meas_Out,
         "greenroof_type_measure": greenroof_type_measure,
         "tot_meas_inflow_area": tot_meas_inflow_area,  # note
+        "title": title
     }
 
 

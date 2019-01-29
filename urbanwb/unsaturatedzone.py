@@ -52,7 +52,7 @@ class UnsaturatedZone:
         # self.theta_h2 (float): equilibrium moisture content of soil in root zone, groundwater level at bottom root zone, i.e. field capacity
         self.theta_h2 = self.et_prm["theta_h2_mm"].values[0]
 
-        # self.theta_h4 (float): equilibrium moisture content of soil in root zone, transpiration = 0, i.e. wilting point
+        # self.theta_h4 (float): equilibrium moisture content of soil in root zone, transpiration = 0, i.e. permernant wilting point
         self.theta_h4 = self.et_prm["theta_h4_mm"].values[0]
 
         # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
@@ -68,7 +68,7 @@ class UnsaturatedZone:
         Args:
             i_up_uz (float): infiltration from interception storage on unpaved to unsaturated zone during current time step [mm]
             meas_uz (float): inflow from measure to unsaturated zone during current time step [mm]
-            e_ref (float): Potential evapotranspiration for reference crop during current time step [mm]
+            e_ref (float): reference crop evapotranspiration during current time step [mm]
             tot_meas_area (float): total area of measure [m^2]
             gwl_prevt (float): groundwater level at previous time step [m-SL]
             delta_t (float): length of time step [d]
@@ -78,15 +78,15 @@ class UnsaturatedZone:
 
             * **sum_i_uz** -- Infiltration from unpaved to unsaturated zone during current time step [mm]
             * **r_meas_uz** -- Inflow from measure (if applicable) to unsaturated zone during current time step [mm]
-            * **theta_h3_uz** -- Equilibrium moisture content in root zone during current time step at which transpiration reduction starts [mm]
-            * **t_alpha_uz** -- Transpiration factor during current time step [-]
+            * **theta_h3_uz** -- Moisture content of root zone at which transpiration reduction starts during current time step [mm]
+            * **t_alpha_uz** -- Transpiration reduction factor during current time step [-]
             * **t_atm_uz** -- Transpiration from unsaturated zone during current time step [mm]
-            * **gwl_up** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
-            * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
-            * **theta_eq_uz** -- Equilibrium moisture content of soil in root zone during current time step [mm]
+            * **gwl_up** -- First value in predefined lookup table above the groundwater level at the end of previous time step [m-SL]
+            * **gwl_low** -- First value in predefined lookup table below the groundwater level at the end of previous time step [m-SL]
+            * **theta_eq_uz** -- Equilibrium moisture content of root zone during current time step [mm]
             * **capris_max_uz** -- Maximum capillary rise in root zone during current time step [mm/d]
-            * **p_uz_gw** -- Percolation from unsaturated zone to groundwater during current time step [mm]
-            * **theta_uz** -- Moisture content of soil in root zone at the end of current time step [mm]
+            * **p_uz_gw** -- Percolation from unsaturated zone to groundwater during current time step (positive: deep percolation, negative: capillary rise) [mm]
+            * **theta_uz** -- Moisture content of root zone at the end of current time step [mm]
         """
 
         # parameters

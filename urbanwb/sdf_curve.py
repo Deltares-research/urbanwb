@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import time
-from functools import reduce
 import urbanwb
+from functools import reduce
+from itertools import groupby
 
 
 class SDF_Curve(object):
@@ -102,7 +103,7 @@ class SDF_curve2:
     def __init__(self, segment_marks, owl, ow_level):
         self.segment_marks = segment_marks
         self.ow_level = ow_level
-        self.owl = np.append(np.ones(len(owl)) * self.ow_level - owl, 0)
+        self.owl = np.append(np.ones(len(owl)) * self.ow_level - owl, 0)  # add 0 to end with 0
         self.ranking = sorted(self.get_maxima(), reverse=True)
 
     def get_maxima(self,):
@@ -111,6 +112,37 @@ class SDF_curve2:
             maxima.append(max(self.owl[self.segment_marks[i]:self.segment_marks[i+1]]))
         return maxima
 
+
+def running_counter(source_list):
+    "function calculates, following the list sequence how many times a number is repeated"
+    return [(k, sum(1 for i in g)) for k,g in groupby(source_list)]
+
+
+def get_segment_index(owl):
+
+    interim = np.zeros_like(owl)
+    for i in range(len(owl)):
+        if owl[i] != 0:
+            interim[i] = 1
+    count_list = running_counter(interim)
+
+    # test numbers of timesteps match or not
+    empty = []
+    for element in count_list:
+        empty.append(element[1])
+    if reduce((lambda x, y: x + y), empty) != len(owl):
+        raise SystemExit("number of time steps does not match.")
+
+    # analyze the count_list to get the index of segments.
+    t = 0
+    segment_index = [0]
+    base_index = 0
+    while t <= len(count_list) - 1:
+        if t % 2 == 0:
+            segment_index.append(count_list[t][1] + base_index)
+        base_index += count_list[t][1]
+        t += 1
+    return segment_index
 
 
 if __name__ == "__main__":

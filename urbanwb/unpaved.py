@@ -6,7 +6,7 @@ from urbanwb.selector import soil_selector
 
 class Unpaved:
     """
-    creates an instance of Unpaved class with given initial states and properties, iterates sol() function to compute
+    Creates an instance of Unpaved class with given initial states and properties, iterates sol() function to compute
     states and fluxes of unpaved at each time step.
 
     Args:
@@ -103,7 +103,7 @@ class Unpaved:
             r_pr_up (float): runoff from paved roof to unpaved during current time step [mm]
             r_cp_up (float): runoff from closed paved to unpaved during current time step [mm]
             r_op_up (float): runoff from open paved to unpaved during current time step [mm]
-            theta_uz_prevt (float): moisture content of unsaturated zone at previous time step [mm]
+            theta_uz_prevt (float): moisture content of root zone at previous time step [mm]
             pr_no_meas_area (float): area of paved roof without measure [m^2]
             cp_no_meas_area (float): area of closed paved without measure [m^2]
             op_no_meas_area (float): area of open paved without measure [m^2]

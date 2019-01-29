@@ -91,8 +91,8 @@ class Groundwater:
 
             * **sum_p_gw** -- Sum of percolation from unsaturated zone and percolation from open paved to groundwater during current time step [mm]
             * **r_meas_gw** -- Inflow from measure (if applicable) to groundwater during current time step [mm]
-            * **gwl_up** -- First value in predefined table above groundwater level at the end of previous time step [m-SL]
-            * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
+            * **gwl_up** -- First value in predefined lookup table above groundwater level at the end of previous time step [m-SL]
+            * **gwl_low** -- First value in predefined lookup table below groundwater level at the end of previous time step [m-SL]
             * **sc_gw** -- Storage coefficient of groundwater for current time step [-]
             * **h_gw** -- Groundwater level at the end of current time step [m-SL]
             * **s_gw_out** -- Downward seepage from shallow groundwater to deep groundwater during current time step [mm]

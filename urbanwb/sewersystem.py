@@ -4,7 +4,7 @@
 
 class SewerSystem:
     """
-    creates an instance of SewerSystem class with given initial states and properties, iterates sol() function to
+    Creates an instance of SewerSystem class with given initial states and properties, iterates sol() function to
     compute states and fluxes of sewer system at each time step.
 
     Args:
@@ -14,9 +14,9 @@ class SewerSystem:
         so_swds_t0 (float): initial sewer overflow from storm water drainage system (SWDS) (at t=0) [mm]
         stor_mss_t0 (float): initial storage in combined sewer system (MSS) (at t=0) [mm]
         so_mss_t0 (float): initial sewer overflow from combined sewer system (MSS) (at t=0) [mm]
-        q_swds_ow_cap (float): predefined discharge capacity of storm water drainage system (SWDS) to open water [mm/timestep]
-        q_mss_out_cap (float): predefined discharge capacity of combined sewer system (MSS) to waste water treatment plant (WWTP) [mm/timestep]
-        q_mss_ow_cap (float): predefined discharge capacity of combined sewer system (MSS) to open water [mm/timestep]
+        q_swds_ow_cap (float): discharge capacity of storm water drainage system (SWDS) to open water [mm/timestep]
+        q_mss_out_cap (float): discharge capacity of combined sewer system (MSS) to waste water treatment plant (WWTP) [mm/timestep]
+        q_mss_ow_cap (float): discharge capacity of combined sewer system (MSS) to open water [mm/timestep]
         stor_swds_cap (float): predefined storage capacity of storm water drainage system (SWDS) [mm]
         stor_mss_cap (float): predefined storage capacity of combined sewer system (MSS) [mm]
     """

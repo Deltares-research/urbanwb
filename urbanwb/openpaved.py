@@ -90,7 +90,7 @@ class OpenPaved:
             * **p_op_gw** -- Percolation from interception storage on open paved to groundwater during current time step [mm]
             * **r_op_meas** -- Runoff from open paved to measure during current time step (not necessarily on open paved itself) [mm]
             * **r_op_swds** -- Runoff from open paved to storm water drainage system (SWDS) during current time step [mm]
-            * **r_op_mss** -- Runoff from open paved to mixed sewer system (MSS) during current time step [mm]
+            * **r_op_mss** -- Runoff from open paved to combined sewer system (MSS) during current time step [mm]
             * **r_op_up** -- Runoff from open paved to unpaved during current time step [mm]
 
         """

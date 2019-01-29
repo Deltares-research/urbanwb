@@ -14,8 +14,8 @@ from urbanwb.pavedroof import PavedRoof
 from urbanwb.closedpaved import ClosedPaved
 from urbanwb.openpaved import OpenPaved
 from urbanwb.unpaved import Unpaved
-from urbanwb.groundwater import Groundwater
 from urbanwb.unsaturatedzone import UnsaturatedZone
+from urbanwb.groundwater import Groundwater
 from urbanwb.sewersystem import SewerSystem
 from urbanwb.openwater import OpenWater
 from urbanwb.measure import Measure
@@ -25,7 +25,7 @@ from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
 from urbanwb.waterbalance_checker import water_balance_checker
 from urbanwb.setlogger import setuplog
-from urbanwb.sdf_curve import SDF_curve2
+from urbanwb.sdf_curve import SDF_curve2, get_segment_index
 
 
 class UrbanwbModel(object):
@@ -64,7 +64,7 @@ class UrbanwbModel(object):
         p_atm,
         e_pot_ow,
         ref_grass,
-        prev_lst,
+        lst_prevt,
     ):
         """
         Calculates storage, fluxes, coefficients and other related results at current time step.
@@ -81,7 +81,7 @@ class UrbanwbModel(object):
                 r_pr_up=pr_sol["r_pr_up"],
                 r_cp_up=cp_sol["r_cp_up"],
                 r_op_up=op_sol["r_op_up"],
-                theta_uz_prevt=prev_lst["theta_uz"],
+                theta_uz_prevt=lst_prevt["theta_uz"],
                 pr_no_meas_area=self.param["pr_no_meas_area"],
                 cp_no_meas_area=self.param["cp_no_meas_area"],
                 op_no_meas_area=self.param["op_no_meas_area"],
@@ -97,14 +97,14 @@ class UrbanwbModel(object):
                                         op_no_meas_area=self.param["op_no_meas_area"],
                                         up_no_meas_area=self.param["up_no_meas_area"],
                                         gw_no_meas_area=self.param["gw_no_meas_area"],
-                                        gwl_prevt=prev_lst["gwl"],
+                                        gwl_prevt=lst_prevt["gwl"],
                                         delta_t=self.param["delta_t"])
             uz_sol = self.unsaturatedzone.sol(
                 i_up_uz=up_sol["i_up_uz"],
                 meas_uz=meas_sol["q_meas_uz"],
                 tot_meas_area=self.param["tot_meas_area"],
                 e_ref=ref_grass,
-                gwl_prevt=prev_lst["gwl"],
+                gwl_prevt=lst_prevt["gwl"],
                 delta_t=self.param["delta_t"],
             )
             gw_sol = self.groundwater.sol(
@@ -114,7 +114,7 @@ class UrbanwbModel(object):
                 op_no_meas_area=self.param["op_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
                 meas_gw=meas_sol["q_meas_gw"],
-                owl_prevt=prev_lst["owl"],
+                owl_prevt=lst_prevt["owl"],
                 delta_t=self.param["delta_t"],
             )
             ss_sol = self.sewersystem.sol(
@@ -170,7 +170,6 @@ def timer(func):
     return wrapper
 
 
-@timer
 def read_inputdata(dyn_inp):
     """
     reads input data (time series of precipitation and evaporation) from dynamic input file.
@@ -183,12 +182,12 @@ def read_inputdata(dyn_inp):
     """
     path = Path.cwd() / ".." / "input"
 
-    # Parsing date will takes additional 25 seconds for 30-yr timeseries before running. Besides, datetime format could
-    # also be problematic with user defined input. For robustness, it is better not to deal with datetime separately.
+    # Parsing 30-yr date as datetime will takes additional 25 seconds.  Besides, user-defined datetime format also be
+    # problematic. So for the sake of robustness, it is better not to deal with datetime separately.
     # rv = pd.read_csv(str(path) + "\\" + dyn_inp, parse_dates=["date"], dayfirst=True)
     rv = pd.read_csv(str(path) + "\\" + dyn_inp)
 
-    # check whether there is missing value in the input forcing timeseries.
+    # check if there is missing value in the input timeseries.
     num_nan = rv.isnull().sum().sum()
     if num_nan != 0:
         raise SystemExit(f"There are {num_nan} missing values in timeseries. Please recheck input file of timeseries.")
@@ -197,15 +196,16 @@ def read_inputdata(dyn_inp):
 
 def read_parameters(stat1_inp, stat2_inp):
     """
-    reads parameters for Model initialization through calling "read_parameter_base" to read parameters from
-    neighbourhood configuration file and "read_parameter_measure" to read parameters from measure configuration file.
+    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    configuration file, calling "read_parameter_measure" to read parameters from measure configuration file and
+    calculating area of xx without measure with given parameters.
 
     Args:
         stat1_inp (string): filename of neighbourhood configuration file
         stat2_inp (string): filename of measure configuration file
 
     Returns:
-        (dictionary): A dictionary of all necessary parameters to initialize a Model
+        (dictionary): A dictionary of all necessary parameters to initialize a model
     """
     parameter_base = read_parameter_base(stat1_inp)
     parameter_measure = read_parameter_measure(stat2_inp)
@@ -227,7 +227,13 @@ def read_parameters(stat1_inp, stat2_inp):
 def check_parameters(dict_param):
     """
     used in batch_run_measure() when simulation switches from "with measure" cases to "without measure" i.e baseline
-    case in order to make sure all area-related parameters are correctly modified
+    case in order to make sure all area-related parameters are correctly modified.
+
+    Args:
+        dict_param (dictionary): a dictionary of parameters to initialize a model
+
+    Returns:
+        (dictionary): A dictionary of all necessary parameters to initialize a model
     """
     if dict_param["measure_applied"]:
         return dict_param
@@ -236,6 +242,7 @@ def check_parameters(dict_param):
         # measure inflow area
         dict_param["pr_meas_inflow_area"] = dict_param["cp_meas_inflow_area"] = dict_param["op_meas_inflow_area"] = \
             dict_param["up_meas_inflow_area"] = dict_param["ow_meas_inflow_area"] = 0.0
+        dict_param["tot_meas_inflow_area"] = 0.0  # dont forget this
         # area of xx with measure
         dict_param["pr_meas_area"] = dict_param["cp_meas_area"] = dict_param["op_meas_area"] = \
             dict_param["up_meas_area"] = dict_param["uz_meas_area"] = dict_param["gw_meas_area"] = \
@@ -255,22 +262,9 @@ def check_parameters(dict_param):
                  mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
                  ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
                  )
-        # update dict_param with values in d
+        # updates dict_param with values in d
         rv = {**dict_param, **d}
         return rv
-
-
-def timer(func):
-    """
-    a decorator that timings the function runtime.
-    """
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        rv = func(*args, **kwargs)
-        after = time.time()
-        print(f"Elapsed: {after - start:.2f}s")
-        return rv
-    return wrapper
 
 
 @timer
@@ -440,7 +434,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
         save_all (bool): save all results when True, save specified selected results when False
 
     Returns:
-        A csv file of all computed results
+        A csv file of all (or part of) computed results
     """
     loggingfilename = ''.join(list(output_filename)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "STC_logger", thelevel=logging.INFO)
@@ -450,12 +444,29 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     rv = running(input_data, dict_param)
     df = rv[0]
     wbc_statistics = rv[1]
+    # logging the water balance for entire model
     logger.info(f"Entire model: {wbc_statistics[0]}")
+    # logging the water balance for measure itself
     logger.info(f"Measure itself: {wbc_statistics[1]}")
+
+    # if measure is applied, logging the water balance for measure inflow area
     if dict_param["tot_meas_area"] != 0:
         logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+
+    # if warning messages is not empty, logging the warning message
+    if len(wbc_statistics[3]) != 0:
+        logger.warning(wbc_statistics[3])
+
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
+
+    # logging the info regarding saving
+    if save_all:
+        msg = f"Saving all results to {output_filename}..."
+    else:
+        msg = f"Saving results {args} to {output_filename}..."
+    logger.info(msg)
+    print(msg)
 
     if save_all:
         df.to_csv(outdir / output_filename, index=True)
@@ -464,63 +475,64 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
         header.extend([arg for arg in args])
         df.to_csv(outdir / output_filename, index=True, columns=header)
 
+#
+# def batch_run_single(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
+#     """
+#     this batch_run function is to batch-run specified parameter with a set of parameters and save all results in csv
+#     for every case.
+#
+#     Args:
+#         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+#         stat1_inp (string): the filename of the static form of general parameters
+#         stat2_inp (string): the filename of the static form of measure parameters
+#         dyn_out (string): the general filename of the output file of solutions
+#         varkey (string): the parameter that needs to be updated in the batch run.
+#         vararr (float): values to update varkey.
+#     """
+#     import os
+#     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#     for varval in vararr:
+#         param[str(varkey)] = varval
+#         df = run(param, dyn_inp)
+#         new_dyn_out = f"{varkey}={varval}_" + dyn_out
+#         fullname = os.path.join(outdir, new_dyn_out)
+#         df.to_csv(fullname, index=True)
 
-def batch_run_single(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
-    """
-    this batch_run function is to batch-run specified parameter with a set of parameters and save all results in csv
-    for every case.
-
-    Args:
-        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
-        stat1_inp (string): the filename of the static form of general parameters
-        stat2_inp (string): the filename of the static form of measure parameters
-        dyn_out (string): the general filename of the output file of solutions
-        varkey (string): the parameter that needs to be updated in the batch run.
-        vararr (float): values to update varkey.
-    """
-    import os
-    param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-    for varval in vararr:
-        param[str(varkey)] = varval
-        df = run(param, dyn_inp)
-        new_dyn_out = f"{varkey}={varval}_" + dyn_out
-        fullname = os.path.join(outdir, new_dyn_out)
-        df.to_csv(fullname, index=True)
+#
+# def batch_run_save_to_csv1(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, *args):
+#     """
+#     this batch run function runs the model with a set of specified parameters and save all results in seperated csv
+#     I will keep this function"""
+#
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#
+#     input_data = read_inputdata(dyn_inp)
+#     dict_param = read_parameters(stat1_inp, stat2_inp)
+#     for arg in args:
+#         dict_param[param_to_change] = arg
+#         df = running(input_data, dict_param)[0]
+#         output = str(arg) + output_filename
+#         df.to_csv(outdir / output, index=True)
 
 
-def batch_run_save_to_csv1(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, *args):
-    """
-    this batch run function runs the model with a set of specified parameters and save all results in seperated csv
-    I will keep this function"""
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    input_data = read_inputdata(dyn_inp)
-    dict_param = read_parameters(stat1_inp, stat2_inp)
-    for arg in args:
-        dict_param[param_to_change] = arg
-        df = running(input_data, dict_param)[0]
-        output = str(arg) + output_filename
-        df.to_csv(outdir / output, index=True)
-
-def batch_run_save_to_csv2(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, value_list, corresponding_varkey, value_list2):
-    """
-    this batch run function runs the model with a set of specified parameters and save all results in seperated csv"""
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    input_data = read_inputdata(dyn_inp)
-    dict_param = read_parameters(stat1_inp, stat2_inp)
-    for x, y in zip(value_list, value_list2):
-        dict_param[param_to_change] = x
-        dict_param[corresponding_varkey] = y
-        df = running(input_data, dict_param)[0]
-        output = str(x) + output_filename
-        df.to_csv(outdir / output, index=True)
+# def batch_run_save_to_csv2(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, value_list, corresponding_varkey, value_list2):
+#     """
+#     this batch run function runs the model with a set of specified parameters and save all results in seperated csv"""
+#
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#
+#     input_data = read_inputdata(dyn_inp)
+#     dict_param = read_parameters(stat1_inp, stat2_inp)
+#     for x, y in zip(value_list, value_list2):
+#         dict_param[param_to_change] = x
+#         dict_param[corresponding_varkey] = y
+#         df = running(input_data, dict_param)[0]
+#         output = str(x) + output_filename
+#         df.to_csv(outdir / output, index=True)
 
 
 # def batch_run2(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr, *col, saveall=True):
@@ -551,7 +563,7 @@ def batch_run_save_to_csv2(dyn_inp, stat1_inp, stat2_inp, output_filename, param
 def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None,
                       baseline_variable="r_op_swds", variable_to_save="q_meas_swds"):
     """
-    batch run a series of simulations for one type of measure with various value for one parameter
+    for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -559,11 +571,12 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     stat2_inp (string): the filename of the static form of measure parameters
     dyn_out (string): the filename of the output file of solutions
     varkey (float): the key parameter to be updated
-    vararr (float): values to update varkey.
+    vararr (float): values to update varkey
+
+
 
     Usage:
-    use in the cmd: python -m urbanwb.main_with_measure batch_run_multivalue_for_one_param timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas q_meas_swds 200 100 --inflowfac 20
-    For now is is usable.
+    use in the cmd: python -m urbanwb.main_with_measure batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
     """
     loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
@@ -579,6 +592,10 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     dt = dict_param["delta_t"]
     num_year = round((dt * iters) / 365)
     print(f"Total year of the input time series is {num_year} year")
+    nameofmeasure = dict_param["title"]
+    msg_nameofmeasure = f"Current running {nameofmeasure}"
+    logger.info(msg_nameofmeasure)
+    print(msg_nameofmeasure)
     print("\n")
     database = []
     if correspvarkey is not None:
@@ -642,7 +659,7 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     df.to_csv(outdir / dyn_out, index=True)
 
 
-def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vararr):
+def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=None, arithmetic_progression=False):
     """
     this batch_run function is mainly designed for getting the database for sdf_curve.
 
@@ -651,9 +668,15 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
         stat1_inp (string): the filename of the static form of general parameters
         stat2_inp (string): the filename of the static form of measure parameters
         dyn_out (string): the filename of the output file of solutions
-        vararr (float): a list of values to update "q_ow_out_cap"
+        q_list (float): a list of values to update "q_ow_out_cap"
+        baseline_q (float): default baseline q is mean daily rainfall if baseline_q not explicitly defined
+        arithmetic_progression (bool): default is False meaning q_list is a list of random number; when explicitly
+        defined True, q_list is (min,max,steps)
 
     """
+    # determine logfile name based on outputfile name
+    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+    logger = setuplog(loggingfilename, "BRSDF_logger", thelevel=logging.INFO)
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
 
@@ -666,89 +689,102 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, typenumber=True, *vara
     dt = dict_param["delta_t"]
     num_year = round((dt * iters) / 365)
     print(f"The length of input time series is around {num_year} year")
+    print(f"Mean daily rainfall is {mean_daily_rainfall:.2f} mm/d")
     print("First, do baseline run:")
-    print(f"It is when pumping capacity equals mean daily rainfall {mean_daily_rainfall:.2f} mm/d to make fixed marks for other Q")
-    dict_param["q_ow_out_cap"] = mean_daily_rainfall
-    owl_data = np.append(running(input_data, dict_param)[0]["owl"], 0)
+
+    if baseline_q is None:
+        dict_param["q_ow_out_cap"] = mean_daily_rainfall
+        msg0 = f"Baseline pumping capacity is by default set as mean daily rainfall {mean_daily_rainfall:.2f} mm/d to make fixed marks"
+        logger.info(msg0)
+        print(msg0)
+    else:
+        msg0 = f"Baseline pumping capacity is {baseline_q} mm/d to make fixed marks"
+        dict_param["q_ow_out_cap"] = baseline_q
+        logger.info(msg0)
+        print(msg0)
+
+    # perform baseline run
+    owl_data = np.append(running(input_data, dict_param)[0]["owl"], 0)  # extra 0 at the end
     owl_baseline = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
     segment_marks = get_segment_index(owl_baseline)
     k_base = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
     rank_database.append(k_base.ranking)
     # print(segment_marks)
-    print("-----"*20)
-    if typenumber:
-        print(vararr)
-        for varval in vararr:
-            dict_param["q_ow_out_cap"] = varval
-            print(f"pumping capacity from open water to outside is {varval} mm/d over entire area")
-            owl_data = pd.DataFrame(running(input_data, dict_param)[0])["owl"]
+    print("-----"*50)
+    if not arithmetic_progression:  # if it is random number to type in.
+        print(f"q value to batch run: {q_list}")
+        for q in q_list:
+            dict_param["q_ow_out_cap"] = q
+            msg1 = f"Running: pumping capacity from open water to outside is {q} mm/d over entire area"
+            print(msg1)
+            logger.info(msg1)
+            rv = running(input_data, dict_param)
+            wbc_statistics = rv[1]
+            # logging the water balance for entire model
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            # logging the water balance for measure itself
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            # if measure is applied, logging the water balance for measure inflow area
+            if dict_param["tot_meas_area"] != 0:
+                logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+            # if warning messages is not empty, logging the warning message
+            if len(wbc_statistics[3]) != 0:
+                logger.warning(wbc_statistics[3])
+            owl_data = pd.DataFrame(rv[0])["owl"]
             k = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
             rank_database.append(k.ranking)
-            print(f"Maximum storage height above target water level over open water for Q = {varval} mm/d is {k.ranking[0]:.4f} m")
-            print("-----"*20)
-
-        name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in vararr]
+            msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.ranking[0]:.4f} m"
+            print(msg2)
+            logger.info(msg2)
+            print("-----"*50)
+        if baseline_q is None:
+            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in q_list]
+        else:
+            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in q_list]
         df = pd.DataFrame(rank_database, index=name_of_index)
         outdir = Path("pysol")
         outdir.mkdir(parents=True, exist_ok=True)
         df.T.to_csv(outdir / dyn_out, index=True)
 
-    else:
-        if len(vararr) != 3:
+    else:  # if we type in an arithmetic progression
+        if len(q_list) != 3:
             raise SystemExit("Please type in min, max, steps.")
-        array_num = np.arange(vararr[0], vararr[1]+1, (vararr[1] - vararr[0])/vararr[2])
-        print(array_num)
-        for val in array_num:
-            dict_param["q_ow_out_cap"] = val
-            print(f"pumping capacity from open water to outside is {val} mm/d over entire area")
-            owl_data = pd.DataFrame(running(input_data, dict_param)[0])["owl"]
+        array_q = np.arange(q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2])
+        print(f"q value to batch run are {array_q}")
+        for q in array_q:
+            dict_param["q_ow_out_cap"] = q
+            msg1 = f"Running: pumping capacity from open water to outside is {q} mm/d over entire area"
+            print(msg1)
+            logger.info(msg1)
+            rv = running(input_data, dict_param)
+            wbc_statistics = rv[1]
+            # logging the water balance for entire model
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            # logging the water balance for measure itself
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            # if measure is applied, logging the water balance for measure inflow area
+            if dict_param["tot_meas_area"] != 0:
+                logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+            # if warning messages is not empty, logging the warning message
+            if len(wbc_statistics[3]) != 0:
+                logger.warning(wbc_statistics[3])
+            owl_data = pd.DataFrame(rv[0])["owl"]
             k = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
             rank_database.append(k.ranking)
-            print(
-                f"Maximum storage height above target water level over open water for Q = {val} mm/d is {k.ranking[0]:.4f} m")
-            print("-----" * 20)
+            msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.ranking[0]:.4f} m"
+            print(msg2)
+            logger.info(msg2)
+            print("-----" * 40)
 
-        name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in array_num]
+        if baseline_q is None:
+            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in array_q]
+        else:
+            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in array_q]
+
         df = pd.DataFrame(rank_database, index=name_of_index)
         outdir = Path("pysol")
         outdir.mkdir(parents=True, exist_ok=True)
         df.T.to_csv(outdir / dyn_out, index=True)
-
-
-
-from functools import reduce
-from itertools import groupby
-
-def running_counter(source_list):
-    "function calculates, following the list sequence how many times a number is repeated"
-    return [(k, sum(1 for i in g)) for k,g in groupby(source_list)]
-
-
-def get_segment_index(owl):
-
-    interim = np.zeros_like(owl)
-    for i in range(len(owl)):
-        if owl[i] != 0:
-            interim[i] = 1
-    count_list = running_counter(interim)
-
-    # test numbers of timesteps match or not
-    empty = []
-    for element in count_list:
-        empty.append(element[1])
-    if reduce((lambda x, y: x + y), empty) != len(owl):
-        raise SystemExit("number of time steps does not match.")
-
-    # analyze the count_list to get the index of segments.
-    t = 0
-    segment_index = [0]
-    base_index = 0
-    while t <= len(count_list) - 1:
-        if t % 2 == 0:
-            segment_index.append(count_list[t][1] + base_index)
-        base_index += count_list[t][1]
-        t += 1
-    return segment_index
 
 
 if __name__ == "__main__":
