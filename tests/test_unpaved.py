@@ -99,14 +99,13 @@ class TestUnPaved(unittest.TestCase):
         runs the code before every single test
         """
         self.up_1 = Unpaved(fin_intstor_up_t0=0, up_no_meas_area=6855, up_meas_area=0, up_meas_inflow_area=0,
-                            infilcap_up=48, intstorcap_up=20, soiltype=2, croptype=1,
-        )
+                            infilcap_up=48, intstorcap_up=20, soiltype=2, croptype=1,)
 
     def test_inflowfac(self):
         """
         test the 'inflowfac' in the Unpaved class
         """
-        self.assertEqual(self.up_1.inflowfac(), 0)
+        self.assertEqual(self.up_1.inflowfac_up, 0)
 
     def test_sol(self):
         """
@@ -114,20 +113,20 @@ class TestUnPaved(unittest.TestCase):
         """
 
         # time level t = 8/1/1988 13:00
-        self.up_1.fin_intstor_up_prevt = 0  # update state
+        self.up_1.fin_intstor_up_prevt = 0.0  # update state
         self.assertAlmostEqual(
             self.up_1.sol(
-                0,
-                0.346642066,
-                0,
-                0,
-                0,
-                175.7714344,
-                1560,
-                803.3906406,
-                481.6093594,
-                300,
-                1 / 24,
+                p_atm=0,
+                e_pot_ow=0.346642066,
+                r_pr_up=0,
+                r_cp_up=0,
+                r_op_up=0,
+                theta_uz_prevt=175.7714344,
+                pr_no_meas_area=1560,
+                cp_no_meas_area=803.3906406,
+                op_no_meas_area=481.6093594,
+                ow_no_meas_area=300,
+                delta_t=1 / 24,
             )["actl_infilcap_up"],  # actl_infilcap_up
             2,
         )
