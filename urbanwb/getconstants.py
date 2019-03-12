@@ -25,7 +25,7 @@ def making_marks(precipitation):
 def ranking(df, x, num):
     rank = np.zeros(num)
     for i in range(num):
-        rank[i] = sum(df[df.mark==i][x])
+        rank[i] = sum(df[df.mark == i][x])
     return sorted(rank, reverse=True)
 
 
@@ -42,6 +42,7 @@ def removekey(d, *keys):
     return r
 
 # removekey(dictionary, "Date", "Baseline", "Unnamed: 0", "P_atm").keys()
+
 
 class Analyse(object):
 
@@ -69,13 +70,14 @@ class Analyse(object):
                 a = find_corresponding_T_for_array(t_array=self.makingranks["T_list"], array=self.makingranks[key])
                 c = [y/x for x, y in zip(baseT, a)]
                 emp[key] = c
+                np.mean(c)
         return emp
 
     def save_constants(self):
         pass
 
     def makingranks(self, ):
-        # unchanged,
+        # unchanged, I made a mistake here, should not be emp but self.emp
         emp = dict()
         emp["Rank_P"] = ranking(self.df, "P_atm", int(max(self.df.mark) + 1))
         # create T list (30 yr, thus starting from (30+1 / 1)), could put it as argument for more general running, but not for now.
@@ -88,10 +90,10 @@ class Analyse(object):
         return data
 
     def save_to_csv(self, ):
-        self.makingranks().to_csv(self.output_name)
+        self.makingranks.to_csv(self.output_name)
 
     def plotting(self, measure_name, addition_name, xlim_down=5, xlim_up=20, ):
-        self.data = self.makingranks()
+        self.data = self.makingranks
 
         plt.figure(figsize=(9, 6))
         plt.semilogy(self.data.Rank_P, self.data.T_list, "b--", label="Precipitation", ms=2)
@@ -122,22 +124,22 @@ import math
 def find_corresponding_T_for_array(t_array, array, vararr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50]):
     database = []
     for var in vararr:
-        # print(var, 'case:')
+        print(var, 'case:')
         try:
             for counter, value in enumerate(array):
                 if value < var:
                     # print(value)
                     v_below = array[counter]
                     v_above = array[counter-1]
-                    # print('v-above',counter-1, v_above)
-                    # print('v-below',counter, v_below)
-                    # print('---'*6)
+                    print('v-above',counter-1, v_above)
+                    print('v-below',counter, v_below)
+                    print('---'*6)
                     t_up = t_array[counter-1]
                     t_below = t_array[counter]
-                    # print('T-up',t_up)
-                    # print('T-below',t_below)
+                    print('T-up',t_up)
+                    print('T-below',t_below)
                     t_value = t_up - (v_above - var)/(v_above - v_below) * (t_up - t_below)
-                    # print('T_value',t_value)
+                    print('T_value', t_value)
                     break
         except KeyError:
             # print('below',counter, array[counter])
@@ -151,12 +153,22 @@ def find_corresponding_T_for_array(t_array, array, vararr = [1, 2, 3, 4, 5, 6, 7
 def getconstants(inputfilename, num_year=30):
     m = Analyse("pysol/" + inputfilename, num_year=num_year)
     results = m.getconstants()
+    mean_constants = []
+    for key in results.keys():
+        new_var_array = []
+        var_array = results[key]
+        for var in var_array:
+            if var < 2000:
+                new_var_array.append(var)
+        if new_var_array is not None:
+            mean_constants.append(np.round(np.mean(new_var_array),2))
     outputfilename = ''.join(list(inputfilename)[:-4]) + "_constants.txt"
     print(results)
     # np.savetxt(outputfilename, results, )
     with open(outputfilename, 'w') as f:
         for key, value in results.items():
             f.write('%s:%s\n' % (key, value))
+        f.write("%s" % mean_constants)
 
 if __name__ == "__main__":
     fire.Fire(getconstants)
