@@ -138,7 +138,6 @@ class Measure:
         self.surf_runoff_meas_Out = surf_runoff_meas_Out
         self.ctrl_runoff_meas_Out = ctrl_runoff_meas_Out
         self.overflow_meas_Out = overflow_meas_Out
-
         self.greenroof_type_measure = greenroof_type_measure
 
     def sol(self, p_atm, e_pot_ow, r_pr_meas, r_cp_meas, r_op_meas, r_up_meas, pr_no_meas_area, cp_no_meas_area,
@@ -195,6 +194,7 @@ class Measure:
                 ini_stor_top_meas = t_atm_top_meas = perc_top_meas = fin_stor_top_meas = ini_stor_btm_meas = \
                 t_atm_btm_meas = p_gw_btm_meas = runoff_btm_meas = fin_stor_btm_meas = overflow_btm_meas = q_meas_ow = \
                 q_meas_uz = q_meas_gw = q_meas_swds = q_meas_mss = q_meas_out = 0.0
+            # uncontrolled_runoff = controlled_runoff = total_runoff = 0.0
 
         else:
             prec_meas = p_atm
@@ -206,7 +206,7 @@ class Measure:
 
             e_atm_meas = self.EV_evaporation * min(int_meas, e_pot_ow)
 
-            if self.num_stor_lvl > 1.5:  # needs update state here.
+            if self.num_stor_lvl > 1.5:
 
                 if not self.greenroof_type_measure:
 
@@ -239,7 +239,8 @@ class Measure:
                 if not self.greenroof_type_measure:
                     perc_top_meas = max(0.0, min(ini_stor_top_meas - t_atm_top_meas, delta_t * self.infilcap_top_meas))
                 else:
-                    perc_top_meas = max(0.0, min(ini_stor_top_meas - t_atm_top_meas - self.storcap_top_meas, delta_t * self.infilcap_top_meas))
+                    perc_top_meas = max(0.0, min(ini_stor_top_meas - t_atm_top_meas - self.storcap_top_meas, delta_t *
+                                                 self.infilcap_top_meas))
 
             # perc_top_meas = 0.0 if self.num_stor_lvl < 2.5 else max(0, min(ini_stor_top_meas - t_atm_top_meas, delta_t * self.infilcap_top_meas))
 
@@ -298,6 +299,13 @@ class Measure:
 
             q_meas_out = self.surf_runoff_meas_Out * surf_runoff_meas + (0.0 if self.btm_meas_area == 0.0 else (self.ctrl_runoff_meas_Out * runoff_btm_meas + self.overflow_meas_Out * overflow_btm_meas) * self.tot_meas_area / self.btm_meas_area)
 
+            # # add controlled runoff, uncontrolled runoff and total runoff (to be developed)
+            # # uncontrolled runoff is bottom overflow plus surface overflow
+            # # controlled runoff is bottom controlled runoff
+            # uncontrolled_runoff = surf_runoff_meas + overflow_btm_meas
+            # controlled_runoff = runoff_btm_meas
+            # total_runoff = uncontrolled_runoff + controlled_runoff
+
             # update state:
             # update interception storage
             self.intstor_meas_prevt = intstor_meas
@@ -310,7 +318,11 @@ class Measure:
                 "fin_stor_top_meas": fin_stor_top_meas, "ini_stor_btm_meas": ini_stor_btm_meas, "t_atm_btm_meas": t_atm_btm_meas,
                 "p_gw_btm_meas": p_gw_btm_meas, "runoff_btm_meas": runoff_btm_meas, "fin_stor_btm_meas": fin_stor_btm_meas, "overflow_btm_meas": overflow_btm_meas,
                 "q_meas_ow": q_meas_ow, "q_meas_uz": q_meas_uz, "q_meas_gw": q_meas_gw,
-                "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss, "q_meas_out": q_meas_out}
+                "q_meas_swds": q_meas_swds, "q_meas_mss": q_meas_mss, "q_meas_out": q_meas_out,
+                #"uncontrolled_runoff": uncontrolled_runoff,
+                #"controlled_runoff": controlled_runoff,
+                #"total_runoff": total_runoff,
+                }
 
 
 
