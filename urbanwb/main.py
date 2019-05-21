@@ -510,7 +510,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
 # def batch_run_save_to_csv1(dyn_inp, stat1_inp, stat2_inp, output_filename, param_to_change, *args):
 #     """
 #     this batch run function runs the model with a set of specified parameters and save all results in seperated csv
-#     I will keep this function"""
+#     """
 #
 #     outdir = Path("pysol")
 #     outdir.mkdir(parents=True, exist_ok=True)
@@ -579,10 +579,8 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     varkey (float): the key parameter to be updated
     vararr (float): values to update varkey
 
-
-
     Usage:
-    use in the cmd: python -m urbanwb.main_with_measure batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
+    use in the cmd: python -m urbanwb.main batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
     """
     loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
@@ -793,204 +791,204 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
         df.T.to_csv(outdir / dyn_out, index=True)
 
 
-def batch_run_measure_mia(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None,
-                      baseline_variable="r_op_swds", variable_to_save="controlled_runoff"):
-    """
-    for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
-
-    Args:
-    dyn_inp (string): the filename of the inputdata of precipitation and evaporation
-    stat1_inp (string): the filename of the static form of general parameters
-    stat2_inp (string): the filename of the static form of measure parameters
-    dyn_out (string): the filename of the output file of solutions
-    varkey (float): the key parameter to be updated
-    vararr (float): values to update varkey
-
-    Usage:
-    use in the cmd: python -m urbanwb.main_with_measure batch_run_measure_ctrl timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
-    """
-    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
-    logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
-    inputdata = read_inputdata(dyn_inp)
-    dict_param = read_parameters(stat1_inp, stat2_inp)
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    # can delete this fraction if necessary.
-    date = inputdata["date"]
-    iters = np.shape(date)[0]
-    dt = dict_param["delta_t"]
-    num_year = round((dt * iters) / 365)
-    print(f"Total year of the input time series is {num_year} year")
-    nameofmeasure = dict_param["title"]
-    msg_nameofmeasure = f"Current running {nameofmeasure}"
-    logger.info(msg_nameofmeasure)
-    print(msg_nameofmeasure)
-    print("\n")
-    database = []
-    if correspvarkey is not None:
-        for a, b in zip(vararrlist1, vararrlist2):
-            dict_param[varkey] = a
-            dict_param[correspvarkey] = b
-            measure_area_info = dict_param["tot_meas_area"]
-            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
-            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
-                f"inflow area={measure_inflow_area_info}"
-            print(msg)
-            rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
-            logger.info(msg)
-            wbc_statistics = rv[1]
-            logger.info(f"Entire model: {wbc_statistics[0]}")
-            logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
-            print("\n"*2)
-            sleep(0.5)
-    else:
-        for a in vararrlist1:
-            dict_param[varkey] = a
-            measure_area_info = dict_param["tot_meas_area"]
-            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
-            msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
-            print(msg)
-            rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
-            logger.info(msg)
-            wbc_statistics = rv[1]
-            logger.info(f"Entire model: {wbc_statistics[0]}")
-            logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
-            print("\n" * 2)
-            sleep(0.5)
-
-    df = pd.DataFrame(database, index=[v for v in vararrlist1])
-    df = df.T
-    df.insert(0, "Date", date)
-    df.insert(1, "P_atm", inputdata["P_atm"])
-
-    dict_param["measure_applied"] = False
-    # print(dict_param)
-    msg = "Case without measure: Baseline"
-    print(msg)
-    rv = running(inputdata, check_parameters(dict_param))
-    baseline_runoff = pd.DataFrame(rv[0])[baseline_variable]
-    logger.info(msg)
-    wbc_statistics = rv[1]
-    logger.info(f"Entire model: {wbc_statistics[0]}")
-    logger.info(f"Measure itself: {wbc_statistics[1]}")
-    # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
-    print("------" * 20)
-    sleep(0.5)
-    df.insert(2, "Baseline", baseline_runoff)
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(outdir / dyn_out, index=True)
-
-
-def batch_run_measure_tot_area(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None, variable_to_save="r_ow_entire3"):
-    """
-    for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
-
-    Args:
-    dyn_inp (string): the filename of the inputdata of precipitation and evaporation
-    stat1_inp (string): the filename of the static form of general parameters
-    stat2_inp (string): the filename of the static form of measure parameters
-    dyn_out (string): the filename of the output file of solutions
-    varkey (float): the key parameter to be updated
-    vararr (float): values to update varkey
-
-    Usage:
-    use in the cmd: python -m urbanwb.main_with_measure batch_run_measure_ctrl timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
-    """
-    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
-    logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
-    inputdata = read_inputdata(dyn_inp)
-    dict_param = read_parameters(stat1_inp, stat2_inp)
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    # can delete this fraction if necessary.
-    date = inputdata["date"]
-    iters = np.shape(date)[0]
-    dt = dict_param["delta_t"]
-    num_year = round((dt * iters) / 365)
-    print(f"Total year of the input time series is {num_year} year")
-    nameofmeasure = dict_param["title"]
-    msg_nameofmeasure = f"Current running {nameofmeasure}"
-    logger.info(msg_nameofmeasure)
-    print(msg_nameofmeasure)
-    print("\n")
-    database = []
-    if correspvarkey is not None:
-        for a, b in zip(vararrlist1, vararrlist2):
-            dict_param[varkey] = a
-            dict_param[correspvarkey] = b
-            measure_area_info = dict_param["tot_meas_area"]
-            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
-            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
-                f"inflow area={measure_inflow_area_info}"
-            print(msg)
-            rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save])
-            logger.info(msg)
-            wbc_statistics = rv[1]
-            logger.info(f"Entire model: {wbc_statistics[0]}")
-            logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
-            print("\n"*2)
-            sleep(0.5)
-    else:
-        for a in vararrlist1:
-            dict_param[varkey] = a
-            measure_area_info = dict_param["tot_meas_area"]
-            measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
-            msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
-            print(msg)
-            rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save])
-            logger.info(msg)
-            wbc_statistics = rv[1]
-            logger.info(f"Entire model: {wbc_statistics[0]}")
-            logger.info(f"Measure itself: {wbc_statistics[1]}")
-            logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
-            print("\n" * 2)
-            sleep(0.5)
-
-    df = pd.DataFrame(database, index=[v for v in vararrlist1])
-    df = df.T
-    df.insert(0, "Date", date)
-    df.insert(1, "P_atm", inputdata["P_atm"])
-    # df.insert(2, "evap", inputdata["E_pot_OW"])
-
-    dict_param["measure_applied"] = False
-    # print(dict_param)
-    msg = "Case without measure: Baseline"
-    print(msg)
-    rv = running(inputdata, check_parameters(dict_param))
-    baseline_runoff = pd.DataFrame(rv[0])[variable_to_save]
-    # gwl_ts = pd.DataFrame(rv[0])["gwl"]
-    # owl_ts = pd.DataFrame(rv[0])["owl"]
-    # q_ow_out_ts = pd.DataFrame(rv[0])["q_ow_out"]
-    logger.info(msg)
-    wbc_statistics = rv[1]
-    logger.info(f"Entire model: {wbc_statistics[0]}")
-    logger.info(f"Measure itself: {wbc_statistics[1]}")
-    # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
-    print("------" * 20)
-    sleep(0.5)
-    df.insert(2, "Baseline", baseline_runoff)
-    # df.insert(4, "GWL", gwl_ts)
-    # df.insert(5, "owl", owl_ts)
-    # df.insert(6, "q_ow_out", q_ow_out_ts)
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(outdir / dyn_out, index=True)
+# def batch_run_measure_mia(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None,
+#                       baseline_variable="r_op_swds", variable_to_save="controlled_runoff"):
+#     """
+#     for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+#
+#     Args:
+#     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+#     stat1_inp (string): the filename of the static form of general parameters
+#     stat2_inp (string): the filename of the static form of measure parameters
+#     dyn_out (string): the filename of the output file of solutions
+#     varkey (float): the key parameter to be updated
+#     vararr (float): values to update varkey
+#
+#     Usage:
+#     use in the cmd: python -m urbanwb.main_with_measure batch_run_measure_ctrl timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
+#     """
+#     loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+#     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
+#     inputdata = read_inputdata(dyn_inp)
+#     dict_param = read_parameters(stat1_inp, stat2_inp)
+#
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#
+#     # can delete this fraction if necessary.
+#     date = inputdata["date"]
+#     iters = np.shape(date)[0]
+#     dt = dict_param["delta_t"]
+#     num_year = round((dt * iters) / 365)
+#     print(f"Total year of the input time series is {num_year} year")
+#     nameofmeasure = dict_param["title"]
+#     msg_nameofmeasure = f"Current running {nameofmeasure}"
+#     logger.info(msg_nameofmeasure)
+#     print(msg_nameofmeasure)
+#     print("\n")
+#     database = []
+#     if correspvarkey is not None:
+#         for a, b in zip(vararrlist1, vararrlist2):
+#             dict_param[varkey] = a
+#             dict_param[correspvarkey] = b
+#             measure_area_info = dict_param["tot_meas_area"]
+#             measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+#             msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
+#                 f"inflow area={measure_inflow_area_info}"
+#             print(msg)
+#             rv = running(inputdata, dict_param)
+#             database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+#             logger.info(msg)
+#             wbc_statistics = rv[1]
+#             logger.info(f"Entire model: {wbc_statistics[0]}")
+#             logger.info(f"Measure itself: {wbc_statistics[1]}")
+#             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+#             print("------" * 20)
+#             print("\n"*2)
+#             sleep(0.5)
+#     else:
+#         for a in vararrlist1:
+#             dict_param[varkey] = a
+#             measure_area_info = dict_param["tot_meas_area"]
+#             measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+#             msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
+#             print(msg)
+#             rv = running(inputdata, dict_param)
+#             database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+#             logger.info(msg)
+#             wbc_statistics = rv[1]
+#             logger.info(f"Entire model: {wbc_statistics[0]}")
+#             logger.info(f"Measure itself: {wbc_statistics[1]}")
+#             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+#             print("------" * 20)
+#             print("\n" * 2)
+#             sleep(0.5)
+#
+#     df = pd.DataFrame(database, index=[v for v in vararrlist1])
+#     df = df.T
+#     df.insert(0, "Date", date)
+#     df.insert(1, "P_atm", inputdata["P_atm"])
+#
+#     dict_param["measure_applied"] = False
+#     # print(dict_param)
+#     msg = "Case without measure: Baseline"
+#     print(msg)
+#     rv = running(inputdata, check_parameters(dict_param))
+#     baseline_runoff = pd.DataFrame(rv[0])[baseline_variable]
+#     logger.info(msg)
+#     wbc_statistics = rv[1]
+#     logger.info(f"Entire model: {wbc_statistics[0]}")
+#     logger.info(f"Measure itself: {wbc_statistics[1]}")
+#     # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+#     print("------" * 20)
+#     sleep(0.5)
+#     df.insert(2, "Baseline", baseline_runoff)
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#     df.to_csv(outdir / dyn_out, index=True)
+#
+#
+# def batch_run_measure_tot_area(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None, variable_to_save="r_ow_entire3"):
+#     """
+#     for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+#
+#     Args:
+#     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+#     stat1_inp (string): the filename of the static form of general parameters
+#     stat2_inp (string): the filename of the static form of measure parameters
+#     dyn_out (string): the filename of the output file of solutions
+#     varkey (float): the key parameter to be updated
+#     vararr (float): values to update varkey
+#
+#     Usage:
+#     use in the cmd: python -m urbanwb.main_with_measure batch_run_measure_ctrl timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
+#     """
+#     loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+#     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
+#     inputdata = read_inputdata(dyn_inp)
+#     dict_param = read_parameters(stat1_inp, stat2_inp)
+#
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#
+#     # can delete this fraction if necessary.
+#     date = inputdata["date"]
+#     iters = np.shape(date)[0]
+#     dt = dict_param["delta_t"]
+#     num_year = round((dt * iters) / 365)
+#     print(f"Total year of the input time series is {num_year} year")
+#     nameofmeasure = dict_param["title"]
+#     msg_nameofmeasure = f"Current running {nameofmeasure}"
+#     logger.info(msg_nameofmeasure)
+#     print(msg_nameofmeasure)
+#     print("\n")
+#     database = []
+#     if correspvarkey is not None:
+#         for a, b in zip(vararrlist1, vararrlist2):
+#             dict_param[varkey] = a
+#             dict_param[correspvarkey] = b
+#             measure_area_info = dict_param["tot_meas_area"]
+#             measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+#             msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
+#                 f"inflow area={measure_inflow_area_info}"
+#             print(msg)
+#             rv = running(inputdata, dict_param)
+#             database.append(pd.DataFrame(rv[0])[variable_to_save])
+#             logger.info(msg)
+#             wbc_statistics = rv[1]
+#             logger.info(f"Entire model: {wbc_statistics[0]}")
+#             logger.info(f"Measure itself: {wbc_statistics[1]}")
+#             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+#             print("------" * 20)
+#             print("\n"*2)
+#             sleep(0.5)
+#     else:
+#         for a in vararrlist1:
+#             dict_param[varkey] = a
+#             measure_area_info = dict_param["tot_meas_area"]
+#             measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
+#             msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
+#             print(msg)
+#             rv = running(inputdata, dict_param)
+#             database.append(pd.DataFrame(rv[0])[variable_to_save])
+#             logger.info(msg)
+#             wbc_statistics = rv[1]
+#             logger.info(f"Entire model: {wbc_statistics[0]}")
+#             logger.info(f"Measure itself: {wbc_statistics[1]}")
+#             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+#             print("------" * 20)
+#             print("\n" * 2)
+#             sleep(0.5)
+#
+#     df = pd.DataFrame(database, index=[v for v in vararrlist1])
+#     df = df.T
+#     df.insert(0, "Date", date)
+#     df.insert(1, "P_atm", inputdata["P_atm"])
+#     # df.insert(2, "evap", inputdata["E_pot_OW"])
+#
+#     dict_param["measure_applied"] = False
+#     # print(dict_param)
+#     msg = "Case without measure: Baseline"
+#     print(msg)
+#     rv = running(inputdata, check_parameters(dict_param))
+#     baseline_runoff = pd.DataFrame(rv[0])[variable_to_save]
+#     # gwl_ts = pd.DataFrame(rv[0])["gwl"]
+#     # owl_ts = pd.DataFrame(rv[0])["owl"]
+#     # q_ow_out_ts = pd.DataFrame(rv[0])["q_ow_out"]
+#     logger.info(msg)
+#     wbc_statistics = rv[1]
+#     logger.info(f"Entire model: {wbc_statistics[0]}")
+#     logger.info(f"Measure itself: {wbc_statistics[1]}")
+#     # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
+#     print("------" * 20)
+#     sleep(0.5)
+#     df.insert(2, "Baseline", baseline_runoff)
+#     # df.insert(4, "GWL", gwl_ts)
+#     # df.insert(5, "owl", owl_ts)
+#     # df.insert(6, "q_ow_out", q_ow_out_ts)
+#     outdir = Path("pysol")
+#     outdir.mkdir(parents=True, exist_ok=True)
+#     df.to_csv(outdir / dyn_out, index=True)
 
 
 if __name__ == "__main__":
