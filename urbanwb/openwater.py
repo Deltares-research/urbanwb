@@ -135,6 +135,15 @@ class OpenWater:
                 / 1000.0
             )
 
+            # # runoff over the entire area (currently excluding Q to WWTP)
+            # # r_ow_entire = (max(- (owl - self.owl_prevt), 0) * 1000.0 + max(q_ow_out, 0.0)) * (self.ow_no_meas_area / tot_area)
+            # # without groundwater drainage to surface water
+            # r_ow_entire1 = (sum_r_ow + sum_q_ow + sum_so_ow + r_meas_ow) * (self.ow_no_meas_area / tot_area)
+            # # with groundwater drainage to surface water
+            # r_ow_entire2 = (sum_r_ow + sum_d_ow + sum_q_ow + sum_so_ow + r_meas_ow) * (self.ow_no_meas_area / tot_area)
+            # r_ow_entire3 = (max(- (owl - self.owl_prevt), 0) * 1000.0 + max(q_ow_out, 0.0)) * (self.ow_no_meas_area / tot_area)
+            # r_ow_entire4 = (- (owl - self.owl_prevt) * 1000.0 + max(q_ow_out, 0.0)) * (self.ow_no_meas_area / tot_area)
+
             # update state
             self.owl_prevt = owl
 
@@ -148,4 +157,8 @@ class OpenWater:
             "r_meas_ow": r_meas_ow,
             "q_ow_out": q_ow_out,
             "owl": owl,
+            # "r_ow_entire1": r_ow_entire1,
+            # "r_ow_entire2": r_ow_entire2,
+            # "r_ow_entire3": r_ow_entire3,
+            # "r_ow_entire4": r_ow_entire4,
         }
