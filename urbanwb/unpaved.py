@@ -92,7 +92,7 @@ class Unpaved:
         cp_no_meas_area,
         op_no_meas_area,
         ow_no_meas_area,
-        delta_t=1/24,
+        delta_t=1 / 24,
     ):
         """
         Calculates states and fluxes on unpaved during current time step.
@@ -130,7 +130,9 @@ class Unpaved:
                 init_intstor_up
             ) = (
                 actl_infilcap_up
-            ) = timefac_up = e_atm_up = i_up_uz = fin_intstor_up = r_up_meas = r_up_ow = 0.0
+            ) = (
+                timefac_up
+            ) = e_atm_up = i_up_uz = fin_intstor_up = r_up_meas = r_up_ow = 0.0
 
         else:
             sum_r_up = (
@@ -186,7 +188,11 @@ class Unpaved:
             else:
                 r_up_ow = max(
                     0.0,
-                    init_intstor_up - e_atm_up - i_up_uz - self.intstorcap_up - r_up_meas,
+                    init_intstor_up
+                    - e_atm_up
+                    - i_up_uz
+                    - self.intstorcap_up
+                    - r_up_meas,
                 )
 
             # update state

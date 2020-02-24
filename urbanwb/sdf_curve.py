@@ -103,19 +103,23 @@ class SDF_curve2:
     def __init__(self, segment_marks, owl, ow_level):
         self.segment_marks = segment_marks
         self.ow_level = ow_level
-        self.owl = np.append(np.ones(len(owl)) * self.ow_level - owl, 0)  # add 0 to end with 0
+        self.owl = np.append(
+            np.ones(len(owl)) * self.ow_level - owl, 0
+        )  # add 0 to end with 0
         self.ranking = sorted(self.get_maxima(), reverse=True)
 
     def get_maxima(self,):
         maxima = []
-        for i in range(len(self.segment_marks)-1):
-            maxima.append(max(self.owl[self.segment_marks[i]:self.segment_marks[i+1]]))
+        for i in range(len(self.segment_marks) - 1):
+            maxima.append(
+                max(self.owl[self.segment_marks[i] : self.segment_marks[i + 1]])
+            )
         return maxima
 
 
 def running_counter(source_list):
     "function calculates, following the list sequence how many times a number is repeated"
-    return [(k, sum(1 for i in g)) for k,g in groupby(source_list)]
+    return [(k, sum(1 for i in g)) for k, g in groupby(source_list)]
 
 
 def get_segment_index(owl):

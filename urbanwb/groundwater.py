@@ -132,17 +132,17 @@ class Groundwater:
             if self.seepage_define > 0.5:
                 h_gw = -(
                     (
-                            (sum_p_gw + r_meas_gw) / 1000.0 * self.w * self.vc
-                            - self.head_deep_gw * self.w
-                            - owl_prevt * self.vc
+                        (sum_p_gw + r_meas_gw) / delta_t / 1000.0 * self.w * self.vc
+                        - self.head_deep_gw * self.w
+                        - owl_prevt * self.vc
                     )
                     / (self.w + self.vc)
                     + (
                         -(self.gwl_prevt + self.gwl_sl_prevt)
                         - (
-                                (sum_p_gw + r_meas_gw) / 1000.0 * self.w * self.vc
-                                - self.head_deep_gw * self.w
-                                - owl_prevt * self.vc
+                            (sum_p_gw + r_meas_gw) / delta_t / 1000.0 * self.w * self.vc
+                            - self.head_deep_gw * self.w
+                            - owl_prevt * self.vc
                         )
                         / (self.w + self.vc)
                     )
@@ -161,30 +161,44 @@ class Groundwater:
 
             else:
                 h_gw = -(
-                        self.w * (((sum_p_gw + r_meas_gw) - self.down_seepage_flux) / 1000.0)
-                        - owl_prevt
-                        + (
+                    self.w
+                    * (
+                        ((sum_p_gw + r_meas_gw) / delta_t - self.down_seepage_flux)
+                        / 1000.0
+                    )
+                    - owl_prevt
+                    + (
                         -(self.gwl_prevt + self.gwl_sl_prevt)
-                        -(
-                                self.w * (((sum_p_gw + r_meas_gw) - self.down_seepage_flux) / 1000.0)
-                                - owl_prevt
+                        - (
+                            self.w
+                            * (
+                                (
+                                    (sum_p_gw + r_meas_gw) / delta_t
+                                    - self.down_seepage_flux
+                                )
+                                / 1000.0
+                            )
+                            - owl_prevt
                         )
                     )
-                        * np.exp(-delta_t / (sc_gw * self.w))
+                    * np.exp(-delta_t / (sc_gw * self.w))
                 )
 
                 s_gw_out = delta_t * self.down_seepage_flux
 
             d_gw_ow = (
-                    sum_p_gw
-                    + r_meas_gw
-                    - s_gw_out
-                    - sc_gw * (self.gwl_prevt + self.gwl_sl_prevt / sc_gw - h_gw) * 1000.0  # div sc_gw
+                sum_p_gw
+                + r_meas_gw
+                - s_gw_out
+                - sc_gw
+                * (self.gwl_prevt + self.gwl_sl_prevt / sc_gw - h_gw)
+                * 1000.0  # div sc_gw
             )
 
             gwl = max(
                 0.0,
-                self.gwl_prevt + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
+                self.gwl_prevt
+                + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
                 - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw),
             )
 
@@ -193,7 +207,8 @@ class Groundwater:
                 (
                     0.0
                     - (
-                        self.gwl_prevt + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
+                        self.gwl_prevt
+                        + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
                         - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw)
                     )
                 )

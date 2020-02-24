@@ -49,7 +49,7 @@ class UrbanwbModel(object):
             theta_uz_t0=soil_selector(self.param["soiltype"], self.param["croptype"])[
                 gwlcalc(self.param["gwl_t0"])[2]
             ]["moist_cont_eq_rz[mm]"],
-            **self.param
+            **self.param,
         )
         self.groundwater = Groundwater(**self.param)
         self.sewersystem = SewerSystem(**self.param)
@@ -60,11 +60,7 @@ class UrbanwbModel(object):
         return self
 
     def __next__(
-        self,
-        p_atm,
-        e_pot_ow,
-        ref_grass,
-        lst_prevt,
+        self, p_atm, e_pot_ow, ref_grass, lst_prevt,
     ):
         """
         Calculates storage, fluxes, coefficients and other related results at current time step.
@@ -88,17 +84,21 @@ class UrbanwbModel(object):
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 delta_t=self.param["delta_t"],
             )
-            meas_sol = self.measure.sol(p_atm=p_atm,
-                                        e_pot_ow=e_pot_ow,
-                                        r_pr_meas=pr_sol["r_pr_meas"], r_cp_meas=cp_sol["r_cp_meas"],
-                                        r_op_meas=op_sol["r_op_meas"], r_up_meas=up_sol["r_up_meas"],
-                                        pr_no_meas_area=self.param["pr_no_meas_area"],
-                                        cp_no_meas_area=self.param["cp_no_meas_area"],
-                                        op_no_meas_area=self.param["op_no_meas_area"],
-                                        up_no_meas_area=self.param["up_no_meas_area"],
-                                        gw_no_meas_area=self.param["gw_no_meas_area"],
-                                        gwl_prevt=lst_prevt["gwl"],
-                                        delta_t=self.param["delta_t"])
+            meas_sol = self.measure.sol(
+                p_atm=p_atm,
+                e_pot_ow=e_pot_ow,
+                r_pr_meas=pr_sol["r_pr_meas"],
+                r_cp_meas=cp_sol["r_cp_meas"],
+                r_op_meas=op_sol["r_op_meas"],
+                r_up_meas=up_sol["r_up_meas"],
+                pr_no_meas_area=self.param["pr_no_meas_area"],
+                cp_no_meas_area=self.param["cp_no_meas_area"],
+                op_no_meas_area=self.param["op_no_meas_area"],
+                up_no_meas_area=self.param["up_no_meas_area"],
+                gw_no_meas_area=self.param["gw_no_meas_area"],
+                gwl_prevt=lst_prevt["gwl"],
+                delta_t=self.param["delta_t"],
+            )
             uz_sol = self.unsaturatedzone.sol(
                 i_up_uz=up_sol["i_up_uz"],
                 meas_uz=meas_sol["q_meas_uz"],
@@ -150,8 +150,19 @@ class UrbanwbModel(object):
                 tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
-            merged_dict = OrderedDict(dict(**pr_sol, **cp_sol, **op_sol, **up_sol, **uz_sol, **gw_sol, **ss_sol,
-                                           **ow_sol, **meas_sol))
+            merged_dict = OrderedDict(
+                dict(
+                    **pr_sol,
+                    **cp_sol,
+                    **op_sol,
+                    **up_sol,
+                    **uz_sol,
+                    **gw_sol,
+                    **ss_sol,
+                    **ow_sol,
+                    **meas_sol,
+                )
+            )
         except IndexError:
             raise StopIteration
         return merged_dict
@@ -161,12 +172,14 @@ def timer(func):
     """
     a decorator that timings the function runtime.
     """
+
     def wrapper(*args, **kwargs):
         start = time.time()
         rv = func(*args, **kwargs)
         after = time.time()
         print(f"Elapsed: {after - start:.2f}s")
         return rv
+
     return wrapper
 
 
@@ -191,7 +204,9 @@ def read_inputdata(dyn_inp):
     # check if there is missing value in the input time series.
     num_nan = rv.isnull().sum().sum()
     if num_nan != 0:
-        raise SystemExit(f"There are {num_nan} missing values in time series. Please recheck input time series file.")
+        raise SystemExit(
+            f"There are {num_nan} missing values in time series. Please recheck input time series file."
+        )
     return rv
 
 
@@ -210,16 +225,26 @@ def read_parameters(stat1_inp, stat2_inp):
     """
     parameter_base = read_parameter_base(stat1_inp)
     parameter_measure = read_parameter_measure(stat2_inp)
-    d = dict(pr_no_meas_area=parameter_base["tot_pr_area"] - parameter_measure["pr_meas_area"],
-             cp_no_meas_area=parameter_base["tot_cp_area"] - parameter_measure["cp_meas_area"],
-             op_no_meas_area=parameter_base["tot_op_area"] - parameter_measure["op_meas_area"],
-             up_no_meas_area=parameter_base["tot_up_area"] - parameter_measure["up_meas_area"],
-             uz_no_meas_area=parameter_base["tot_uz_area"] - parameter_measure["uz_meas_area"],
-             gw_no_meas_area=parameter_base["tot_gw_area"] - parameter_measure["gw_meas_area"],
-             swds_no_meas_area=parameter_base["tot_swds_area"] - parameter_measure["swds_meas_area"],
-             mss_no_meas_area=parameter_base["tot_mss_area"] - parameter_measure["mss_meas_area"],
-             ow_no_meas_area=parameter_base["tot_ow_area"] - parameter_measure["ow_meas_area"],
-             )
+    d = dict(
+        pr_no_meas_area=parameter_base["tot_pr_area"]
+        - parameter_measure["pr_meas_area"],
+        cp_no_meas_area=parameter_base["tot_cp_area"]
+        - parameter_measure["cp_meas_area"],
+        op_no_meas_area=parameter_base["tot_op_area"]
+        - parameter_measure["op_meas_area"],
+        up_no_meas_area=parameter_base["tot_up_area"]
+        - parameter_measure["up_meas_area"],
+        uz_no_meas_area=parameter_base["tot_uz_area"]
+        - parameter_measure["uz_meas_area"],
+        gw_no_meas_area=parameter_base["tot_gw_area"]
+        - parameter_measure["gw_meas_area"],
+        swds_no_meas_area=parameter_base["tot_swds_area"]
+        - parameter_measure["swds_meas_area"],
+        mss_no_meas_area=parameter_base["tot_mss_area"]
+        - parameter_measure["mss_meas_area"],
+        ow_no_meas_area=parameter_base["tot_ow_area"]
+        - parameter_measure["ow_meas_area"],
+    )
     rv = {**parameter_base, **parameter_measure, **d}
     # print(rv)
     return rv
@@ -241,28 +266,45 @@ def check_parameters(dict_param):
     else:
         # update area-related parameters:
         # measure inflow area
-        dict_param["pr_meas_inflow_area"] = dict_param["cp_meas_inflow_area"] = dict_param["op_meas_inflow_area"] = \
-            dict_param["up_meas_inflow_area"] = dict_param["ow_meas_inflow_area"] = 0.0
+        dict_param["pr_meas_inflow_area"] = dict_param[
+            "cp_meas_inflow_area"
+        ] = dict_param["op_meas_inflow_area"] = dict_param[
+            "up_meas_inflow_area"
+        ] = dict_param[
+            "ow_meas_inflow_area"
+        ] = 0.0
         dict_param["tot_meas_inflow_area"] = 0.0
         # area of xx with measure
-        dict_param["pr_meas_area"] = dict_param["cp_meas_area"] = dict_param["op_meas_area"] = \
-            dict_param["up_meas_area"] = dict_param["uz_meas_area"] = dict_param["gw_meas_area"] = \
-            dict_param["swds_meas_area"] = dict_param["mss_meas_area"] = dict_param["ow_meas_area"] = 0.0
+        dict_param["pr_meas_area"] = dict_param["cp_meas_area"] = dict_param[
+            "op_meas_area"
+        ] = dict_param["up_meas_area"] = dict_param["uz_meas_area"] = dict_param[
+            "gw_meas_area"
+        ] = dict_param[
+            "swds_meas_area"
+        ] = dict_param[
+            "mss_meas_area"
+        ] = dict_param[
+            "ow_meas_area"
+        ] = 0.0
         # area of interception layer, top storage layer, and bottom storage layer of measure
-        dict_param["tot_meas_area"] = dict_param["top_meas_area"] = dict_param["btm_meas_area"] = 0.0
+        dict_param["tot_meas_area"] = dict_param["top_meas_area"] = dict_param[
+            "btm_meas_area"
+        ] = 0.0
         # print(dict_param)
 
         # dictionary of area of xx without measure
-        d = dict(pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
-                 cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
-                 op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
-                 up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
-                 uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
-                 gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
-                 swds_no_meas_area=dict_param["tot_swds_area"] - dict_param["swds_meas_area"],
-                 mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
-                 ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
-                 )
+        d = dict(
+            pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
+            cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
+            op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
+            up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
+            uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
+            gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
+            swds_no_meas_area=dict_param["tot_swds_area"]
+            - dict_param["swds_meas_area"],
+            mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
+            ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
+        )
         # updates dict_param with values in d
         rv = {**dict_param, **d}
         return rv
@@ -408,15 +450,10 @@ def running(input_data, dict_param):
             # "total_runoff": np.nan
         }
     ]
-    for t in trange(1, iters):  # time series first line is not relevant, computation starts from the second line.
-        lst.append(
-            k.__next__(
-            P_atm[t],
-            E_pot_OW[t],
-            Ref_grass[t],
-            lst[t - 1],
-                        )
-                    )
+    for t in trange(
+        1, iters
+    ):  # time series first line is not relevant, computation starts from the second line.
+        lst.append(k.__next__(P_atm[t], E_pot_OW[t], Ref_grass[t], lst[t - 1],))
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     df.insert(1, "P_atm", P_atm)
@@ -442,7 +479,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     Returns:
         A csv file of all (or part of) computed results
     """
-    loggingfilename = ''.join(list(output_filename)[:-4]) + ".log"
+    loggingfilename = "".join(list(output_filename)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "STC_logger", thelevel=logging.INFO)
 
     input_data = read_inputdata(dyn_inp)
@@ -480,6 +517,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
         header = ["Date", "P_atm", "E_pot_OW", "Ref.grass"]
         header.extend([arg for arg in args])
         df.to_csv(outdir / output_filename, index=True, columns=header)
+
 
 #
 # def batch_run_single(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
@@ -566,8 +604,18 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
 #         df.to_csv(fullname, index=True)
 
 
-def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist1, correspvarkey=None, vararrlist2=None,
-                      baseline_variable="r_op_swds", variable_to_save="q_meas_swds"):
+def batch_run_measure(
+    dyn_inp,
+    stat1_inp,
+    stat2_inp,
+    dyn_out,
+    varkey,
+    vararrlist1,
+    correspvarkey=None,
+    vararrlist2=None,
+    baseline_variable="r_op_swds",
+    variable_to_save="q_meas_swds",
+):
     """
     for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
@@ -582,7 +630,7 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     Usage:
     use in the cmd: python -m urbanwb.main batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
     """
-    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+    loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
@@ -608,18 +656,24 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
             dict_param[correspvarkey] = b
             measure_area_info = dict_param["tot_meas_area"]
             measure_inflow_area_info = dict_param["tot_meas_inflow_area"]
-            msg = f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, " \
+            msg = (
+                f"Case with measure: {varkey}={a}, {correspvarkey}={b}, measure area={measure_area_info}, "
                 f"inflow area={measure_inflow_area_info}"
+            )
             print(msg)
             rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            database.append(
+                pd.DataFrame(rv[0])[variable_to_save]
+                * dict_param["tot_meas_area"]
+                / dict_param["tot_meas_inflow_area"]
+            )
             logger.info(msg)
             wbc_statistics = rv[1]
             logger.info(f"Entire model: {wbc_statistics[0]}")
             logger.info(f"Measure itself: {wbc_statistics[1]}")
             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
-            print("\n"*2)
+            print("\n" * 2)
             sleep(0.5)
     else:
         for a in vararrlist1:
@@ -629,7 +683,11 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
             msg = f"Case with measure: {varkey}={a},measure area={measure_area_info}, inflow area={measure_inflow_area_info}"
             print(msg)
             rv = running(inputdata, dict_param)
-            database.append(pd.DataFrame(rv[0])[variable_to_save]*dict_param["tot_meas_area"]/dict_param["tot_meas_inflow_area"])
+            database.append(
+                pd.DataFrame(rv[0])[variable_to_save]
+                * dict_param["tot_meas_area"]
+                / dict_param["tot_meas_inflow_area"]
+            )
             logger.info(msg)
             wbc_statistics = rv[1]
             logger.info(f"Entire model: {wbc_statistics[0]}")
@@ -663,7 +721,15 @@ def batch_run_measure(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, vararrlist
     df.to_csv(outdir / dyn_out, index=True)
 
 
-def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=None, arithmetic_progression=False):
+def batch_run_sdf(
+    dyn_inp,
+    stat1_inp,
+    stat2_inp,
+    dyn_out,
+    q_list,
+    baseline_q=None,
+    arithmetic_progression=False,
+):
     """
     this batch_run function is mainly designed for getting the database for sdf_curve.
 
@@ -679,7 +745,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
 
     """
     # determine logfile name based on outputfile name
-    loggingfilename = ''.join(list(dyn_out)[:-4]) + ".log"
+    loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRSDF_logger", thelevel=logging.INFO)
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
@@ -689,7 +755,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
 
     rank_database = []
     iters = len(input_data["date"])
-    mean_daily_rainfall = np.mean(input_data["P_atm"])*24
+    mean_daily_rainfall = np.mean(input_data["P_atm"]) * 24
     dt = dict_param["delta_t"]
     num_year = round((dt * iters) / 365)
     print(f"The length of input time series is around {num_year} year")
@@ -708,13 +774,15 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
         print(msg0)
 
     # perform baseline run
-    owl_data = np.append(running(input_data, dict_param)[0]["owl"], 0)  # extra 0 at the end
+    owl_data = np.append(
+        running(input_data, dict_param)[0]["owl"], 0
+    )  # extra 0 at the end
     owl_baseline = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
     segment_marks = get_segment_index(owl_baseline)
     k_base = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
     rank_database.append(k_base.ranking)
     # print(segment_marks)
-    print("-----"*50)
+    print("-----" * 50)
     if not arithmetic_progression:  # if it is random number to type in.
         print(f"q value to batch run: {q_list}")
         for q in q_list:
@@ -740,7 +808,7 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
             msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.ranking[0]:.4f} m"
             print(msg2)
             logger.info(msg2)
-            print("-----"*50)
+            print("-----" * 50)
         if baseline_q is None:
             name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in q_list]
         else:
@@ -753,7 +821,9 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
     else:  # if we type in an arithmetic progression
         if len(q_list) != 3:
             raise SystemExit("Please type in min, max, steps.")
-        array_q = np.arange(q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2])
+        array_q = np.arange(
+            q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2]
+        )
         print(f"q value to batch run are {array_q}")
         for q in array_q:
             dict_param["q_ow_out_cap"] = q
@@ -993,5 +1063,3 @@ def batch_run_sdf(dyn_inp, stat1_inp, stat2_inp, dyn_out, q_list, baseline_q=Non
 
 if __name__ == "__main__":
     fire.Fire()
-
-

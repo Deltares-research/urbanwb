@@ -23,12 +23,12 @@ def making_marks(precipitation):
             mark[i] = 0
         else:
             if precipitation[i] > 0:
-                if sum(precipitation[i-6:i]) > 0:
-                    mark[i] = mark[i-1]
+                if sum(precipitation[i - 6 : i]) > 0:
+                    mark[i] = mark[i - 1]
                 else:
-                    mark[i] = mark[i-1] + 1
+                    mark[i] = mark[i - 1] + 1
             else:
-                mark[i] = mark[i-1]
+                mark[i] = mark[i - 1]
     return mark
 
 
@@ -67,7 +67,9 @@ def removekey(d, *keys):
     return r
 
 
-def find_corresponding_T_for_array(t_array, array, vararr=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50]):
+def find_corresponding_T_for_array(
+    t_array, array, vararr=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50]
+):
     """
     Compute corresponding return period T (i.e. T=1/P, P is the probability of exceedance) for a certain return value in
     an array through linear interpolation, in order to compute an averaged value as runoff frequency reduction factor
@@ -86,15 +88,17 @@ def find_corresponding_T_for_array(t_array, array, vararr=[1, 2, 3, 4, 5, 6, 7, 
                 if value < var:
                     # print(value)
                     v_below = array[counter]
-                    v_above = array[counter-1]
+                    v_above = array[counter - 1]
                     # print('v-above', counter-1, v_above)
                     # print('v-below', counter, v_below)
                     # print('---'*6)
-                    t_up = t_array[counter-1]
+                    t_up = t_array[counter - 1]
                     t_below = t_array[counter]
                     # print('T-up', t_up)
                     # print('T-below', t_below)
-                    t_value = t_up - (v_above - var)/(v_above - v_below) * (t_up - t_below)
+                    t_value = t_up - (v_above - var) / (v_above - v_below) * (
+                        t_up - t_below
+                    )
                     # print('T_value', t_value)
                     break
         except KeyError:
@@ -125,12 +129,12 @@ def getconstants(inputfilename, num_year=30):
                 new_var_array.append(var)
         if new_var_array is not None:
             mean_constants.append(np.round(np.mean(new_var_array), 2))
-    outputfilename = ''.join(list(inputfilename)[:-4]) + "_constants.txt"
+    outputfilename = "".join(list(inputfilename)[:-4]) + "_constants.txt"
     print(results)
     # np.savetxt(outputfilename, results, )
-    with open(outputfilename, 'w') as f:
+    with open(outputfilename, "w") as f:
         for key, value in results.items():
-            f.write('%s:%s\n' % (key, value))
+            f.write("%s:%s\n" % (key, value))
         f.write("%s" % mean_constants)
 
 
@@ -138,29 +142,38 @@ class Analyse(object):
     """
     Integrate all functions, basically functioning, requiring further development
     """
-    def __init__(self, filename, num_year=30, ):
+
+    def __init__(
+        self, filename, num_year=30,
+    ):
         self.name = filename
         # automatically create output name according to inputname: first remove ".csv" then add "_results.csv"
-        self.output_name = ''.join(list(self.name)[:-4]) + "_results.csv"
-        self.df = pd.read_csv(self.name, )
+        self.output_name = "".join(list(self.name)[:-4]) + "_results.csv"
+        self.df = pd.read_csv(self.name,)
         self.df = self.df.fillna(0)
-        self.dictionary = self.df.to_dict('list')
+        self.dictionary = self.df.to_dict("list")
         self.num_year = num_year
 
         # making event marks according to precipitation (6 consective zeros as separation)
         self.df["mark"] = making_marks(self.df["P_atm"])
-        self.measure_dictionary = removekey(self.dictionary, "Unnamed: 0", "Date", "P_atm", "Baseline")
+        self.measure_dictionary = removekey(
+            self.dictionary, "Unnamed: 0", "Date", "P_atm", "Baseline"
+        )
         self.makingranks = self.makingranks()
 
     def getconstants(self,):  # consider changing function name to avoid confusion.
         pass
         print(["storage cap mm", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50])
         emp = dict()
-        baseT = find_corresponding_T_for_array(t_array=self.makingranks["T_list"], array=self.makingranks["Rank_baseline"])
+        baseT = find_corresponding_T_for_array(
+            t_array=self.makingranks["T_list"], array=self.makingranks["Rank_baseline"]
+        )
         for key in self.makingranks.keys():
             if key not in ["Rank_P", "T_list", "Rank_baseline"]:
-                a = find_corresponding_T_for_array(t_array=self.makingranks["T_list"], array=self.makingranks[key])
-                c = [y/x for x, y in zip(baseT, a)]
+                a = find_corresponding_T_for_array(
+                    t_array=self.makingranks["T_list"], array=self.makingranks[key]
+                )
+                c = [y / x for x, y in zip(baseT, a)]
                 emp[key] = c
                 np.mean(c)
         return emp
@@ -168,12 +181,14 @@ class Analyse(object):
     def save_constants(self):
         pass
 
-    def makingranks(self, ):
+    def makingranks(self,):
         # unchanged, I made a mistake here, should be self.emp rather than emp. Not a big problem.
         emp = dict()
         emp["Rank_P"] = ranking(self.df, "P_atm", int(max(self.df.mark) + 1))
         # create T list (30 yr, thus starting from (30+1/1) according to Weibull formula)
-        emp["T_list"] = [(self.num_year + 1) / m for m in range(1, len(emp["Rank_P"]) + 1)]
+        emp["T_list"] = [
+            (self.num_year + 1) / m for m in range(1, len(emp["Rank_P"]) + 1)
+        ]
         # rank runoff on the baseline case
         emp["Rank_baseline"] = ranking(self.df, "Baseline", int(max(self.df.mark) + 1))
         for key in self.measure_dictionary.keys():
@@ -181,32 +196,42 @@ class Analyse(object):
         data = pd.DataFrame.from_dict(emp)
         return data
 
-    def save_to_csv(self, ):
+    def save_to_csv(self,):
         self.makingranks.to_csv(self.output_name)
 
-    def plotting(self, measure_name, addition_name, xlim_down=5, xlim_up=20, ):
+    def plotting(
+        self, measure_name, addition_name, xlim_down=5, xlim_up=20,
+    ):
         self.data = self.makingranks
 
         plt.figure(figsize=(9, 6))
-        plt.semilogy(self.data.Rank_P, self.data.T_list, "b--", label="Precipitation", ms=2)
-        plt.semilogy(self.data.Rank_baseline, self.data.T_list, "k-", label="Baseline", ms=2)
-        measures_rank_dictionary = removekey(self.data.to_dict('list'), "Rank_P", "Rank_baseline", "T_list")
+        plt.semilogy(
+            self.data.Rank_P, self.data.T_list, "b--", label="Precipitation", ms=2
+        )
+        plt.semilogy(
+            self.data.Rank_baseline, self.data.T_list, "k-", label="Baseline", ms=2
+        )
+        measures_rank_dictionary = removekey(
+            self.data.to_dict("list"), "Rank_P", "Rank_baseline", "T_list"
+        )
 
         for key in measures_rank_dictionary.keys():
-            plt.semilogy(measures_rank_dictionary[key], self.data.T_list, label=key, ms=2)
+            plt.semilogy(
+                measures_rank_dictionary[key], self.data.T_list, label=key, ms=2
+            )
 
         x = np.linspace(0, 100, 200)
         # plt.legend(loc='best',frameon=False)
-        plt.legend(loc='upper right', frameon=True)
+        plt.legend(loc="upper right", frameon=True)
         plt.xlabel("Runoff (mm)")
         plt.ylabel("T (year)")
-        plt.title(measure_name + "(1981-2011)")
+        plt.title(measure_name)
         plt.xlim(xlim_down, xlim_up)
 
         # add grid
         ax = plt.gca()
-        ax.yaxis.grid(linestyle='--', linewidth=0.5, which='both')
-        ax.xaxis.grid(linestyle='--', linewidth=0.5, which='both')
+        ax.yaxis.grid(linestyle="--", linewidth=0.5, which="both")
+        ax.xaxis.grid(linestyle="--", linewidth=0.5, which="both")
 
         plt.savefig("figures/" + addition_name + measure_name + ".png")
 

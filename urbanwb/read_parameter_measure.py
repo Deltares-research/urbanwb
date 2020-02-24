@@ -26,8 +26,13 @@ def read_parameter_measure(stat2_inp):
     op_meas_inflow_area = cf["op_meas_inflow_area"]
     up_meas_inflow_area = cf["up_meas_inflow_area"]
     ow_meas_inflow_area = cf["ow_meas_inflow_area"]
-    tot_meas_inflow_area = pr_meas_inflow_area + cp_meas_inflow_area + op_meas_inflow_area + up_meas_inflow_area + \
-                           ow_meas_inflow_area
+    tot_meas_inflow_area = (
+        pr_meas_inflow_area
+        + cp_meas_inflow_area
+        + op_meas_inflow_area
+        + up_meas_inflow_area
+        + ow_meas_inflow_area
+    )
     # deal with initial values here later
     validinput = False
     while not validinput:
@@ -35,7 +40,9 @@ def read_parameter_measure(stat2_inp):
             # to make it as foolproof as possible, when measure is not applied, measure-related area will all be set as
             # zeros regardless of what is in the configuration file.
 
-            tot_meas_area = pr_meas_area = (
+            tot_meas_area = (
+                pr_meas_area
+            ) = (
                 cp_meas_area
             ) = (
                 op_meas_area
@@ -43,10 +50,17 @@ def read_parameter_measure(stat2_inp):
                 up_meas_area
             ) = (
                 uz_meas_area
-            ) = gw_meas_area = swds_meas_area = mss_meas_area = ow_meas_area = top_meas_area = btm_meas_area = 0.0
+            ) = (
+                gw_meas_area
+            ) = (
+                swds_meas_area
+            ) = mss_meas_area = ow_meas_area = top_meas_area = btm_meas_area = 0.0
 
-            pr_meas_inflow_area = cp_meas_inflow_area = op_meas_inflow_area = up_meas_inflow_area = ow_meas_inflow_area \
-                = tot_meas_inflow_area = 0.0
+            pr_meas_inflow_area = (
+                cp_meas_inflow_area
+            ) = (
+                op_meas_inflow_area
+            ) = up_meas_inflow_area = ow_meas_inflow_area = tot_meas_inflow_area = 0.0
 
             validinput = True
         elif choice:  # input choice: there is measure
@@ -163,23 +177,57 @@ def read_parameter_measure(stat2_inp):
     # But for the time being we assume it is equal to pr_meas_area.
     # Assume for the time being, measure inflow area = component_area
 
-    if tot_meas_area != (pr_meas_area + cp_meas_area+ op_meas_area + up_meas_area + uz_meas_area + gw_meas_area
-        + swds_meas_area + mss_meas_area + ow_meas_area):
+    if tot_meas_area != (
+        pr_meas_area
+        + cp_meas_area
+        + op_meas_area
+        + up_meas_area
+        + uz_meas_area
+        + gw_meas_area
+        + swds_meas_area
+        + mss_meas_area
+        + ow_meas_area
+    ):
         raise ValueError("Error: Measure area info error")
     greenroof_type_measure = cf["greenroof_type_measure"]
     # 0 or 1 check. check some parameters (some buttons) which can only be selected from 0 or 1
-    k = [surf_runoff_meas_OW, ctrl_runoff_meas_OW, overflow_meas_OW, surf_runoff_meas_UZ, ctrl_runoff_meas_UZ, overflow_meas_UZ, surf_runoff_meas_GW, ctrl_runoff_meas_GW, overflow_meas_GW,
-         surf_runoff_meas_SWDS, ctrl_runoff_meas_SWDS, overflow_meas_SWDS, surf_runoff_meas_MSS, ctrl_runoff_meas_MSS, overflow_meas_MSS, surf_runoff_meas_Out, ctrl_runoff_meas_Out, overflow_meas_Out,
-         limited_by_gwl, connection_to_gw, btm_meas_transpiration, btm_discharge_type]
+    k = [
+        surf_runoff_meas_OW,
+        ctrl_runoff_meas_OW,
+        overflow_meas_OW,
+        surf_runoff_meas_UZ,
+        ctrl_runoff_meas_UZ,
+        overflow_meas_UZ,
+        surf_runoff_meas_GW,
+        ctrl_runoff_meas_GW,
+        overflow_meas_GW,
+        surf_runoff_meas_SWDS,
+        ctrl_runoff_meas_SWDS,
+        overflow_meas_SWDS,
+        surf_runoff_meas_MSS,
+        ctrl_runoff_meas_MSS,
+        overflow_meas_MSS,
+        surf_runoff_meas_Out,
+        ctrl_runoff_meas_Out,
+        overflow_meas_Out,
+        limited_by_gwl,
+        connection_to_gw,
+        btm_meas_transpiration,
+        btm_discharge_type,
+    ]
     check = [n for n in k if n != 0 and n != 1]
     if len(check) != 0:
         print(check)
         raise ValueError("Error: Button Parameter can only be 0 or 1.")
     if num_stor_lvl != 1 and num_stor_lvl != 2 and num_stor_lvl != 3:
         # print(num_stor_lvl)
-        raise ValueError("Error: Number of storage levels can only be (1, 2 or 3) (integer)")
-    if runoff_to_stor_layer !=1 and runoff_to_stor_layer != 3:
-        raise ValueError("Error: runoff_to_stor_layer (Runoff from other areas into storage layer) can only be (1 or 3)")
+        raise ValueError(
+            "Error: Number of storage levels can only be (1, 2 or 3) (integer)"
+        )
+    if runoff_to_stor_layer != 1 and runoff_to_stor_layer != 3:
+        raise ValueError(
+            "Error: runoff_to_stor_layer (Runoff from other areas into storage layer) can only be (1 or 3)"
+        )
 
     title = cf["title"]
     return {
@@ -242,7 +290,7 @@ def read_parameter_measure(stat2_inp):
         "overflow_meas_Out": overflow_meas_Out,
         "greenroof_type_measure": greenroof_type_measure,
         "tot_meas_inflow_area": tot_meas_inflow_area,  # note
-        "title": title
+        "title": title,
     }
 
 

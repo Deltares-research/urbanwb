@@ -65,7 +65,13 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
     r_pr_mss = R_mss["r_pr_mss_" + str(Num)]
     r_cp_mss = R_mss["r_cp_mss_" + str(Num)]
     r_op_mss = R_mss["r_op_mss_" + str(Num)]
-    pr_no_meas_area, cp_no_meas_area, op_no_meas_area, ow_no_meas_area, tot_meas_area = (
+    (
+        pr_no_meas_area,
+        cp_no_meas_area,
+        op_no_meas_area,
+        ow_no_meas_area,
+        tot_meas_area,
+    ) = (
         1560,
         803.39,
         481.61,

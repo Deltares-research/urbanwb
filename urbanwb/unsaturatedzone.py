@@ -19,7 +19,13 @@ class UnsaturatedZone:
     """
 
     def __init__(
-        self, theta_uz_t0, uz_no_meas_area, uz_meas_area, soiltype=2, croptype=1, **kwargs
+        self,
+        theta_uz_t0,
+        uz_no_meas_area,
+        uz_meas_area,
+        soiltype=2,
+        croptype=1,
+        **kwargs
     ):
         """
         Creates an instance of UnsaturatedZone class
@@ -61,7 +67,7 @@ class UnsaturatedZone:
         # self.k_sat_uz (float): predefined saturated permeability of soil
         self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
 
-    def sol(self, i_up_uz, meas_uz, e_ref, tot_meas_area, gwl_prevt, delta_t=1/24):
+    def sol(self, i_up_uz, meas_uz, e_ref, tot_meas_area, gwl_prevt, delta_t=1 / 24):
         """
         Calculates states and fluxes in unsaturated zone during current time step.
 
@@ -99,7 +105,9 @@ class UnsaturatedZone:
                 t_alpha_uz
             ) = (
                 t_atm_uz
-            ) = gwl_up = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0.0
+            ) = (
+                gwl_up
+            ) = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0.0
 
         else:
             sum_i_uz = i_up_uz
@@ -119,13 +127,13 @@ class UnsaturatedZone:
                 t_alpha_uz = 0.0
             elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > self.theta_h2:
                 t_alpha_uz = 1.0 - (
-                        (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h2
+                    (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h2
                 ) / (self.theta_h1 - self.theta_h2)
             elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > theta_h3_uz:
                 t_alpha_uz = 1.0
             elif self.theta_uz_prevt + sum_i_uz + r_meas_uz > self.theta_h4:
                 t_alpha_uz = (
-                                     (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h4
+                    (self.theta_uz_prevt + sum_i_uz + r_meas_uz) - self.theta_h4
                 ) / (theta_h3_uz - self.theta_h4)
             else:
                 t_alpha_uz = 0.0
@@ -140,13 +148,13 @@ class UnsaturatedZone:
 
             if gwl_prevt < 10.0:
                 theta_eq_uz = self.soil_prm[id2]["moist_cont_eq_rz[mm]"] + (
-                        gwl_low - gwl_prevt
+                    gwl_low - gwl_prevt
                 ) / (gwl_low - gwl_up) * (
                     self.soil_prm[id1]["moist_cont_eq_rz[mm]"]
                     - self.soil_prm[id2]["moist_cont_eq_rz[mm]"]
                 )
                 capris_max_uz = self.soil_prm[id2]["capris_max[mm/d]"] + (
-                        gwl_low - gwl_prevt
+                    gwl_low - gwl_prevt
                 ) / (gwl_low - gwl_up) * (
                     self.soil_prm[id1]["capris_max[mm/d]"]
                     - self.soil_prm[id2]["capris_max[mm/d]"]

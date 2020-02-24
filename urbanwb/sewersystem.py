@@ -118,7 +118,10 @@ class SewerSystem:
 
             if ow_no_meas_area == 0.0:
                 q_swds_ow = min(
-                    self.stor_swds_prevt + sum_r_swds + r_meas_swds + self.so_swds_prevt,
+                    self.stor_swds_prevt
+                    + sum_r_swds
+                    + r_meas_swds
+                    + self.so_swds_prevt,
                     self.q_swds_ow_cap,
                 )
 
@@ -225,7 +228,8 @@ class SewerSystem:
 
             else:
                 q_mss_out = min(
-                    self.stor_mss_prevt + sum_r_mss + r_meas_mss + 0.0, self.q_mss_out_cap
+                    self.stor_mss_prevt + sum_r_mss + r_meas_mss + 0.0,
+                    self.q_mss_out_cap,
                 )
 
                 q_mss_ow = max(

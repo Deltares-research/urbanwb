@@ -90,7 +90,9 @@ class PavedRoof:
         """
 
         if self.pr_no_meas_area == 0.0:
-            int_pr = e_atm_pr = intstor_pr = r_pr_meas = r_pr_swds = r_pr_mss = r_pr_up = 0.0
+            int_pr = (
+                e_atm_pr
+            ) = intstor_pr = r_pr_meas = r_pr_swds = r_pr_mss = r_pr_up = 0.0
 
         else:
             int_pr = min(self.intstorcap_pr, max(0.0, self.intstor_pr_prevt + p_atm))

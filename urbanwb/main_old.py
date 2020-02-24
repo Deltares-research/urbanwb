@@ -234,10 +234,12 @@ def running(dyn_inp, stat1_inp, stat2_inp):
     # check if there is NaN (missing value) in dynamic input. or replace it with automatically changing data for user?
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
-        raise SystemExit(f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.")
-    #InputData["date"] = pd.to_datetime(InputData["date"], format="%d/%m/%Y %H:%M")
-    #InputData.set_index("date", inplace=True)
-    #iters = np.shape(InputData["date"])[0]
+        raise SystemExit(
+            f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it."
+        )
+    # InputData["date"] = pd.to_datetime(InputData["date"], format="%d/%m/%Y %H:%M")
+    # InputData.set_index("date", inplace=True)
+    # iters = np.shape(InputData["date"])[0]
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -410,7 +412,9 @@ def run(param, dyn_inp):
     InputData = pd.read_csv(path / dyn_inp)  # can change to input_csv_30yr
     NoNaN = InputData.isnull().sum().sum()
     if NoNaN != 0:
-        raise SystemExit(f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it.")
+        raise SystemExit(
+            f"The No. of NaN in the dynamic input is {NoNaN}, Please recheck it."
+        )
     date = InputData["date"]
     P_atm = InputData["P_atm"]
     Ref_grass = InputData["Ref.grass"]
@@ -579,6 +583,7 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
         vararr (float): values to update varkey.
     """
     import os
+
     param = {**read_parameter_base(stat1_inp), **read_parameter_measure(stat2_inp)}
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -588,6 +593,7 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
         new_dyn_out = f"{varkey}={varval}_" + dyn_out
         fullname = os.path.join(outdir, new_dyn_out)
         df.to_csv(fullname, index=True)
+
 
 # def batch_run2(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr, *col, saveall=True):
 #     """
@@ -615,7 +621,9 @@ def batch_run(dyn_inp, stat1_inp, stat2_inp, dyn_out, varkey, *vararr):
 
 
 # For thesis EVT research only.
-def get_timeseries_of_required_storage_height(dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr):
+def get_timeseries_of_required_storage_height(
+    dyn_inp, stat1_inp, stat2_inp, dyn_out, *vararr
+):
     """
     this batch_run function is mainly designed for getting the database for sdf_curve.
 
@@ -646,6 +654,7 @@ def get_timeseries_of_required_storage_height(dyn_inp, stat1_inp, stat2_inp, dyn
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.T.to_csv(outdir / dyn_out, index=True)
+
 
 if __name__ == "__main__":
     fire.Fire()

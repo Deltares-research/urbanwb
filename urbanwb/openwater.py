@@ -123,14 +123,14 @@ class OpenWater:
             owl = (
                 self.owl_prevt
                 - (
-                        prec_ow
-                        - e_atm_ow
-                        + sum_r_ow
-                        + sum_d_ow
-                        + sum_q_ow
-                        + sum_so_ow
-                        + r_meas_ow
-                        - q_ow_out
+                    prec_ow
+                    - e_atm_ow
+                    + sum_r_ow
+                    + sum_d_ow
+                    + sum_q_ow
+                    + sum_so_ow
+                    + r_meas_ow
+                    - q_ow_out
                 )
                 / 1000.0
             )

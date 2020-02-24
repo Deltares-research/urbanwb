@@ -98,8 +98,16 @@ class TestUnPaved(unittest.TestCase):
         """
         runs the code before every single test
         """
-        self.up_1 = Unpaved(fin_intstor_up_t0=0, up_no_meas_area=6855, up_meas_area=0, up_meas_inflow_area=0,
-                            infilcap_up=48, intstorcap_up=20, soiltype=2, croptype=1,)
+        self.up_1 = Unpaved(
+            fin_intstor_up_t0=0,
+            up_no_meas_area=6855,
+            up_meas_area=0,
+            up_meas_inflow_area=0,
+            infilcap_up=48,
+            intstorcap_up=20,
+            soiltype=2,
+            croptype=1,
+        )
 
     def test_inflowfac(self):
         """
@@ -127,7 +135,9 @@ class TestUnPaved(unittest.TestCase):
                 op_no_meas_area=481.6093594,
                 ow_no_meas_area=300,
                 delta_t=1 / 24,
-            )["actl_infilcap_up"],  # actl_infilcap_up
+            )[
+                "actl_infilcap_up"
+            ],  # actl_infilcap_up
             2,
         )
 

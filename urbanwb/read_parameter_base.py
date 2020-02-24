@@ -16,7 +16,9 @@ def read_parameter_base(stat1_inp):
     """
     path = Path.cwd() / ".." / "input"
     cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
-    delta_t = cf["timestep"] / 86400  # length of timestep, converted from second (s) to day (d)
+    delta_t = (
+        cf["timestep"] / 86400
+    )  # length of timestep, converted from second (s) to day (d)
     tot_area = cf["tot_area"]  # total area of study area (model) [m^2]
     soiltype = cf["soiltype"]  # soil type
     croptype = cf["croptype"]  # crop type
@@ -30,7 +32,9 @@ def read_parameter_base(stat1_inp):
             up_frac = cf["up_frac"]  # unpaved fraction of total [-]
             ow_frac = cf["ow_frac"]  # open water fraction of total [-]
             tot_pr_area = pr_frac * tot_area  # total area of paved roof [m^2]
-            frac_pr_aboveGW = cf["frac_pr_aboveGW"]  # part of buildings (PR) above GW [-]
+            frac_pr_aboveGW = cf[
+                "frac_pr_aboveGW"
+            ]  # part of buildings (PR) above GW [-]
             tot_cp_area = cp_frac * tot_area  # total area of closed paved [m^2]
             tot_op_area = op_frac * tot_area  # total area of open paved [m^2]
             tot_up_area = up_frac * tot_area  # total area of unpaved [m^2]
@@ -84,9 +88,7 @@ def read_parameter_base(stat1_inp):
             ):
                 validinput = True
             else:
-                raise ValueError(
-                    "Error: land use areas do not add up to total area."
-                )
+                raise ValueError("Error: land use areas do not add up to total area.")
         else:
             raise ValueError("Error: Input area type can only be 0-fraction or 1-area.")
 
@@ -115,9 +117,7 @@ def read_parameter_base(stat1_inp):
     storcap_ow = cf["storcap_ow"]  # storage capacity of open water [mm]
 
     # infiltration capacity
-    infilcap_op = cf[
-        "infilcap_op"
-    ]  # infiltration capacity of open paved [mm/d]
+    infilcap_op = cf["infilcap_op"]  # infiltration capacity of open paved [mm/d]
     infilcap_up = cf["infilcap_up"]  # infiltration capacity of unpaved [mm/d]
 
     # rainfall statistics
@@ -146,19 +146,13 @@ def read_parameter_base(stat1_inp):
     storcap_mss = cf["storcap_mss"]  # storage capacity of combined sewer system [mm]
     # discharge capacity of SWDS to open water [mm/dt], i.e. sewer discharge capacity of SWDS above which sewer overflow
     # onto street occurs, in NL, the design standard is it occurs once every two year.
-    q_swds_ow_cap = (
-        rainfall_swds_so - intstorcap_cp - storcap_swds
-    )
+    q_swds_ow_cap = rainfall_swds_so - intstorcap_cp - storcap_swds
     # discharge capacity of MSS to open water [mm/dt], i.e. sewer discharge capacity of MSS above which sewer overflow
     # onto street occurs, in NL, the design standard is it occurs once every two year.
-    q_mss_ow_cap = (
-        rainfall_swds_so - intstorcap_cp - storcap_mss
-    )
+    q_mss_ow_cap = rainfall_swds_so - intstorcap_cp - storcap_mss
     # discharge capacity of MSS to WWTP [mm/dt], i.e. sewer discharge capacity of MSS above which combined sewer
     # overflow to open water through CSO weir occurs, in NL, the design standard is it occurs six times per year.
-    q_mss_out_cap = (
-        rainfall_mss_ow - intstorcap_cp
-    )
+    q_mss_out_cap = rainfall_mss_ow - intstorcap_cp
 
     # groundwater parameters
     w = cf["w"]  # drainage resistance w from groundwater to open water [d]
@@ -169,14 +163,18 @@ def read_parameter_base(stat1_inp):
         ]  # constant downward flux from shallow groundwater to deep groundwater [mm/d] (negative means upward)
         gwl_t0 = cf["gwl_t0"]
         head_deep_gw = cf["head_deep_gw"]  # hydraulic head of deep groundwater [m-SL]
-        vc = cf["vc"]  # vertical flow resistance from shallow groundwater to deep groundwater vc [d]
+        vc = cf[
+            "vc"
+        ]  # vertical flow resistance from shallow groundwater to deep groundwater vc [d]
     else:
         raise ValueError(
             "Error: Seepage to deep groundwater can only be defined as either 0-flux or 1-level."
         )
 
     # open water parameters.
-    q_ow_out_cap = (cf["q_ow_out_cap"])  # discharge capacity from open water to outside water over entire area [mm/d]
+    q_ow_out_cap = cf[
+        "q_ow_out_cap"
+    ]  # discharge capacity from open water to outside water over entire area [mm/d]
     ow_level = (
         storcap_ow / 1000.0
     )  # predefined target open water level, also initial open water level (at t=0) [m-Sl]
