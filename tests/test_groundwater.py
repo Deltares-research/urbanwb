@@ -148,7 +148,7 @@ class TestGroundwater(unittest.TestCase):
             self.gw_1.sol(
                 0.3826862970, 6855, 0.041666667, 481.6093594, 0, 0, 1.5, 1 / 24
             )["gwl"],
-            1.5588826117,
+            1.5574153022415493,
             places=9,
         )
 
