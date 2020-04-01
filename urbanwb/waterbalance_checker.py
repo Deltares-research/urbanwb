@@ -64,10 +64,11 @@ def water_balance_checker(df, dict_param, iters):
         + sum_evap_meas
     )
 
-    # discharge to outside over entire area
+    # discharge to outside over entire area (added discharge of combined sewer system on 4-3-2020 by Shiyang)
     sum_q_out = (
         sum(df["q_ow_out"].iloc[1:]) * dict_param["ow_no_meas_area"]
         + sum(df["q_meas_out"].iloc[1:]) * dict_param["tot_meas_area"]
+        + sum(df["q_mss_out"].iloc[1:]) * dict_param["tot_mss_area"]
     ) / dict_param["tot_area"]
 
     # seepage to deep groundwater over entire area
