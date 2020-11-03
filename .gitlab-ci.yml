@@ -1,4 +1,4 @@
-image: python:3.6
+image: python:3.9
 
 cache:
   paths:
@@ -14,3 +14,15 @@ tests:
     - cd tests
     - python -m unittest -v
     - cd ..
+
+pages:
+  script:
+  - cd docs
+  - make html
+  - cd ..
+  - mv docs/_build/html/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
