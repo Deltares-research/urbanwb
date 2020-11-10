@@ -5,7 +5,7 @@ setup(
     version="0.1.0",
     description="Urban Water Balance",
     long_description="",
-    url="https://gitlab.com/deltares/urban/UWM",
+    url="https://gitlab.com/deltares/urban/urbanwb",
     author="Wenxing Zhang",
     author_email="w.x.zhang93@gmail.com",
     license="MIT",
