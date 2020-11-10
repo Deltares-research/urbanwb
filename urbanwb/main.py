@@ -60,7 +60,11 @@ class UrbanwbModel(object):
         return self
 
     def __next__(
-        self, p_atm, e_pot_ow, ref_grass, lst_prevt,
+        self,
+        p_atm,
+        e_pot_ow,
+        ref_grass,
+        lst_prevt,
     ):
         """
         Calculates storage, fluxes, coefficients and other related results at current time step.
@@ -453,7 +457,14 @@ def running(input_data, dict_param):
     for t in trange(
         1, iters
     ):  # time series first line is not relevant, computation starts from the second line.
-        lst.append(k.__next__(P_atm[t], E_pot_OW[t], Ref_grass[t], lst[t - 1],))
+        lst.append(
+            k.__next__(
+                P_atm[t],
+                E_pot_OW[t],
+                Ref_grass[t],
+                lst[t - 1],
+            )
+        )
     df = pd.DataFrame(lst)
     df.insert(0, "Date", date)
     df.insert(1, "P_atm", P_atm)

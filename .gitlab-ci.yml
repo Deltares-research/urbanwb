@@ -12,6 +12,7 @@ before_script:
 tests:
   script:
     - python -m pytest --verbose --cov=urbanwb
+    - black --check .
 
 pages:
   script:

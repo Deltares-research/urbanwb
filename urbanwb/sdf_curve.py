@@ -108,7 +108,9 @@ class SDF_curve2:
         )  # add 0 to end with 0
         self.ranking = sorted(self.get_maxima(), reverse=True)
 
-    def get_maxima(self,):
+    def get_maxima(
+        self,
+    ):
         maxima = []
         for i in range(len(self.segment_marks) - 1):
             maxima.append(

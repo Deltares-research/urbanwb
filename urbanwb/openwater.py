@@ -79,7 +79,7 @@ class OpenWater:
             * **sum_so_ow** -- Total sewer overflow from sewer systems to open water during current time step [mm]
             * **r_meas_ow** -- Inflow from measure (if applicable) to open water during current time step [mm]
             * **q_ow_out** -- Discharge from open water to outside water during current time step [mm]
-         """
+        """
 
         if self.ow_no_meas_area == 0.0:
             prec_ow = (
