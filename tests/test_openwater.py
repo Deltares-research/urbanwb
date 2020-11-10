@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -101,57 +101,48 @@ def validate(a, b, c, Dec, Num):
     return none_list
 
 
-class TestOpenWater(unittest.TestCase):
-    def setUp(self):
-        """
-        runs the code before every single test
-        """
-        self.ow_1 = OpenWater(ow_no_meas_area=300, ow_level=1.5, q_ow_out_cap=200)
-
-    def test_sol(self):
-        """
-        tests the 'sol' function in the OpenWater class.
-        """
-
-        # time level t = 1/4/1986 11:00
-        self.ow_1.prev_stor_swds = 0
-        self.ow_1.prev_stor_mss = 0
-        # self.ow_1.prev
-        self.assertAlmostEqual(
-            self.ow_1.sol(
-                0,
-                0.331006211,
-                0,
-                -0.083728895,
-                0,
-                0,
-                0,
-                0,
-                0,
-                6855,
-                8140,
-                2845,
-                0,
-                0,
-                10000,
-                1 / 24,
-            )["sum_d_ow"],
-            -2.271844027,
-            places=7,
-        )
-
-    # def test_integration(self):
-    #     """
-    #     runs integration tests (validate with excel using different coefficient sets for all time steps)
-    #     """
-    #     for n in validate(300, 1.5, 200, Dec=6, Num=0):  # default
-    #         self.assertIsNone(n)
-    #     for n in validate(300, 3, 200, Dec=3, Num=1):  # target open water level = 3
-    #         self.assertIsNone(n)
-    #     for n in validate(300, 1.5, 2000, Dec=2, Num=2):  # q_ow_out_cap = 2000
-    #         self.assertIsNone(n)
-    #     # for Num 1 Num 2 cases, the results are actually the same.
+@pytest.fixture
+def ow_1():
+    return OpenWater(ow_no_meas_area=300, ow_level=1.5, q_ow_out_cap=200)
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_sol(ow_1):
+    # time level t = 1/4/1986 11:00
+    ow_1.prev_stor_swds = 0
+    ow_1.prev_stor_mss = 0
+    # ow_1.prev
+    assert (
+        ow_1.sol(
+            0,
+            0.331006211,
+            0,
+            -0.083728895,
+            0,
+            0,
+            0,
+            0,
+            0,
+            6855,
+            8140,
+            2845,
+            0,
+            0,
+            10000,
+            1 / 24,
+        )["sum_d_ow"]
+        == pytest.approx(-2.271844027)
+    )
+
+
+@pytest.mark.skip(reason="some larger differences found, have to investigate")
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(300, 1.5, 200, Dec=6, Num=0):  # default
+        assert n is None
+    for n in validate(300, 3, 200, Dec=3, Num=1):  # target open water level = 3
+        assert n is None
+    for n in validate(300, 1.5, 2000, Dec=2, Num=2):  # q_ow_out_cap = 2000
+        assert n is None
+    # for Num 1 Num 2 cases, the results are actually the same.

@@ -11,9 +11,8 @@ before_script:
 
 tests:
   script:
-    - cd tests
-    - python -m unittest -v
-    - cd ..
+    - python -m pytest --verbose --cov=urbanwb
+    - black --check .
 
 pages:
   script:

@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -100,108 +100,90 @@ def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
     return none_list
 
 
-class TestGroundwater(unittest.TestCase):
-    def setUp(self):
-        """runs the code before every single test"""
-        self.gw_1 = Groundwater(
-            1.5,
-            8140,
-            0,
-            seepage_define=0,
-            w=100,
-            vc=20000,
-            head_deep_gw=21.5,
-            down_seepage_flux=1,
-            soiltype=2,
-            croptype=1,
-        )
-
-    def test_sol(self):
-        """test the 'sol' in the Unpaved class. Better carefully select values that can coverage all the
-        process threshold"""
-        # time level t = 12/17/1989 15:00
-        self.gw_1.gwl_prevt = 1.5589210852  # update state
-        self.gw_1.gwl_sl_prevt = 0
-        self.assertAlmostEqual(
-            self.gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
-                "sc_gw"
-            ],
-            0.21189210852,
-            places=8,
-        )
-
-        # time level t = 12/17/1989 15:00
-        self.gw_1.gwl_prevt = 1.5589210852  # update state
-        self.gw_1.gwl_sl_prevt = 0
-        self.assertAlmostEqual(
-            self.gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
-                "sum_p_gw"
-            ],
-            0.6932417084,
-            places=8,
-        )
-
-        # time level t = 12/17/1989 16:00
-        self.gw_1.gwl_prevt = 1.5588655980  # update state
-        self.gw_1.gwl_sl_prevt = 0
-        self.assertAlmostEqual(
-            self.gw_1.sol(
-                0.3826862970, 6855, 0.041666667, 481.6093594, 0, 0, 1.5, 1 / 24
-            )["gwl"],
-            1.5574153022415493,
-            places=9,
-        )
-
-    # def test_integration(self):
-    #     """
-    #      runs integration tests (validate with excel using different coefficient sets for all time steps)
-    #      """
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=0
-    #     ):  # default
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 3, 1, Dec=3, Num=1
-    #     ):  # soiltype = 3 croptype = 1
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 7, 1, Dec=3, Num=2
-    #     ):  # soiltype = 7 croptype = 1
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 1, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=3
-    #     ):  # seepage_define = 1
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 10000, 20000, 21.5, 1, 2, 1, Dec=3, Num=4
-    #     ):  # w = 10000
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 0.1, 20000, 21.5, 1, 2, 1, Dec=2, Num=5
-    #     ):  # w = 0.1 (cannot be 0 otherwise DIV0 ERROR)
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 100, 2000000, 21.5, 1, 2, 1, Dec=3, Num=6
-    #     ):  # vc = 2000000
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 0, 100, 0, 21.5, 1, 2, 1, Dec=3, Num=7
-    #     ):  # vc = 0
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 1, 100, 20000, 215, 1, 2, 1, Dec=3, Num=8
-    #     ):  # head_deep_gw = 215, seepage_define = 1
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 8140, 0, 1, 100, 20000, 0, 1, 2, 1, Dec=3, Num=9
-    #     ):  # head_deep_gw = 0, seepage_define = 1
-    #         self.assertIsNone(n)
-    #     for n in validate(
-    #         1.5, 0, 8140, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=10
-    #     ):  # gw_no_meas_area = 0
-    #         self.assertIsNone(n)
-    #     # The difference between the summations of all values in solution matrix for python and excel is from 0.0001 to 0.001.
+@pytest.fixture
+def gw_1():
+    return Groundwater(
+        1.5,
+        8140,
+        0,
+        seepage_define=0,
+        w=100,
+        vc=20000,
+        head_deep_gw=21.5,
+        down_seepage_flux=1,
+        soiltype=2,
+        croptype=1,
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_sol(gw_1):
+    # time level t = 12/17/1989 15:00
+    gw_1.gwl_prevt = 1.5589210852  # update state
+    gw_1.gwl_sl_prevt = 0
+    assert gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
+        "sc_gw"
+    ] == pytest.approx(0.21189210852)
+
+    # time level t = 12/17/1989 15:00
+    gw_1.gwl_prevt = 1.5589210852  # update state
+    gw_1.gwl_sl_prevt = 0
+    assert gw_1.sol(0.8231929258, 6855, 0, 481.6093594, 0, 0, 1.5, 1 / 24)[
+        "sum_p_gw"
+    ] == pytest.approx(0.6932417084)
+
+    # time level t = 12/17/1989 16:00
+    gw_1.gwl_prevt = 1.5588655980  # update state
+    gw_1.gwl_sl_prevt = 0
+    assert gw_1.sol(0.3826862970, 6855, 0.041666667, 481.6093594, 0, 0, 1.5, 1 / 24)[
+        "gwl"
+    ] == pytest.approx(1.5574153022415493)
+
+
+@pytest.mark.skip(reason="some larger differences found, have to investigate")
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(
+        1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=0
+    ):  # default
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 3, 1, Dec=3, Num=1
+    ):  # soiltype = 3 croptype = 1
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 7, 1, Dec=3, Num=2
+    ):  # soiltype = 7 croptype = 1
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 1, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=3
+    ):  # seepage_define = 1
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 0, 10000, 20000, 21.5, 1, 2, 1, Dec=3, Num=4
+    ):  # w = 10000
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 0, 0.1, 20000, 21.5, 1, 2, 1, Dec=2, Num=5
+    ):  # w = 0.1 (cannot be 0 otherwise DIV0 ERROR)
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 0, 100, 2000000, 21.5, 1, 2, 1, Dec=3, Num=6
+    ):  # vc = 2000000
+        assert n is None
+    for n in validate(1.5, 8140, 0, 0, 100, 0, 21.5, 1, 2, 1, Dec=3, Num=7):  # vc = 0
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 1, 100, 20000, 215, 1, 2, 1, Dec=3, Num=8
+    ):  # head_deep_gw = 215, seepage_define = 1
+        assert n is None
+    for n in validate(
+        1.5, 8140, 0, 1, 100, 20000, 0, 1, 2, 1, Dec=3, Num=9
+    ):  # head_deep_gw = 0, seepage_define = 1
+        assert n is None
+    for n in validate(
+        1.5, 0, 8140, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=10
+    ):  # gw_no_meas_area = 0
+        assert n is None
+    # The difference between the summations of all values in solution matrix for python and excel is from 0.0001 to 0.001.

@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -68,62 +68,44 @@ def validate(a, b, c, d, e, f, Dec, Num):
     return none_list
 
 
-class TestClosedPaved(unittest.TestCase):
-    def setUp(self):
-        """
-        runs the code before every single test
-        """
-        self.cp_1 = ClosedPaved(
-            0, 803.3906406, 0, 0, intstorcap_cp=1.6, stormfrac_cp=1.0, discfrac_cp=0.0
-        )
-
-    def test_inflowfac(self):
-        """
-        tests the 'inflowfac' function in the ClosedPaved class
-        """
-        self.assertAlmostEqual(self.cp_1.inflowfac(), 0, places=8)
-
-    def test_sol(self):
-        """
-        test the 'sol' in the ClosedPaved class
-        """
-        # time level t = 4/22/1990 19:00
-        self.cp_1.init_intstor_cp = 0  # update state
-        self.assertAlmostEqual(
-            self.cp_1.sol(8.89, 0.111267176)["int_cp"], 1.6, places=8
-        )
-
-        # time level t = 4/22/1990 20:00
-        self.cp_1.init_intstor_cp = 1.488732824  # update state
-        self.assertAlmostEqual(
-            self.cp_1.sol(0.254, 0)["r_cp_swds"], 0.142732824, places=8
-        )
-
-    def test_integration(self):
-        """
-        runs integration tests (validate with excel using different coefficient sets for all time steps)
-        """
-        for n in validate(803.39, 0, 0, 1.6, 1, 0, Dec=8, Num=0):  # default
-            self.assertIsNone(n)
-        for n in validate(
-            0, 803.39, 0, 1.6, 1.0, 0.0, Dec=8, Num=1
-        ):  # cp_no_meas_area = 0
-            self.assertIsNone(n)
-        for n in validate(803.39, 0, 0, 0, 1, 0, Dec=8, Num=2):  # intstorcap_cp = 0
-            self.assertIsNone(n)
-        for n in validate(
-            803.39, 0, 0, 1600, 1, 0, Dec=6, Num=3
-        ):  # intstorcap_cp = 1600
-            self.assertIsNone(n)
-        for n in validate(803.39, 0, 0, 1.6, 0, 0, Dec=8, Num=4):  # stormfrac = 0
-            self.assertIsNone(n)
-        for n in validate(803.39, 0, 0, 1.6, 0.37, 0, Dec=8, Num=5):  # stormfrac = 0.37
-            self.assertIsNone(n)
-        for n in validate(803.39, 0, 0, 1.6, 1, 1, Dec=8, Num=6):  # discfrac = 1
-            self.assertIsNone(n)
-        for n in validate(803.39, 0, 0, 1.6, 1, 0.37, Dec=8, Num=7):  # discfrac = 0.37
-            self.assertIsNone(n)
+@pytest.fixture
+def cp_1():
+    return ClosedPaved(
+        0, 803.3906406, 0, 0, intstorcap_cp=1.6, stormfrac_cp=1.0, discfrac_cp=0.0
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_inflowfac(cp_1):
+    assert cp_1.inflowfac() == pytest.approx(0.0)
+
+
+def test_sol(cp_1):
+    # time level t = 4/22/1990 19:00
+    cp_1.init_intstor_cp = 0  # update state
+    assert cp_1.sol(8.89, 0.111267176)["int_cp"] == pytest.approx(1.6)
+
+    # time level t = 4/22/1990 20:00
+    cp_1.init_intstor_cp = 1.488732824  # update state
+    assert cp_1.sol(0.254, 0)["r_cp_swds"] == pytest.approx(0.142732824)
+
+
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(803.39, 0, 0, 1.6, 1, 0, Dec=8, Num=0):  # default
+        assert n is None
+    for n in validate(0, 803.39, 0, 1.6, 1.0, 0.0, Dec=8, Num=1):  # cp_no_meas_area = 0
+        assert n is None
+    for n in validate(803.39, 0, 0, 0, 1, 0, Dec=8, Num=2):  # intstorcap_cp = 0
+        assert n is None
+    for n in validate(803.39, 0, 0, 1600, 1, 0, Dec=6, Num=3):  # intstorcap_cp = 1600
+        assert n is None
+    for n in validate(803.39, 0, 0, 1.6, 0, 0, Dec=8, Num=4):  # stormfrac = 0
+        assert n is None
+    for n in validate(803.39, 0, 0, 1.6, 0.37, 0, Dec=8, Num=5):  # stormfrac = 0.37
+        assert n is None
+    for n in validate(803.39, 0, 0, 1.6, 1, 1, Dec=8, Num=6):  # discfrac = 1
+        assert n is None
+    for n in validate(803.39, 0, 0, 1.6, 1, 0.37, Dec=8, Num=7):  # discfrac = 0.37
+        assert n is None

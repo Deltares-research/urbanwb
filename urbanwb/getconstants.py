@@ -144,12 +144,16 @@ class Analyse(object):
     """
 
     def __init__(
-        self, filename, num_year=30,
+        self,
+        filename,
+        num_year=30,
     ):
         self.name = filename
         # automatically create output name according to inputname: first remove ".csv" then add "_results.csv"
         self.output_name = "".join(list(self.name)[:-4]) + "_results.csv"
-        self.df = pd.read_csv(self.name,)
+        self.df = pd.read_csv(
+            self.name,
+        )
         self.df = self.df.fillna(0)
         self.dictionary = self.df.to_dict("list")
         self.num_year = num_year
@@ -161,7 +165,9 @@ class Analyse(object):
         )
         self.makingranks = self.makingranks()
 
-    def getconstants(self,):  # consider changing function name to avoid confusion.
+    def getconstants(
+        self,
+    ):  # consider changing function name to avoid confusion.
         pass
         print(["storage cap mm", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50])
         emp = dict()
@@ -181,7 +187,9 @@ class Analyse(object):
     def save_constants(self):
         pass
 
-    def makingranks(self,):
+    def makingranks(
+        self,
+    ):
         # unchanged, I made a mistake here, should be self.emp rather than emp. Not a big problem.
         emp = dict()
         emp["Rank_P"] = ranking(self.df, "P_atm", int(max(self.df.mark) + 1))
@@ -196,11 +204,17 @@ class Analyse(object):
         data = pd.DataFrame.from_dict(emp)
         return data
 
-    def save_to_csv(self,):
+    def save_to_csv(
+        self,
+    ):
         self.makingranks.to_csv(self.output_name)
 
     def plotting(
-        self, measure_name, addition_name, xlim_down=5, xlim_up=20,
+        self,
+        measure_name,
+        addition_name,
+        xlim_down=5,
+        xlim_up=20,
     ):
         self.data = self.makingranks
 
