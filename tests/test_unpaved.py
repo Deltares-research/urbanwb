@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -93,116 +93,97 @@ def validate(a, b, c, d, e, f, g, h, Dec, Num):
     return none_list
 
 
-class TestUnPaved(unittest.TestCase):
-    def setUp(self):
-        """
-        runs the code before every single test
-        """
-        self.up_1 = Unpaved(
-            fin_intstor_up_t0=0,
-            up_no_meas_area=6855,
-            up_meas_area=0,
-            up_meas_inflow_area=0,
-            infilcap_up=48,
-            intstorcap_up=20,
-            soiltype=2,
-            croptype=1,
-        )
+@pytest.fixture
+def up_1():
+    return Unpaved(
+        fin_intstor_up_t0=0,
+        up_no_meas_area=6855,
+        up_meas_area=0,
+        up_meas_inflow_area=0,
+        infilcap_up=48,
+        intstorcap_up=20,
+        soiltype=2,
+        croptype=1,
+    )
 
-    def test_inflowfac(self):
-        """
-        test the 'inflowfac' in the Unpaved class
-        """
-        self.assertEqual(self.up_1.inflowfac_up, 0)
 
-    def test_sol(self):
-        """
-        test the 'sol' in the Unpaved class
-        """
+def test_inflowfac(up_1):
+    assert up_1.inflowfac_up == pytest.approx(0.0)
 
-        # time level t = 8/1/1988 13:00
-        self.up_1.fin_intstor_up_prevt = 0.0  # update state
-        self.assertAlmostEqual(
-            self.up_1.sol(
-                p_atm=0,
-                e_pot_ow=0.346642066,
-                r_pr_up=0,
-                r_cp_up=0,
-                r_op_up=0,
-                theta_uz_prevt=175.7714344,
-                pr_no_meas_area=1560,
-                cp_no_meas_area=803.3906406,
-                op_no_meas_area=481.6093594,
-                ow_no_meas_area=300,
-                delta_t=1 / 24,
-            )[
-                "actl_infilcap_up"
-            ],  # actl_infilcap_up
-            2,
-        )
 
-        # time level t = 8/1/1988 14:00
-        self.up_1.fin_intstor_up_prevt = 0  # update state
-        self.assertAlmostEqual(
-            self.up_1.sol(
-                4.826,
-                0.346642066,
-                0,
-                0,
-                0,
-                175.5165721,
-                1560,
-                803.3906406,
-                481.6093594,
-                300,
-                1 / 24,
-            )["init_intstor_up"],
+def test_sol(up_1):
+    # time level t = 8/1/1988 13:00
+    up_1.fin_intstor_up_prevt = 0.0  # update state
+    assert (
+        up_1.sol(
+            p_atm=0,
+            e_pot_ow=0.346642066,
+            r_pr_up=0,
+            r_cp_up=0,
+            r_op_up=0,
+            theta_uz_prevt=175.7714344,
+            pr_no_meas_area=1560,
+            cp_no_meas_area=803.3906406,
+            op_no_meas_area=481.6093594,
+            ow_no_meas_area=300,
+            delta_t=1 / 24,
+        )["actl_infilcap_up"]
+        == pytest.approx(2.0)
+    )
+
+    # time level t = 8/1/1988 14:00
+    up_1.fin_intstor_up_prevt = 0  # update state
+    assert (
+        up_1.sol(
             4.826,
-        )
-
-    def test_integration(self):
-        """
-        runs integration tests (validate with excel using different coefficient sets for all time steps)
-        """
-        for n in validate(6855, 0, 0, 48, 20, 2, 1, 300, Dec=8, Num=0):  # default
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 0, 2, 1, 300, Dec=8, Num=1
-        ):  # intstorcap_up = 0
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 2000, 2, 1, 300, Dec=6, Num=2
-        ):  # intstorcap_up = 2000
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 0, 20, 2, 1, 300, Dec=8, Num=3
-        ):  # infilcap_up = 0
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 4800, 20, 2, 1, 300, Dec=6, Num=4
-        ):  # infilcap_up = 4800
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 20, 3, 1, 300, Dec=8, Num=5
-        ):  # soiltype = 3, croptype = 1
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 20, 4, 1, 300, Dec=8, Num=6
-        ):  # soiltype = 4, croptype = 1
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 20, 2, 1, 300, Dec=6, Num=7
-        ):  # discfrac = 0.37 for all three paved areas.
-            self.assertIsNone(n)
-        for n in validate(
-            0, 6855, 0, 48, 20, 2, 1, 300, Dec=8, Num=8
-        ):  # up_no_meas_area = 0
-            self.assertIsNone(n)
-        for n in validate(
-            6855, 0, 0, 48, 20, 2, 1, 0, Dec=6, Num=9
-        ):  # ow_no_meas_area = 0
-            self.assertIsNone(n)
+            0.346642066,
+            0,
+            0,
+            0,
+            175.5165721,
+            1560,
+            803.3906406,
+            481.6093594,
+            300,
+            1 / 24,
+        )["init_intstor_up"]
+        == pytest.approx(4.826)
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(6855, 0, 0, 48, 20, 2, 1, 300, Dec=8, Num=0):  # default
+        assert n is None
+    for n in validate(6855, 0, 0, 48, 0, 2, 1, 300, Dec=8, Num=1):  # intstorcap_up = 0
+        assert n is None
+    for n in validate(
+        6855, 0, 0, 48, 2000, 2, 1, 300, Dec=6, Num=2
+    ):  # intstorcap_up = 2000
+        assert n is None
+    for n in validate(6855, 0, 0, 0, 20, 2, 1, 300, Dec=8, Num=3):  # infilcap_up = 0
+        assert n is None
+    for n in validate(
+        6855, 0, 0, 4800, 20, 2, 1, 300, Dec=6, Num=4
+    ):  # infilcap_up = 4800
+        assert n is None
+    for n in validate(
+        6855, 0, 0, 48, 20, 3, 1, 300, Dec=8, Num=5
+    ):  # soiltype = 3, croptype = 1
+        assert n is None
+    for n in validate(
+        6855, 0, 0, 48, 20, 4, 1, 300, Dec=8, Num=6
+    ):  # soiltype = 4, croptype = 1
+        assert n is None
+    for n in validate(
+        6855, 0, 0, 48, 20, 2, 1, 300, Dec=6, Num=7
+    ):  # discfrac = 0.37 for all three paved areas.
+        assert n is None
+    for n in validate(
+        0, 6855, 0, 48, 20, 2, 1, 300, Dec=8, Num=8
+    ):  # up_no_meas_area = 0
+        assert n is None
+    for n in validate(6855, 0, 0, 48, 20, 2, 1, 0, Dec=6, Num=9):  # ow_no_meas_area = 0
+        assert n is None

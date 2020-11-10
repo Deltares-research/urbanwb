@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -72,72 +72,52 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
-    def setUp(self):
-        """
-        runs the code before every single test
-        """
-        self.op_1 = OpenPaved(
-            0, 481.6093594, 0, 0, intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0
-        )
-
-    def test_inflowfac(self):
-        """
-        test the 'inflowfac' in the PavedRoof class. Actually not very necessary as it is already included in sol
-        """
-        self.assertAlmostEqual(self.op_1.inflowfac(), 0, places=8)
-
-    def test_sol(self):
-        """
-        test the 'sol' in the OpenPaved class.
-        """
-        # time level t = 12/23/1990 6:00
-        self.op_1.intstor_op_prevt = 0  # update state
-        self.assertAlmostEqual(
-            self.op_1.sol(2.286, 0.02145677, 1 / 24)["int_op"], 1.6, places=8
-        )
-
-        # time level t = 12/23/1990 7:00
-        self.op_1.intstor_op_prevt = 0.02145677  # update state
-        self.assertAlmostEqual(
-            self.op_1.sol(12.7, 0.183915171, 1 / 24)["e_atm_op"], 0.183915171, places=8
-        )
-
-    def test_integration(self):
-        """
-        runs integration tests (validate with excel using different coefficient sets for all time steps)
-        """
-        for n in validate(481.61, 0, 0, 1.6, 1.0, 0, 1, Dec=8, Num=0):  # default
-            self.assertIsNone(n)
-        for n in validate(481.61, 0, 0, 0, 1, 0, 1, Dec=8, Num=1):  # intstorcap_op = 0
-            self.assertIsNone(n)
-        for n in validate(
-            481.61, 0, 0, 1600, 1, 0, 1, Dec=6, Num=2
-        ):  # intstorcap_op = 1600
-            self.assertIsNone(n)
-        for n in validate(481.61, 0, 0, 1.6, 0, 0, 1, Dec=8, Num=3):  # stormfrac = 0
-            self.assertIsNone(n)
-        for n in validate(
-            481.61, 0, 0, 1.6, 0.37, 0, 1, Dec=8, Num=4
-        ):  # stormfrac = 0.37
-            self.assertIsNone(n)
-        for n in validate(481.61, 0, 0, 1.6, 1, 1, 1, Dec=8, Num=5):  # discfrac = 1
-            self.assertIsNone(n)
-        for n in validate(
-            481.61, 0, 0, 1.6, 1, 0.37, 1, Dec=8, Num=6
-        ):  # discfrac = 0.37
-            self.assertIsNone(n)
-        for n in validate(481.61, 0, 0, 1.6, 1, 0, 0, Dec=8, Num=7):  # infilcap_op = 0
-            self.assertIsNone(n)
-        for n in validate(
-            481.61, 0, 0, 1.6, 1, 0, 100, Dec=8, Num=8
-        ):  # infilcap_op = 100
-            self.assertIsNone(n)
-        for n in validate(
-            0, 481.61, 481.61, 1.6, 1, 0, 1, Dec=8, Num=9
-        ):  # op_no_meas_area = 0
-            self.assertIsNone(n)
+@pytest.fixture
+def op_1():
+    return OpenPaved(
+        0, 481.6093594, 0, 0, intstorcap_op=1.6, stormfrac_op=1.0, discfrac_op=0.0
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_inflowfac(op_1):
+    op_1.inflowfac() == pytest.approx(0.0)
+
+
+def test_sol(op_1):
+    # time level t = 12/23/1990 6:00
+    op_1.intstor_op_prevt = 0  # update state
+    assert op_1.sol(2.286, 0.02145677, 1 / 24)["int_op"] == pytest.approx(1.6)
+
+    # time level t = 12/23/1990 7:00
+    op_1.intstor_op_prevt = 0.02145677  # update state
+    assert op_1.sol(12.7, 0.183915171, 1 / 24)["e_atm_op"] == pytest.approx(0.183915171)
+
+
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(481.61, 0, 0, 1.6, 1.0, 0, 1, Dec=8, Num=0):  # default
+        assert n is None
+    for n in validate(481.61, 0, 0, 0, 1, 0, 1, Dec=8, Num=1):  # intstorcap_op = 0
+        assert n is None
+    for n in validate(
+        481.61, 0, 0, 1600, 1, 0, 1, Dec=6, Num=2
+    ):  # intstorcap_op = 1600
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 0, 0, 1, Dec=8, Num=3):  # stormfrac = 0
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 0.37, 0, 1, Dec=8, Num=4):  # stormfrac = 0.37
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 1, 1, 1, Dec=8, Num=5):  # discfrac = 1
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 1, 0.37, 1, Dec=8, Num=6):  # discfrac = 0.37
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 1, 0, 0, Dec=8, Num=7):  # infilcap_op = 0
+        assert n is None
+    for n in validate(481.61, 0, 0, 1.6, 1, 0, 100, Dec=8, Num=8):  # infilcap_op = 100
+        assert n is None
+    for n in validate(
+        0, 481.61, 481.61, 1.6, 1, 0, 1, Dec=8, Num=9
+    ):  # op_no_meas_area = 0
+        assert n is None

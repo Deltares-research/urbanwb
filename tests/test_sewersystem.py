@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import urbanwb
 import numpy as np
 import pandas as pd
@@ -116,127 +116,114 @@ def validate(a, b, c, d, e, f, g, Dec, Num):
     return none_list
 
 
-class TestOpenPaved(unittest.TestCase):
-    def setUp(self):
-        """
-        runs the code before every single test
-        """
-        self.ss_1 = SewerSystem(
-            2845,
+@pytest.fixture
+def ss_1():
+    return SewerSystem(
+        2845,
+        0,
+        0,
+        0,
+        0,
+        0,
+        q_swds_ow_cap=55.1,
+        q_mss_out_cap=26.3,
+        q_mss_ow_cap=48.1,
+        storcap_swds=2,
+        storcap_mss=9,
+    )
+
+
+def test_sol(ss_1):
+    """
+    test the 'sol' in the SewerSystem class. Better carefully select values that can coverage all the
+    process threshold
+    """
+    # time level t = 1/4/1986 11:00
+    ss_1.stor_swds_prevt = 0
+    ss_1.so_swds_prevt = 0
+    ss_1.stor_mss_prevt = 0
+    ss_1.so_mss_prevt = 0
+    assert (
+        ss_1.sol(
+            1560,
+            803.390641,
+            481.6093594,
+            6.766687196,
+            6.766687196,
+            6.725020529,
             0,
             0,
             0,
             0,
             0,
-            q_swds_ow_cap=55.1,
-            q_mss_out_cap=26.3,
-            q_mss_ow_cap=48.1,
-            storcap_swds=2,
-            storcap_mss=9,
-        )
+            300,
+            0,
+        )["sum_r_swds"]
+        == pytest.approx(6.7596337490)
+    )
 
-    def test_sol(self):
-        """
-        test the 'sol' in the SewerSystem class. Better carefully select values that can coverage all the
-        process threshold
-        """
-        # time level t = 1/4/1986 11:00
-        self.ss_1.stor_swds_prevt = 0
-        self.ss_1.so_swds_prevt = 0
-        self.ss_1.stor_mss_prevt = 0
-        self.ss_1.so_mss_prevt = 0
-        self.assertAlmostEqual(
-            self.ss_1.sol(
-                1560,
-                803.390641,
-                481.6093594,
-                6.766687196,
-                6.766687196,
-                6.725020529,
-                0,
-                0,
-                0,
-                0,
-                0,
-                300,
-                0,
-            )["sum_r_swds"],
-            6.7596337490,
-            places=8,
-        )
-
-        # # time level t = 1/4/1986 12:00
-        self.ss_1.stor_swds_prevt = 0
-        self.ss_1.so_swds_prevt = 0
-        self.ss_1.stor_mss_prevt = 0
-        self.ss_1.so_mss_prevt = 0
-        self.assertAlmostEqual(
-            self.ss_1.sol(
-                1560,
-                803.390641,
-                481.6093594,
-                0.670687196,
-                0.670687196,
-                0.629020529,
-                0,
-                0,
-                0,
-                0,
-                0,
-                300,
-                0,
-            )["q_swds_ow"],
-            0.663633749,
-            places=8,
-        )
-
-    def test_integration(self):
-        """
-        runs integration tests (validate with excel using different coefficient sets for all time steps)
-        """
-        for n in validate(2845, 0, 55.1, 26.3, 48.1, 2, 9, Dec=7, Num=0):  # default
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 551, 26.3, 48.1, 2, 9, Dec=7, Num=1
-        ):  # q_swds_ow_cap = 551
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 0, 26.3, 48.1, 2, 9, Dec=7, Num=2
-        ):  # q_swds_ow_cap = 0
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 263, 48.1, 2, 9, Dec=7, Num=3
-        ):  # q_mss_out_cap = 263
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 0, 48.1, 2, 9, Dec=7, Num=4
-        ):  # q_mss_out_cap = 0
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 26.3, 481, 2, 9, Dec=7, Num=5
-        ):  # q_mss_ow_cap = 481
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 26.3, 0, 2, 9, Dec=7, Num=6
-        ):  # q_mss_ow_cap = 0
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 37.1, 26.3, 48.1, 20, 9, Dec=7, Num=7
-        ):  # q_swds_ow_cap = 37.1, storcap_swds = 20
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 57.1, 26.3, 48.1, 0, 9, Dec=7, Num=8
-        ):  # q_swds_ow_cap = 57.1, storcap_swds = 0
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 26.3, 48.1, 2, 90, Dec=7, Num=9
-        ):  # storcap_mss = 90
-            self.assertIsNone(n)
-        for n in validate(
-            2845, 0, 55.1, 26.3, 48.1, 2, 0, Dec=7, Num=10
-        ):  # storcap_mss = 0
-            self.assertIsNone(n)
+    # # time level t = 1/4/1986 12:00
+    ss_1.stor_swds_prevt = 0
+    ss_1.so_swds_prevt = 0
+    ss_1.stor_mss_prevt = 0
+    ss_1.so_mss_prevt = 0
+    assert (
+        ss_1.sol(
+            1560,
+            803.390641,
+            481.6093594,
+            0.670687196,
+            0.670687196,
+            0.629020529,
+            0,
+            0,
+            0,
+            0,
+            0,
+            300,
+            0,
+        )["q_swds_ow"]
+        == pytest.approx(0.663633749)
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_integration():
+    """
+    runs integration tests (validate with excel using different coefficient sets for all time steps)
+    """
+    for n in validate(2845, 0, 55.1, 26.3, 48.1, 2, 9, Dec=7, Num=0):  # default
+        assert n is None
+    for n in validate(
+        2845, 0, 551, 26.3, 48.1, 2, 9, Dec=7, Num=1
+    ):  # q_swds_ow_cap = 551
+        assert n is None
+    for n in validate(2845, 0, 0, 26.3, 48.1, 2, 9, Dec=7, Num=2):  # q_swds_ow_cap = 0
+        assert n is None
+    for n in validate(
+        2845, 0, 55.1, 263, 48.1, 2, 9, Dec=7, Num=3
+    ):  # q_mss_out_cap = 263
+        assert n is None
+    for n in validate(2845, 0, 55.1, 0, 48.1, 2, 9, Dec=7, Num=4):  # q_mss_out_cap = 0
+        assert n is None
+    for n in validate(
+        2845, 0, 55.1, 26.3, 481, 2, 9, Dec=7, Num=5
+    ):  # q_mss_ow_cap = 481
+        assert n is None
+    for n in validate(2845, 0, 55.1, 26.3, 0, 2, 9, Dec=7, Num=6):  # q_mss_ow_cap = 0
+        assert n is None
+    for n in validate(
+        2845, 0, 37.1, 26.3, 48.1, 20, 9, Dec=7, Num=7
+    ):  # q_swds_ow_cap = 37.1, storcap_swds = 20
+        assert n is None
+    for n in validate(
+        2845, 0, 57.1, 26.3, 48.1, 0, 9, Dec=7, Num=8
+    ):  # q_swds_ow_cap = 57.1, storcap_swds = 0
+        assert n is None
+    for n in validate(
+        2845, 0, 55.1, 26.3, 48.1, 2, 90, Dec=7, Num=9
+    ):  # storcap_mss = 90
+        assert n is None
+    for n in validate(
+        2845, 0, 55.1, 26.3, 48.1, 2, 0, Dec=7, Num=10
+    ):  # storcap_mss = 0
+        assert n is None

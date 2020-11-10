@@ -13,7 +13,9 @@ setup(
     test_suite="tests",
     python_requires=">=3.6",
     install_requires=["numpy", "pandas", "toml", "fire", "tqdm", "tabulate"],
-    extras_require={"dev": ["sphinx", "sphinx_rtd_theme"]},
+    extras_require={
+        "dev": ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
+    },
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 3 - Alpha",
