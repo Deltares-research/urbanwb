@@ -8,7 +8,7 @@ import fire
 import logging
 from pathlib import Path
 from collections import OrderedDict
-from tqdm import trange
+from tqdm import tqdm
 from time import sleep
 from urbanwb.pavedroof import PavedRoof
 from urbanwb.closedpaved import ClosedPaved
@@ -454,9 +454,8 @@ def running(input_data, dict_param):
             # "total_runoff": np.nan
         }
     ]
-    for t in trange(
-        1, iters
-    ):  # time series first line is not relevant, computation starts from the second line.
+    # time series first line is not relevant, computation starts from the second line.
+    for t in tqdm(range(1, iters)):
         lst.append(
             k.__next__(
                 P_atm[t],
@@ -730,6 +729,7 @@ def batch_run_measure(
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(outdir / dyn_out, index=True)
+    return df
 
 
 def batch_run_sdf(
@@ -766,8 +766,8 @@ def batch_run_sdf(
 
     rank_database = []
     iters = len(input_data["date"])
-    mean_daily_rainfall = np.mean(input_data["P_atm"]) * 24
     dt = dict_param["delta_t"]
+    mean_daily_rainfall = np.mean(input_data["P_atm"]) / dt
     num_year = round((dt * iters) / 365)
     print(f"The length of input time series is around {num_year} year")
     print(f"Mean daily rainfall is {mean_daily_rainfall:.2f} mm/d")
@@ -828,6 +828,7 @@ def batch_run_sdf(
         outdir = Path("pysol")
         outdir.mkdir(parents=True, exist_ok=True)
         df.T.to_csv(outdir / dyn_out, index=True)
+        return df
 
     else:  # if we type in an arithmetic progression
         if len(q_list) != 3:

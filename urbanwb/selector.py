@@ -33,8 +33,3 @@ def soil_selector(a, b):
     soil_prm = soil_prm.to_dict(orient="Records")
 
     return soil_prm
-
-
-if __name__ == "__main__":
-    print(soil_selector(2, 1))
-    print(soil_selector(5, 1)[18]["capris_max[mm/d]"])
