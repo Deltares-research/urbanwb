@@ -10,6 +10,7 @@ from time import sleep
 import fire
 import numpy as np
 import pandas as pd
+import toml
 from tqdm import tqdm
 
 from urbanwb.closedpaved import ClosedPaved
@@ -252,7 +253,139 @@ def read_parameters(stat1_inp, stat2_inp):
         - parameter_measure["ow_meas_area"],
     )
     rv = {**parameter_base, **parameter_measure, **d}
-    # print(rv)
+    return rv
+
+
+def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=True):
+    """
+    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
+    computing area of xx without measure with given parameters.
+
+    Args:
+        stat1_inp (string): filename of neighbourhood configuration file
+        measure_id (string): id of measure
+        neighbourhood_id (string): id of neighbourhood type
+
+    Returns:
+        (dictionary): A dictionary of all necessary parameters to initialize a model
+    """
+    # TODO consolidate with read_parameters above, or possibly eliminate
+    path = Path.cwd() / ".." / "input"
+    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+    # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
+    # TODO remove hardcoded path
+    neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
+    idx_neighbourhood = np.where(neighbourhood_pars["id_type"] == neighbourhood_id)[0][
+        0
+    ]
+    for key in neighbourhood_pars:
+        cf[key] = neighbourhood_pars[key][idx_neighbourhood]
+
+    parameter_base = read_parameter_base(cf)
+    parameter_measure = read_parameter_measure_csv(
+        measure_id, parameter_base, apply_measure
+    )
+
+    d = dict(
+        pr_no_meas_area=parameter_base["tot_pr_area"]
+        - parameter_measure["pr_meas_area"],
+        cp_no_meas_area=parameter_base["tot_cp_area"]
+        - parameter_measure["cp_meas_area"],
+        op_no_meas_area=parameter_base["tot_op_area"]
+        - parameter_measure["op_meas_area"],
+        up_no_meas_area=parameter_base["tot_up_area"]
+        - parameter_measure["up_meas_area"],
+        uz_no_meas_area=parameter_base["tot_uz_area"]
+        - parameter_measure["uz_meas_area"],
+        gw_no_meas_area=parameter_base["tot_gw_area"]
+        - parameter_measure["gw_meas_area"],
+        swds_no_meas_area=parameter_base["tot_swds_area"]
+        - parameter_measure["swds_meas_area"],
+        mss_no_meas_area=parameter_base["tot_mss_area"]
+        - parameter_measure["mss_meas_area"],
+        ow_no_meas_area=parameter_base["tot_ow_area"]
+        - parameter_measure["ow_meas_area"],
+    )
+    rv = {**parameter_base, **parameter_measure, **d}
+    return rv
+
+
+def read_parameters_exception(
+    stat1_inp, measure_title, neighbourhood_id, apply_measure
+):
+    """
+    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
+    computing area of xx without measure with given parameters.
+
+    Args:
+        stat1_inp (string): filename of neighbourhood configuration file
+        stat2_inp (string): filename of measure configuration file
+
+    Returns:
+        (dictionary): A dictionary of all necessary parameters to initialize a model
+    """
+    # TODO consolidate with read_parameters above, or possibly eliminate
+    path = Path.cwd() / ".." / "input"
+    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+    # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
+    # TODO remove hardcoded path
+    neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
+    idx_neighbourhood = np.where(neighbourhood_pars["id_type"] == neighbourhood_id)[0][
+        0
+    ]
+    for key in neighbourhood_pars:
+        cf[key] = neighbourhood_pars[key][idx_neighbourhood]
+
+    measures_exception = pd.read_excel(
+        "../input/Parameters measures exception.xlsx", sheet_name=None
+    )
+    for key in measures_exception[measure_title]:
+        if key == "title":
+            pass
+        else:
+            if key in cf:
+                cf[key] = measures_exception[measure_title][key][0]
+            elif key == "change_op_to_up":
+                if measures_exception[measure_title][key][0] == True:
+                    cf["up_frac"] += cf["op_frac"]
+                    cf["op_frac"] = 0
+                else:
+                    pass
+            elif key == "extra_ow_height":
+                cf["storcap_ow"] += measures_exception[measure_title][key][0]
+            elif key == "extra_ow_frac":
+                cf["up_frac"] -= measures_exception[measure_title][key][0]
+                cf["ow_frac"] += measures_exception[measure_title][key][0]
+
+    parameter_base = read_parameter_base(cf)
+    parameter_measure = read_parameter_measure_csv(
+        measure_title, parameter_base, apply_measure
+    )
+    parameter_measure["title"] = measures_exception[measure_title]["title"][0]
+
+    d = dict(
+        pr_no_meas_area=parameter_base["tot_pr_area"]
+        - parameter_measure["pr_meas_area"],
+        cp_no_meas_area=parameter_base["tot_cp_area"]
+        - parameter_measure["cp_meas_area"],
+        op_no_meas_area=parameter_base["tot_op_area"]
+        - parameter_measure["op_meas_area"],
+        up_no_meas_area=parameter_base["tot_up_area"]
+        - parameter_measure["up_meas_area"],
+        uz_no_meas_area=parameter_base["tot_uz_area"]
+        - parameter_measure["uz_meas_area"],
+        gw_no_meas_area=parameter_base["tot_gw_area"]
+        - parameter_measure["gw_meas_area"],
+        swds_no_meas_area=parameter_base["tot_swds_area"]
+        - parameter_measure["swds_meas_area"],
+        mss_no_meas_area=parameter_base["tot_mss_area"]
+        - parameter_measure["mss_meas_area"],
+        ow_no_meas_area=parameter_base["tot_ow_area"]
+        - parameter_measure["ow_meas_area"],
+    )
+    rv = {**parameter_base, **parameter_measure, **d}
     return rv
 
 
@@ -600,7 +733,6 @@ def batch_run_measure(
             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
             print("\n" * 2)
-            sleep(0.5)
     else:
         for a in vararrlist1:
             dict_param[varkey] = a
@@ -621,7 +753,6 @@ def batch_run_measure(
             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
             print("------" * 20)
             print("\n" * 2)
-            sleep(0.5)
 
     df = pd.DataFrame(database, index=[v for v in vararrlist1])
     df = df.T
@@ -640,7 +771,6 @@ def batch_run_measure(
     logger.info(f"Measure itself: {wbc_statistics[1]}")
     # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
     print("------" * 20)
-    sleep(0.5)
     df.insert(2, "Baseline", baseline_runoff)
     outdir = Path("pysol")
     outdir.mkdir(parents=True, exist_ok=True)
@@ -792,4 +922,5 @@ def batch_run_sdf(
 
 
 if __name__ == "__main__":
+    # provide an auto generated cli based on the functions in this file
     fire.Fire()

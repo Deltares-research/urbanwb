@@ -119,7 +119,7 @@ def getconstants(inputfilename, num_year=30):
         inputfilename (string): filename of the runoff time series resulted from the urbanwb model
         num_year (integer): total number of years of the time series
     """
-    m = Analyse("pysol/" + inputfilename, num_year=num_year)
+    m = Analyse(filename="pysol/" + inputfilename, num_year=num_year)
     results = m.getconstants()
     mean_constants = []
     for key in results.keys():
@@ -139,6 +139,40 @@ def getconstants(inputfilename, num_year=30):
         f.write("%s" % mean_constants)
 
 
+def getconstants_measures(data, num_year=30):
+    """
+    Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
+
+    Args:
+        inputfilename (string): filename of the runoff time series resulted from the urbanwb model
+        num_year (integer): total number of years of the time series
+    """
+    # TODO consolidate with getconstants above
+    m = Analyse(data=data, num_year=num_year)
+    results = m.getconstants()
+    mean_constants = []
+    for key in results.keys():
+        new_var_array = []
+        var_array = results[key]
+        for var in var_array:
+            if var < 2000:
+                new_var_array.append(var)
+        if new_var_array is not None:
+            mean_constants.append(np.round(np.mean(new_var_array), 2))
+    for i in range(len(mean_constants)):
+        if np.isnan(mean_constants[i]) == True or mean_constants[i] > 1000:
+            mean_constants[i] = 1000
+        else:
+            pass
+    else:
+        pass
+
+    # if there is no change in runoff, then reduction factor = 0 (e.g. at implementing on unpaved when he unpaved area already has no runoff)
+    if data[data.keys()[3]].sum() == data["Baseline"].sum():
+        mean_constants = [1]
+    return results, mean_constants
+
+
 class Analyse(object):
     """
     Integrate all functions, basically functioning, requiring further development
@@ -146,15 +180,22 @@ class Analyse(object):
 
     def __init__(
         self,
-        filename,
+        filename=None,
+        data=None,
         num_year=30,
     ):
-        self.name = filename
-        # automatically create output name according to inputname: first remove ".csv" then add "_results.csv"
-        self.output_name = "".join(list(self.name)[:-4]) + "_results.csv"
-        self.df = pd.read_csv(
-            self.name,
-        )
+        if filename is None:
+            assert data is not None
+            self.output_name = "results_measures.csv"
+            self.df = data
+        elif data is None:
+            assert filename is not None
+            self.name = filename
+            # automatically create output name according to inputname: first remove ".csv" then add "_results.csv"
+            self.output_name = "".join(list(self.name)[:-4]) + "_results.csv"
+            self.df = pd.read_csv(
+                self.name,
+            )
         self.df = self.df.fillna(0)
         self.dictionary = self.df.to_dict("list")
         self.num_year = num_year
@@ -162,15 +203,13 @@ class Analyse(object):
         # making event marks according to precipitation (6 consective zeros as separation)
         self.df["mark"] = making_marks(self.df["P_atm"])
         self.measure_dictionary = removekey(
-            self.dictionary, "Unnamed: 0", "Date", "P_atm", "Baseline"
+            self.dictionary, "Date", "P_atm", "Baseline"
         )
         self.makingranks = self.makingranks()
 
     def getconstants(
         self,
     ):  # consider changing function name to avoid confusion.
-        pass
-        print(["storage cap mm", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50])
         emp = dict()
         baseT = find_corresponding_T_for_array(
             t_array=self.makingranks["T_list"], array=self.makingranks["Rank_baseline"]
