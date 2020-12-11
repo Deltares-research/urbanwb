@@ -1,10 +1,11 @@
-import pytest
-import urbanwb
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
-from urbanwb.unpaved import Unpaved
+import pandas as pd
+import pytest
+
+import urbanwb
 from urbanwb.selector import soil_selector
+from urbanwb.unpaved import Unpaved
 
 path = urbanwb.urbanwbdir / ".." / "input"
 

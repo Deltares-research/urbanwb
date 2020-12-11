@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from urbanwb.selector import et_selector, soil_selector
 from urbanwb.gwlcalculator import gwlcalc
+from urbanwb.selector import et_selector, soil_selector
 
 
 class UnsaturatedZone:

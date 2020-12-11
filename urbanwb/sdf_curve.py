@@ -1,9 +1,11 @@
-import numpy as np
-import pandas as pd
 import time
-import urbanwb
 from functools import reduce
 from itertools import groupby
+
+import numpy as np
+import pandas as pd
+
+import urbanwb
 
 
 class SDF_Curve(object):

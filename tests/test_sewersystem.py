@@ -1,8 +1,9 @@
-import pytest
-import urbanwb
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
+import pandas as pd
+import pytest
+
+import urbanwb
 from urbanwb.sewersystem import SewerSystem
 
 path = urbanwb.urbanwbdir / ".." / "input"

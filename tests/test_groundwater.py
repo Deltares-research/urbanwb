@@ -1,10 +1,10 @@
-import pytest
-import urbanwb
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
-from urbanwb.groundwater import Groundwater
+import pandas as pd
+import pytest
 
+import urbanwb
+from urbanwb.groundwater import Groundwater
 
 path = urbanwb.urbanwbdir / ".." / "input"
 InputData = pd.read_csv(path / "integration_test" / "input_csv.csv")

@@ -1,34 +1,36 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
+import math
+import time
+from collections import OrderedDict
+from pathlib import Path
+from time import sleep
+
+import fire
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import time
-import fire
-import logging
 import toml
-import math
-import matplotlib.pyplot as plt
-from pathlib import Path
-from collections import OrderedDict
 from tqdm import trange
-from time import sleep
-from urbanwb.pavedroof import PavedRoof
+
 from urbanwb.closedpaved import ClosedPaved
-from urbanwb.openpaved import OpenPaved
-from urbanwb.unpaved import Unpaved
-from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.groundwater import Groundwater
-from urbanwb.sewersystem import SewerSystem
-from urbanwb.openwater import OpenWater
-from urbanwb.measure import Measure
-from urbanwb.selector import soil_selector
 from urbanwb.gwlcalculator import gwlcalc
+from urbanwb.measure import Measure
+from urbanwb.openpaved import OpenPaved
+from urbanwb.openwater import OpenWater
+from urbanwb.pavedroof import PavedRoof
 from urbanwb.read_parameter_base import read_parameter_base
 from urbanwb.read_parameter_measure import read_parameter_measure
-from urbanwb.waterbalance_checker import water_balance_checker
-from urbanwb.setlogger import setuplog
 from urbanwb.sdf_curve import SDF_curve2, get_segment_index
+from urbanwb.selector import soil_selector
+from urbanwb.setlogger import setuplog
+from urbanwb.sewersystem import SewerSystem
+from urbanwb.unpaved import Unpaved
+from urbanwb.unsaturatedzone import UnsaturatedZone
+from urbanwb.waterbalance_checker import water_balance_checker
 
 
 class UrbanwbModel(object):

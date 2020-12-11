@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from urbanwb.selector import soil_selector
+
 from urbanwb.gwlcalculator import gwlcalc
+from urbanwb.selector import soil_selector
 
 
 class Groundwater:

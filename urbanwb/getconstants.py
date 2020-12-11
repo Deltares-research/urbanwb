@@ -1,8 +1,9 @@
-import numpy as np
-import pandas as pd
+import math
+
 import fire
 import matplotlib.pyplot as plt
-import math
+import numpy as np
+import pandas as pd
 
 
 def making_marks(precipitation):

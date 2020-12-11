@@ -1,6 +1,7 @@
-import toml
-import fire
 from pathlib import Path
+
+import fire
+import toml
 
 
 def read_parameter_measure(stat2_inp):
