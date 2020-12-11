@@ -1,60 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import logging
-import math
-import time
-from collections import OrderedDict
 from pathlib import Path
-from time import sleep
 
-import fire
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import toml
-from tqdm import trange
 
-from urbanwb.closedpaved import ClosedPaved
-from urbanwb.getconstants import (
-    Analyse,
-    find_corresponding_T_for_array,
-    getconstants,
-    getconstants_measures,
-    making_marks,
-    ranking,
-    removekey,
-)
-from urbanwb.groundwater import Groundwater
-from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.main import (
-    UrbanwbModel,
-    batch_run_measure,
-    batch_run_sdf,
-    check_parameters,
     read_inputdata,
-    read_parameters,
     read_parameters_csv,
     read_parameters_exception,
     running,
-    save_to_csv,
 )
-from urbanwb.measure import Measure
-from urbanwb.openpaved import OpenPaved
-from urbanwb.openwater import OpenWater
-from urbanwb.pavedroof import PavedRoof
-from urbanwb.read_parameter_base import read_parameter_base
-from urbanwb.read_parameter_measure import (
-    read_parameter_measure,
-    read_parameter_measure_csv,
-)
-from urbanwb.sdf_curve import SDF_curve2, get_segment_index
-from urbanwb.selector import soil_selector
-from urbanwb.setlogger import setuplog
-from urbanwb.sewersystem import SewerSystem
-from urbanwb.unpaved import Unpaved
-from urbanwb.unsaturatedzone import UnsaturatedZone
-from urbanwb.waterbalance_checker import water_balance_checker
 
 
 def run_measures(
@@ -62,7 +18,6 @@ def run_measures(
     stat1_inp,
     measure_id,
     neighbourhood_id,
-    dyn_out,
     base_run,
     varkey,
     vararrlist1,
@@ -78,7 +33,6 @@ def run_measures(
     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
     stat1_inp (string): the filename of the static form of general parameters
     stat2_inp (string): the filename of the static form of measure parameters
-    dyn_out (string): the filename of the output file of solutions
     varkey (float): the key parameter to be updated
     vararr (float): values to update varkey
 

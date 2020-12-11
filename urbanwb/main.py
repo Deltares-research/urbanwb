@@ -5,7 +5,6 @@ import logging
 import time
 from collections import OrderedDict
 from pathlib import Path
-from time import sleep
 
 import fire
 import numpy as np

@@ -1,4 +1,11 @@
-from urbanwb.uwbm_functions import *
+import time
+
+import numpy as np
+import pandas as pd
+
+from urbanwb.getconstants import getconstants_measures
+from urbanwb.main import read_inputdata, read_parameters_csv, running
+from urbanwb.uwbm_functions import run_measures, run_measures_exception
 
 
 def run_all(
@@ -127,6 +134,8 @@ def run_all(
                 varkey = "storcap_top_meas"
             elif int(measures["num_stor_lvl"][i]) > 1:
                 varkey = "storcap_btm_meas"
+            else:
+                raise ValueError("Unknown measure id")
 
             # Determine the runoff variable which acts as a baseline. This is based on the source of the inflow for the measure: pr, cp, op, up, ow.
             if measures["pr_meas_inflow_area"][i] > 0:
@@ -144,6 +153,9 @@ def run_all(
             elif measures["ow_meas_inflow_area"][i] > 0:
                 baseline_variable = "r_ow_swds"
                 Ami = dict_param["tot_ow_area"]
+            else:
+                raise ValueError("Unknown measure area")
+
 
             # Determine variable_to_save for runoff based on the area where the uncontrolled runoff is discharged to
             if measures["surf_runoff_meas_OW"][i] == 1:
@@ -158,6 +170,8 @@ def run_all(
                 variable_to_save = "q_meas_mss"
             elif measures["surf_runoff_meas_Out"][i] == 1:
                 variable_to_save = "q_meas_out"
+            else:
+                raise ValueError("Unknown measure area")
 
             # Runoffcap_stor_dependent checks whether the runoff capacity of the measure depends on the storage capacity, e.g. in an underground storage or rain barrel
             if measures.loc[i]["runoffcap_stor_dependent"] == 1:
