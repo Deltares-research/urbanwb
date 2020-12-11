@@ -8,9 +8,12 @@ import numpy as np
 import pandas as pd
 
 from urbanwb.getconstants import getconstants_measures
-from urbanwb.main import (read_inputdata, read_parameters_csv,
-                          read_parameters_exception, running)
-from urbanwb.uwbm_functions import run_measures, run_measures_exception
+from urbanwb.main import (
+    read_inputdata,
+    read_parameters_csv,
+    read_parameters_exception,
+    running,
+)
 
 
 def run_measures(
