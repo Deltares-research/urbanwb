@@ -12,3 +12,5 @@ from urbanwb import pavedroof
 from urbanwb import sewersystem
 from urbanwb import unpaved
 from urbanwb import unsaturatedzone
+from urbanwb import uwbm_functions
+from urbanwb import nb_functions
