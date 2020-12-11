@@ -7,7 +7,7 @@ import numpy as np
 from tabulate import tabulate
 
 
-def water_balance_checker(df, dict_param, iters):
+def water_balance_checker(df, dict_param, iters, verbose=False):
     """
     checks whether water balance is closed both over entire area and over measure itself
     """
@@ -175,28 +175,29 @@ def water_balance_checker(df, dict_param, iters):
         "storage diff": round(sum_ds, 2),
         "balance diff": balance_diff,
     }
-    print("\n")
-    print("Entire model:")
-    # display in console the table of water balance statistics over entire area
-    headers = [
-        "rain[mm]",
-        "evap[mm]",
-        "Q_out[mm]",
-        "seepage[mm]",
-        "storage diff[mm]",
-        "balance diff[mm]",
-    ]
-    table = [
-        [
-            round(sum_prec, 2),
-            round(sum_evap, 2),
-            round(sum_q_out, 2),
-            round(sum_s_deepgw, 2),
-            round(sum_ds, 2),
-            balance_diff,
+    if verbose:
+        print("\n")
+        print("Entire model:")
+        # display in console the table of water balance statistics over entire area
+        headers = [
+            "rain[mm]",
+            "evap[mm]",
+            "Q_out[mm]",
+            "seepage[mm]",
+            "storage diff[mm]",
+            "balance diff[mm]",
         ]
-    ]
-    print(tabulate(table, headers, tablefmt="presto"))
+        table = [
+            [
+                round(sum_prec, 2),
+                round(sum_evap, 2),
+                round(sum_q_out, 2),
+                round(sum_s_deepgw, 2),
+                round(sum_ds, 2),
+                balance_diff,
+            ]
+        ]
+        print(tabulate(table, headers, tablefmt="presto"))
 
     if math.isclose(balance_diff, 0, abs_tol=0.000001):
         print("Water balance for entire model is closed.")
@@ -259,36 +260,38 @@ def water_balance_checker(df, dict_param, iters):
         "storage diff": round(ds_meas, 2),
         "balance diff": balance_diff_meas,
     }
-    print("\n")
-    print("Measure itself:")
-    # display in console the table of water balance statistics for measure itself
-    headers_m = [
-        "rain[mm]",
-        "evap[mm]",
-        "inflow runoff[mm]",
-        "OW.rech[mm]",
-        "Q_swds[mm]",
-        "Q_mss[mm]",
-        "Q_Out[mm]",
-        "GW.rech[mm]",
-        "storage diff[mm]",
-        "balance diff[mm]",
-    ]
-    table_m = [
-        [
-            round(p_meas, 2),
-            round(e_meas, 2),
-            round(r_inflowarea_meas, 2),
-            round(ow_rech_meas, 2),
-            round(q_swds, 2),
-            round(q_mss, 2),
-            round(gw_rech_meas, 2),
-            round(q_out, 2),
-            round(ds_meas, 2),
-            balance_diff_meas,
+
+    if verbose:
+        print("\n")
+        print("Measure itself:")
+        # display in console the table of water balance statistics for measure itself
+        headers_m = [
+            "rain[mm]",
+            "evap[mm]",
+            "inflow runoff[mm]",
+            "OW.rech[mm]",
+            "Q_swds[mm]",
+            "Q_mss[mm]",
+            "Q_Out[mm]",
+            "GW.rech[mm]",
+            "storage diff[mm]",
+            "balance diff[mm]",
         ]
-    ]
-    print(tabulate(table_m, headers_m, tablefmt="presto"))
+        table_m = [
+            [
+                round(p_meas, 2),
+                round(e_meas, 2),
+                round(r_inflowarea_meas, 2),
+                round(ow_rech_meas, 2),
+                round(q_swds, 2),
+                round(q_mss, 2),
+                round(gw_rech_meas, 2),
+                round(q_out, 2),
+                round(ds_meas, 2),
+                balance_diff_meas,
+            ]
+        ]
+        print(tabulate(table_m, headers_m, tablefmt="presto"))
 
     if math.isclose(balance_diff_meas, 0, abs_tol=0.000001):
         print("Water balance is closed for measure itself.")
@@ -401,34 +404,35 @@ def water_balance_checker(df, dict_param, iters):
         "balance diff": balance_diff_mia,
     }
 
-    print("\n")
-    print("Measure inflow area:")
-    # display in console the table of water balance statistics for measure inflow area
-    headers_mia = [
-        "rain[mm]",
-        "evap[mm]",
-        "GW.rech[mm]",
-        "OW.rech[mm]",
-        "Q_swds[mm]",
-        "Q_mss[mm]",
-        "Q_Out[mm]",
-        "storage diff[mm]",
-        "balance diff[mm]",
-    ]
-    table_mia = [
-        [
-            round(p_mia, 2),
-            round(e_mia, 2),
-            round(gw_rech_meas_mia, 2),
-            round(ow_rech_meas_mia, 2),
-            round(q_swds_meas_mia, 2),
-            round(q_mss_meas_mia, 2),
-            round(q_out_meas_mia, 2),
-            round(ds_mia, 2),
-            balance_diff_mia,
+    if verbose:
+        print("\n")
+        print("Measure inflow area:")
+        # display in console the table of water balance statistics for measure inflow area
+        headers_mia = [
+            "rain[mm]",
+            "evap[mm]",
+            "GW.rech[mm]",
+            "OW.rech[mm]",
+            "Q_swds[mm]",
+            "Q_mss[mm]",
+            "Q_Out[mm]",
+            "storage diff[mm]",
+            "balance diff[mm]",
         ]
-    ]
-    print(tabulate(table_mia, headers_mia, tablefmt="presto"))
+        table_mia = [
+            [
+                round(p_mia, 2),
+                round(e_mia, 2),
+                round(gw_rech_meas_mia, 2),
+                round(ow_rech_meas_mia, 2),
+                round(q_swds_meas_mia, 2),
+                round(q_mss_meas_mia, 2),
+                round(q_out_meas_mia, 2),
+                round(ds_mia, 2),
+                balance_diff_mia,
+            ]
+        ]
+        print(tabulate(table_mia, headers_mia, tablefmt="presto"))
 
     if math.isclose(balance_diff_mia, 0, abs_tol=0.000001):
         print("Water balance is closed for measure inflow area.")

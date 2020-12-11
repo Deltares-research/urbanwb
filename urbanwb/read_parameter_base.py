@@ -1,22 +1,29 @@
 import math
+from collections.abc import Mapping
 from pathlib import Path
 
 import fire
 import toml
 
 
-def read_parameter_base(stat1_inp):
+def read_parameter_base(arg):
     """
     reads parameters from the TOML-formated static form.
 
     Args:
-        stat1_inp (string): filename of the static form of parameters for measures
+        arg (string): filename of the static form of parameters for measures
+        arg (mapping): an already parsed mapping
 
     Returns:
         (dictionary): A dictionary of general parameters
     """
-    path = Path.cwd() / ".." / "input"
-    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+    if isinstance(arg, Mapping):
+        cf = arg
+    else:
+        stat1_inp = arg
+        path = Path.cwd() / ".." / "input"
+        cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+
     delta_t = (
         cf["timestep"] / 86400
     )  # length of timestep, converted from second (s) to day (d)
