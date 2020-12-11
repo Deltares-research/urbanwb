@@ -314,7 +314,6 @@ def check_parameters(dict_param):
         return rv
 
 
-@timer
 def running(input_data, dict_param):
     """
     a basic running unit, which takes the forcing from input_data and the parameters from a dictionary of parameters to
