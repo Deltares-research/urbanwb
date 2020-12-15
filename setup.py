@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="urbanwb",
-    version="0.1.0",
+    version="0.2.0",
     description="Urban Water Balance",
     long_description="",
     url="https://gitlab.com/deltares/urban/urbanwb",
@@ -12,7 +12,7 @@ setup(
     packages=["urbanwb"],
     test_suite="tests",
     python_requires=">=3.6",
-    install_requires=["numpy", "pandas", "toml", "fire", "tqdm", "tabulate"],
+    install_requires=["numpy", "pandas", "toml", "fire", "tqdm", "matplotlib", "tabulate"],
     extras_require={
         "dev": ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
     },
