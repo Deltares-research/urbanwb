@@ -10,13 +10,12 @@ def read_parameter_measure(stat2_inp):
     reads parameters from the TOML-formated static form for measure.
 
     Args:
-        stat2_inp (string): filename of the static form of general parameters
+        stat2_inp (string): path of the static form of general parameters
 
     Returns:
         (dictionary): A dictionary of parameters for measure.
     """
-    path = Path.cwd() / ".." / "input"
-    cf = toml.load(str(path) + "\\" + stat2_inp, _dict=dict)
+    cf = toml.load(stat2_inp, _dict=dict)
     choice = cf["measure_applied"]
 
     tot_meas_area = cf["tot_meas_area"]
@@ -307,8 +306,8 @@ def read_parameter_measure_csv(measure_id, parameter_base, apply_measure=True):
         (dictionary): A dictionary of parameters for measure.
     """
     # TODO, consolidate with read_parameter_measure above
-    path = Path.cwd() / ".." / "input"
-    cf = pd.read_csv(str(path) + "\\" + "Parameters measures.csv", index_col=0)
+    # TODO remove hardcoded path
+    cf = pd.read_csv("Parameters measures.csv", index_col=0)
 
     # Check whether an exception measure is implemented or not. If so, take the first measure as placeholder for the measure parameters. These will not be implemented.
     try:

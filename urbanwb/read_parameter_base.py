@@ -11,7 +11,7 @@ def read_parameter_base(arg):
     reads parameters from the TOML-formated static form.
 
     Args:
-        arg (string): filename of the static form of parameters for measures
+        arg (string): path of the static form of parameters for measures
         arg (mapping): an already parsed mapping
 
     Returns:
@@ -21,8 +21,7 @@ def read_parameter_base(arg):
         cf = arg
     else:
         stat1_inp = arg
-        path = Path.cwd() / ".." / "input"
-        cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+        cf = toml.load(stat1_inp, _dict=dict)
 
     delta_t = (
         cf["timestep"] / 86400

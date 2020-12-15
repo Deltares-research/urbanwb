@@ -116,10 +116,10 @@ def getconstants(inputfilename, num_year=30):
     Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
 
     Args:
-        inputfilename (string): filename of the runoff time series resulted from the urbanwb model
+        inputfilename (string): path of the runoff time series resulted from the urbanwb model
         num_year (integer): total number of years of the time series
     """
-    m = Analyse(filename="pysol/" + inputfilename, num_year=num_year)
+    m = Analyse(filename=inputfilename, num_year=num_year)
     results = m.getconstants()
     mean_constants = []
     for key in results.keys():

@@ -30,7 +30,7 @@ def run_measures(
     variable_to_save="q_meas_swds",
 ):
     """
-    for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+    For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -45,9 +45,6 @@ def run_measures(
 
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters_csv(stat1_inp, measure_id, neighbourhood_id)
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
 
     date = inputdata["date"]
 
@@ -501,7 +498,7 @@ def run_all(
         output_file = output_name + " - %s.xlsx" % neighbourhood_name
 
         # Save the results in a .xsls (Excel workbook) file
-        with pd.ExcelWriter("pysol/" + output_file) as writer:
+        with pd.ExcelWriter(output_file) as writer:
             df_runoff.to_excel(writer, sheet_name="Runoff factor", index=0)
             df_Ftot.to_excel(writer, sheet_name="Ftot", index=0)
             df_gw.to_excel(writer, sheet_name="Groundwater recharge", index=0)

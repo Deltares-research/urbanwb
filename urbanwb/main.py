@@ -197,18 +197,16 @@ def read_inputdata(dyn_inp):
     reads input data (time series of precipitation and evaporation) from dynamic input file.
 
     Args:
-        dyn_inp (string): the filename of the input time series of precipitation and evaporation
+        dyn_inp (string): the path of the input time series of precipitation and evaporation
 
     Returns:
         (dataframe): A dataframe of the time series of precipitation and evaporation
     """
-    path = Path.cwd() / ".." / "input"
 
-    # Parsing 30-year date data as datetime will takes additional 25 seconds.
-    # Besides, the actual user-defined datetime format can be problematic.
+    # The actual user-defined datetime format can be problematic.
     # Therefore, date is not parsed as datetime here.
     # rv = pd.read_csv(str(path) + "\\" + dyn_inp, parse_dates=["date"], dayfirst=True)
-    rv = pd.read_csv(str(path) + "\\" + dyn_inp)
+    rv = pd.read_csv(dyn_inp)
 
     # check if there is missing value in the input time series.
     num_nan = rv.isnull().sum().sum()
@@ -265,7 +263,7 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
     computing area of xx without measure with given parameters.
 
     Args:
-        stat1_inp (string): filename of neighbourhood configuration file
+        stat1_inp (string): path of neighbourhood configuration file
         measure_id (string): id of measure
         neighbourhood_id (string): id of neighbourhood type
 
@@ -273,8 +271,7 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
         (dictionary): A dictionary of all necessary parameters to initialize a model
     """
     # TODO consolidate with read_parameters above, or possibly eliminate
-    path = Path.cwd() / ".." / "input"
-    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+    cf = toml.load(stat1_inp, _dict=dict)
     # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
     # TODO remove hardcoded path
     neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
@@ -322,15 +319,14 @@ def read_parameters_exception(
     computing area of xx without measure with given parameters.
 
     Args:
-        stat1_inp (string): filename of neighbourhood configuration file
-        stat2_inp (string): filename of measure configuration file
+        stat1_inp (string): path of neighbourhood configuration file
+        stat2_inp (string): path of measure configuration file
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
     """
     # TODO consolidate with read_parameters above, or possibly eliminate
-    path = Path.cwd() / ".." / "input"
-    cf = toml.load(str(path) + "\\" + stat1_inp, _dict=dict)
+    cf = toml.load(stat1_inp, _dict=dict)
     # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
     # TODO remove hardcoded path
     neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
@@ -611,8 +607,8 @@ def running(input_data, dict_param):
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
     """
-    runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
-    measure) and saves results in a csv file with the specified output filename under the 'pysol' folder.
+    Runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
+    measure) and saves results in a csv file with the specified output path.
 
     Args:
         dyn_inp (string): the filename of the dynamic input data of precipitation and evaporation
@@ -625,6 +621,9 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     Returns:
         A csv file of all (or part of) computed results
     """
+    outdir = Path(output_filename).parent
+    outdir.mkdir(parents=True, exist_ok=True)
+
     loggingfilename = "".join(list(output_filename)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "STC_logger", thelevel=logging.INFO)
 
@@ -646,9 +645,6 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     if len(wbc_statistics[3]) != 0:
         logger.warning(wbc_statistics[3])
 
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
-
     # logging the info regarding saving
     if save_all:
         msg = f"Saving all results to {output_filename}..."
@@ -658,11 +654,11 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
     print(msg)
 
     if save_all:
-        df.to_csv(outdir / output_filename, index=True)
+        df.to_csv(output_filename, index=True)
     else:
         header = ["Date", "P_atm", "E_pot_OW", "Ref.grass"]
         header.extend([arg for arg in args])
-        df.to_csv(outdir / output_filename, index=True, columns=header)
+        df.to_csv(output_filename, index=True, columns=header)
 
 
 def batch_run_measure(
@@ -681,10 +677,10 @@ def batch_run_measure(
     for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
-    dyn_inp (string): the filename of the inputdata of precipitation and evaporation
-    stat1_inp (string): the filename of the static form of general parameters
-    stat2_inp (string): the filename of the static form of measure parameters
-    dyn_out (string): the filename of the output file of solutions
+    dyn_inp (string): the path of the inputdata of precipitation and evaporation
+    stat1_inp (string): the path of the static form of general parameters
+    stat2_inp (string): the path of the static form of measure parameters
+    dyn_out (string): the path of the output file of solutions
     varkey (float): the key parameter to be updated
     vararr (float): values to update varkey
 
@@ -695,9 +691,6 @@ def batch_run_measure(
     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
-
-    outdir = Path("pysol")
-    outdir.mkdir(parents=True, exist_ok=True)
 
     # can delete this fraction if necessary.
     date = inputdata["date"]
@@ -762,7 +755,6 @@ def batch_run_measure(
     df.insert(1, "P_atm", inputdata["P_atm"])
 
     dict_param["measure_applied"] = False
-    # print(dict_param)
     msg = "Case without measure: Baseline"
     print(msg)
     rv = running(inputdata, check_parameters(dict_param))
@@ -774,9 +766,9 @@ def batch_run_measure(
     # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
     print("------" * 20)
     df.insert(2, "Baseline", baseline_runoff)
-    outdir = Path("pysol")
+    outdir = Path(dyn_out).parent
     outdir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(outdir / dyn_out, index=True)
+    df.to_csv(dyn_out, index=True)
     return df
 
 
@@ -790,7 +782,7 @@ def batch_run_sdf(
     arithmetic_progression=False,
 ):
     """
-    this batch_run function is mainly designed for getting the database for sdf_curve.
+    This batch run function is mainly designed for getting the database for sdf_curve.
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -810,7 +802,7 @@ def batch_run_sdf(
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
 
-    outdir = Path("pysol")
+    outdir = Path(dyn_out).parent
     outdir.mkdir(parents=True, exist_ok=True)
 
     rank_database = []
@@ -874,9 +866,7 @@ def batch_run_sdf(
         else:
             name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in q_list]
         df = pd.DataFrame(rank_database, index=name_of_index)
-        outdir = Path("pysol")
-        outdir.mkdir(parents=True, exist_ok=True)
-        df.T.to_csv(outdir / dyn_out, index=True)
+        df.T.to_csv(dyn_out, index=True)
         return df
 
     else:  # if we type in an arithmetic progression
@@ -917,9 +907,7 @@ def batch_run_sdf(
             name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in array_q]
 
         df = pd.DataFrame(rank_database, index=name_of_index)
-        outdir = Path("pysol")
-        outdir.mkdir(parents=True, exist_ok=True)
-        df.T.to_csv(outdir / dyn_out, index=True)
+        df.T.to_csv(dyn_out, index=True)
         return df
 
 
