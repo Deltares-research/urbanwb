@@ -4,8 +4,7 @@ The `urbanwb` model is a lumped conceptual multi-reservoir hydrological model th
 simulates dominant hydrological processes of an urban water system. 
 
 The main documentation can be found at
-https://publicwiki.deltares.nl/display/AST/Urban+Water+balance+model, and automatically
-generated docs are hosted at https://deltares.gitlab.io/urban/urbanwb/.
+https://publicwiki.deltares.nl/display/AST/Urban+Water+balance+model.
 
 This model was proposed by Toine Vergroesen (Deltares) in 2012. Wenxing Zhang converted the
 original Excel version into this Python module.
