@@ -20,7 +20,10 @@ from urbanwb.openpaved import OpenPaved
 from urbanwb.openwater import OpenWater
 from urbanwb.pavedroof import PavedRoof
 from urbanwb.read_parameter_base import read_parameter_base
-from urbanwb.read_parameter_measure import read_parameter_measure
+from urbanwb.read_parameter_measure import (
+    read_parameter_measure,
+    read_parameter_measure_csv,
+)
 from urbanwb.sdf_curve import SDF_curve2, get_segment_index
 from urbanwb.selector import soil_selector
 from urbanwb.setlogger import setuplog
