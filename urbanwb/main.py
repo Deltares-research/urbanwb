@@ -674,7 +674,7 @@ def batch_run_measure(
     variable_to_save="q_meas_swds",
 ):
     """
-    for one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+    For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
     dyn_inp (string): the path of the inputdata of precipitation and evaporation
@@ -726,7 +726,7 @@ def batch_run_measure(
             logger.info(f"Entire model: {wbc_statistics[0]}")
             logger.info(f"Measure itself: {wbc_statistics[1]}")
             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
+            print("------" * 8)
             print("\n" * 2)
     else:
         for a in vararrlist1:
@@ -746,7 +746,7 @@ def batch_run_measure(
             logger.info(f"Entire model: {wbc_statistics[0]}")
             logger.info(f"Measure itself: {wbc_statistics[1]}")
             logger.info(f"Measure inflow area: {wbc_statistics[2]}")
-            print("------" * 20)
+            print("------" * 8)
             print("\n" * 2)
 
     df = pd.DataFrame(database, index=[v for v in vararrlist1])
@@ -764,12 +764,11 @@ def batch_run_measure(
     logger.info(f"Entire model: {wbc_statistics[0]}")
     logger.info(f"Measure itself: {wbc_statistics[1]}")
     # logger.info(f"Measure' impact over measure inflow area: {wbc_statistics[2]}")
-    print("------" * 20)
+    print("------" * 8)
     df.insert(2, "Baseline", baseline_runoff)
     outdir = Path(dyn_out).parent
     outdir.mkdir(parents=True, exist_ok=True)
     df.to_csv(dyn_out, index=True)
-    return df
 
 
 def batch_run_sdf(
@@ -795,15 +794,15 @@ def batch_run_sdf(
         defined True, q_list is (min,max,steps)
 
     """
+    outdir = Path(dyn_out).parent
+    outdir.mkdir(parents=True, exist_ok=True)
+
     # TODO reduce printing
     # determine logfile name based on outputfile name
     loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRSDF_logger", thelevel=logging.INFO)
     input_data = read_inputdata(dyn_inp)
     dict_param = read_parameters(stat1_inp, stat2_inp)
-
-    outdir = Path(dyn_out).parent
-    outdir.mkdir(parents=True, exist_ok=True)
 
     rank_database = []
     iters = len(input_data["date"])
@@ -834,7 +833,7 @@ def batch_run_sdf(
     k_base = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
     rank_database.append(k_base.ranking)
     # print(segment_marks)
-    print("-----" * 50)
+    print("-----" * 8)
     if not arithmetic_progression:  # if it is random number to type in.
         print(f"q value to batch run: {q_list}")
         for q in q_list:
@@ -860,14 +859,13 @@ def batch_run_sdf(
             msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.ranking[0]:.4f} m"
             print(msg2)
             logger.info(msg2)
-            print("-----" * 50)
+            print("-----" * 8)
         if baseline_q is None:
             name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in q_list]
         else:
             name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in q_list]
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
-        return df
 
     else:  # if we type in an arithmetic progression
         if len(q_list) != 3:
@@ -899,7 +897,7 @@ def batch_run_sdf(
             msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.ranking[0]:.4f} m"
             print(msg2)
             logger.info(msg2)
-            print("-----" * 40)
+            print("-----" * 8)
 
         if baseline_q is None:
             name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in array_q]
@@ -908,7 +906,6 @@ def batch_run_sdf(
 
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
-        return df
 
 
 if __name__ == "__main__":

@@ -167,4 +167,4 @@ if __name__ == "__main__":
     print(k.required_storage_capacity())
     end = time.time()
     print(f"Model runtime: {end - start:.4f}s")
-    print("-----" * 6)
+    print("-----" * 8)
