@@ -17,6 +17,7 @@ from urbanwb.main import (
 def run_measures(
     dyn_inp,
     stat1_inp,
+    measures_path,
     neighbourhood_pars_path,
     measure_id,
     neighbourhood_id,
@@ -44,7 +45,7 @@ def run_measures(
 
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters_csv(
-        stat1_inp, neighbourhood_pars_path, measure_id, neighbourhood_id
+        stat1_inp, measures_path, neighbourhood_pars_path, measure_id, neighbourhood_id
     )
 
     date = inputdata["date"]
@@ -261,6 +262,8 @@ def run_all(
         inputdata = read_inputdata(input_csv)
         dict_param = read_parameters_csv(
             catchment_properties,
+            measures_path,
+            neighbourhood_pars_path,
             str(measures.index[0]),
             neighbourhood_id,
             apply_measure=False,
@@ -381,6 +384,7 @@ def run_all(
                 runoff, gw, evap = run_measures(
                     input_csv,
                     catchment_properties,
+                    measures_path,
                     neighbourhood_pars_path,
                     measure_id,
                     neighbourhood_id,
@@ -396,6 +400,7 @@ def run_all(
                 runoff, gw, evap = run_measures(
                     input_csv,
                     catchment_properties,
+                    measures_path,
                     neighbourhood_pars_path,
                     measure_id,
                     neighbourhood_id,
