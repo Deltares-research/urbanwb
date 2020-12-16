@@ -256,7 +256,14 @@ def read_parameters(stat1_inp, stat2_inp):
     return rv
 
 
-def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=True):
+def read_parameters_csv(
+    stat1_inp,
+    measures_path,
+    neighbourhood_pars_path,
+    measure_id,
+    neighbourhood_id,
+    apply_measure=True,
+):
     """
     reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
     configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
@@ -264,8 +271,11 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
 
     Args:
         stat1_inp (string): path of neighbourhood configuration file
+        measures_path (string): CSV with the parameters for the measures
+        neighbourhood_pars_path (string): CSV with the parameters for the neighbourhood types
         measure_id (string): id of measure
-        neighbourhood_id (string): id of neighbourhood type
+        neighbourhood_id (int): id of neighbourhood type
+        apply_measure (int): _
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
@@ -273,8 +283,7 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
     # TODO consolidate with read_parameters above, or possibly eliminate
     cf = toml.load(stat1_inp, _dict=dict)
     # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
-    # TODO remove hardcoded path
-    neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
+    neighbourhood_pars = pd.read_csv(neighbourhood_pars_path)
     idx_neighbourhood = np.where(neighbourhood_pars["id_type"] == neighbourhood_id)[0][
         0
     ]
@@ -283,7 +292,7 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
 
     parameter_base = read_parameter_base(cf)
     parameter_measure = read_parameter_measure_csv(
-        measure_id, parameter_base, apply_measure
+        measures_path, measure_id, parameter_base, apply_measure
     )
 
     d = dict(
@@ -311,16 +320,27 @@ def read_parameters_csv(stat1_inp, measure_id, neighbourhood_id, apply_measure=T
 
 
 def read_parameters_exception(
-    stat1_inp, measure_title, neighbourhood_id, apply_measure
+    stat1_inp,
+    measures_path,
+    measures_exception_path,
+    neighbourhood_pars_path,
+    measure_title,
+    neighbourhood_id,
+    apply_measure,
 ):
     """
-    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    Reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
     configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
     computing area of xx without measure with given parameters.
 
     Args:
         stat1_inp (string): path of neighbourhood configuration file
-        stat2_inp (string): path of measure configuration file
+        measures_path (string): CSV with the parameters for the measures
+        measures_exception_path (string): XSLX with the parameters for the measures which are implemented by adjusting the catchment properties
+        neighbourhood_pars_path (string): CSV with the parameters for the neighbourhood types
+        measure_title (string): name of the measure
+        neighbourhood_id (int): id of neighbourhood type
+        apply_measure (bool): _
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
@@ -328,17 +348,14 @@ def read_parameters_exception(
     # TODO consolidate with read_parameters above, or possibly eliminate
     cf = toml.load(stat1_inp, _dict=dict)
     # Edit the parameters in the catchment configuration accordingly to the neighbourhood type
-    # TODO remove hardcoded path
-    neighbourhood_pars = pd.read_csv("../input/Parameters neighbourhoods.csv")
+    neighbourhood_pars = pd.read_csv(neighbourhood_pars_path)
     idx_neighbourhood = np.where(neighbourhood_pars["id_type"] == neighbourhood_id)[0][
         0
     ]
     for key in neighbourhood_pars:
         cf[key] = neighbourhood_pars[key][idx_neighbourhood]
 
-    measures_exception = pd.read_excel(
-        "../input/Parameters measures exception.xlsx", sheet_name=None
-    )
+    measures_exception = pd.read_excel(measures_exception_path, sheet_name=None)
     for key in measures_exception[measure_title]:
         if key == "title":
             pass
@@ -359,7 +376,7 @@ def read_parameters_exception(
 
     parameter_base = read_parameter_base(cf)
     parameter_measure = read_parameter_measure_csv(
-        measure_title, parameter_base, apply_measure
+        measures_path, measure_title, parameter_base, apply_measure
     )
     parameter_measure["title"] = measures_exception[measure_title]["title"][0]
 

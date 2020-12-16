@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
-from pathlib import Path
-
+import fire
 import numpy as np
 import pandas as pd
 
@@ -19,6 +17,7 @@ from urbanwb.main import (
 def run_measures(
     dyn_inp,
     stat1_inp,
+    neighbourhood_pars_path,
     measure_id,
     neighbourhood_id,
     base_run,
@@ -44,7 +43,9 @@ def run_measures(
     """
 
     inputdata = read_inputdata(dyn_inp)
-    dict_param = read_parameters_csv(stat1_inp, measure_id, neighbourhood_id)
+    dict_param = read_parameters_csv(
+        stat1_inp, neighbourhood_pars_path, measure_id, neighbourhood_id
+    )
 
     date = inputdata["date"]
 
@@ -141,6 +142,9 @@ def run_measures(
 def run_measures_exception(
     dyn_inp,
     stat1_inp,
+    measures_path,
+    measures_exception_path,
+    neighbourhood_pars_path,
     measure_title,
     neighbourhood_id,
     base_run,
@@ -150,7 +154,13 @@ def run_measures_exception(
     # TODO consolidate and posibly eliminate with the other run_measures functions
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters_exception(
-        stat1_inp, measure_title, neighbourhood_id, apply_measure=False
+        stat1_inp,
+        measures_path,
+        measures_exception_path,
+        neighbourhood_pars_path,
+        measure_title,
+        neighbourhood_id,
+        apply_measure=False,
     )  # Apply measure is False here, as we change the catchment properties rather than implement an extra measure element
 
     date = inputdata["date"]
@@ -207,14 +217,20 @@ def run_all(
     # Output file name (.xlsx (defined at bottom) gets added to it in the script, so this should be left out here)
     output_name,
     # .csv with the parameters for the measures (this file needs to be called exactly: Parameters measures.csv)
-    measures,
+    measures_path,
     # .xlsx with the parameters for the measures which are implemented by adjusting the catchment properties
-    measures_exception,
+    measures_exception_path,
     # .csv with the parameters for the neighbourhood types (this file needs to be called exactly: Parameters neighbourhoods.csv)
     # (= possibilty to add different neighbourhoods, unlimited nr)
-    neighbourhood_pars,
+    neighbourhood_pars_path,
     D_eff=[5, 10, 20, 30, 40, 50, 100],
 ):
+
+    # read files into dataframes
+    measures = pd.read_csv(measures_path, index_col=0)
+    measures_exception = pd.read_excel(measures_exception_path, sheet_name=None)
+    neighbourhood_pars = pd.read_csv(neighbourhood_pars_path)
+
     D_eff_str = list(map(str, D_eff))
     # Create a list will all measures: '.csv measures' and the exceptions
     total_measures = list(measures.index)
@@ -234,11 +250,6 @@ def run_all(
     df_evap = df.copy()
     df_gw.insert(2, "Baseline", np.zeros(len(df_gw.index)))
     df_evap.insert(2, "Baseline", np.zeros(len(df_evap.index)))
-
-    # The following notes the time, which is used to calculate the remaining runtime of the script
-    time_counter = 0
-    max_time_counter = len(neighbourhood_pars) * len(total_measures)
-    start_time = time.time()
 
     # Loop for each neighbourhood type in the 'Parameters neighbourhoods' file
     for n in range(len(neighbourhood_pars)):
@@ -370,6 +381,7 @@ def run_all(
                 runoff, gw, evap = run_measures(
                     input_csv,
                     catchment_properties,
+                    neighbourhood_pars_path,
                     measure_id,
                     neighbourhood_id,
                     base_run,
@@ -384,6 +396,7 @@ def run_all(
                 runoff, gw, evap = run_measures(
                     input_csv,
                     catchment_properties,
+                    neighbourhood_pars_path,
                     measure_id,
                     neighbourhood_id,
                     base_run,
@@ -427,14 +440,6 @@ def run_all(
                 2,
             )
 
-            # Calculate the remaining runtime of the script
-            end_time = time.time()
-            runtime = end_time - start_time
-            time_counter += 1
-            fraction = time_counter / max_time_counter
-            timeleft = round(((1 / fraction) - 1) * runtime / 60, 1)
-            print(str(timeleft) + " minutes remaining")
-
         # Loop for the exception measures, which are implemented by altering the catchment itself, rather than implemented as a separate measure.
         for title in measures_exception:
             measure_title = title
@@ -447,6 +452,9 @@ def run_all(
             runoff, gw, evap = run_measures_exception(
                 input_csv,
                 catchment_properties,
+                measures_path,
+                measures_exception_path,
+                neighbourhood_pars_path,
                 measure_title,
                 neighbourhood_id,
                 base_run,
@@ -503,3 +511,8 @@ def run_all(
             df_Ftot.to_excel(writer, sheet_name="Ftot", index=0)
             df_gw.to_excel(writer, sheet_name="Groundwater recharge", index=0)
             df_evap.to_excel(writer, sheet_name="Evaporation", index=0)
+
+
+if __name__ == "__main__":
+    # provide an auto generated cli based on the functions in this file
+    fire.Fire()

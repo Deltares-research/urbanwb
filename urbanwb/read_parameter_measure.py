@@ -295,19 +295,22 @@ def read_parameter_measure(stat2_inp):
     }
 
 
-def read_parameter_measure_csv(measure_id, parameter_base, apply_measure=True):
+def read_parameter_measure_csv(
+    measure_path, measure_id, parameter_base, apply_measure=True
+):
     """
     reads parameters from an Excel csv.
 
     Args:
-        measure_id : id of the measure, required to obtain the correct parameters from the table
-        parameter_base : a dictionary containing the catchment parameters, often read before this function is called
+        measure_path: CSV with the parameters for the measures
+        measure_id: id of the measure, required to obtain the correct parameters from the table
+        parameter_base: a dictionary containing the catchment parameters, often read before this function is called
     Returns:
         (dictionary): A dictionary of parameters for measure.
     """
     # TODO, consolidate with read_parameter_measure above
     # TODO remove hardcoded path
-    cf = pd.read_csv("Parameters measures.csv", index_col=0)
+    cf = pd.read_csv(measure_path, index_col=0)
 
     # Check whether an exception measure is implemented or not. If so, take the first measure as placeholder for the measure parameters. These will not be implemented.
     try:
