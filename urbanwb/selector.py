@@ -1,11 +1,12 @@
 import pandas as pd
+import pkg_resources
 
 import urbanwb
 
-path = urbanwb.urbanwbdir / ".." / "input"
-
-soilmatrix = pd.read_csv(path / "soilparameter_new.csv")
-etmatrix = pd.read_csv(path / "etparameter.csv")
+soilmatrix = pd.read_csv(
+    pkg_resources.resource_stream(__name__, "data/soilparameter.csv")
+)
+etmatrix = pd.read_csv(pkg_resources.resource_stream(__name__, "data/etparameter.csv"))
 
 
 def et_selector(a, b):

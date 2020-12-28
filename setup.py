@@ -10,6 +10,8 @@ setup(
     author_email="w.x.zhang93@gmail.com",
     license="MIT",
     packages=["urbanwb"],
+    include_package_data=True,
+    package_data={"": ["data/*.csv"]},
     test_suite="tests",
     python_requires=">=3.6",
     install_requires=[
@@ -20,6 +22,7 @@ setup(
         "tqdm",
         "matplotlib",
         "tabulate",
+        "pkg_resources",
     ],
     extras_require={
         "dev": ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
