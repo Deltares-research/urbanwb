@@ -23,7 +23,7 @@ setup(
         "tqdm",
         "matplotlib",
         "tabulate",
-        "pkg_resources",
+        "setuptools",
     ],
     extras_require={
         "dev": ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
