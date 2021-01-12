@@ -18,6 +18,7 @@ setup(
         "numpy",
         "pandas",
         "toml",
+        "openpyxl",
         "fire",
         "tqdm",
         "matplotlib",
