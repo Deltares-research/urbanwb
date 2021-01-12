@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
+
 import fire
 import numpy as np
 import pandas as pd
@@ -507,8 +509,9 @@ def run_all(
         df_evap = df_evap.sort_values(by="id").reset_index(drop=True)
 
         neighbourhood_name = neighbourhood_pars["title"][n]
-        # TODO fix
         output_file = output_name + " - %s.xlsx" % neighbourhood_name
+        outdir = Path(output_file).parent
+        outdir.mkdir(parents=True, exist_ok=True)
 
         # Save the results in a .xsls (Excel workbook) file
         with pd.ExcelWriter(output_file) as writer:
