@@ -108,21 +108,42 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
     )
 
     # change in groundwater storage is a bit tricky to calculate
+#     storage_coef = df["sc_gw"]
+#     groundwater_level = df["gwl"]
+#     ds_gw = np.zeros_like(groundwater_level)
+#     for t in range(1, iters):
+#         ds_gw[t] = (
+#             1000 * storage_coef[t] * (groundwater_level[t - 1] - groundwater_level[t])
+#         )
+#     sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+#     sum_ds_gw_sl = (
+#         1000
+#         * (df["gwl_sl"].iloc[-1] - df["gwl_sl"].iloc[0])
+#         * dict_param["gw_no_meas_area"]
+#         / dict_param["tot_area"]
+#     )  # ? mark it here: after changing (old - new), still not working.
+    
+    #RL_3FEB2021: Groundwater storage changed. sum_ds_gw_sl still okay? ======================================
+    #Now deleted the gw_no_meas/tot_area since it is calculated in the loop
+
     storage_coef = df["sc_gw"]
     groundwater_level = df["gwl"]
     ds_gw = np.zeros_like(groundwater_level)
-    for t in range(1, iters):
+    for t in range(1,iters):
         ds_gw[t] = (
-            1000 * storage_coef[t] * (groundwater_level[t - 1] - groundwater_level[t])
-        )
-    sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+            df["sum_p_gw"][t] 
+            + df["r_meas_gw"][t] 
+            - df["s_gw_out"][t] 
+            - df["d_gw_ow"][t]
+        ) 
+    sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"]/dict_param["tot_area"]
     sum_ds_gw_sl = (
         1000
         * (df["gwl_sl"].iloc[-1] - df["gwl_sl"].iloc[0])
-        * dict_param["gw_no_meas_area"]
-        / dict_param["tot_area"]
-    )  # ? mark it here: after changing (old - new), still not working.
-
+    ) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+        
+    #END RL_3FEB2021 =====================================================================   
+        
     # change in storage in sewer system
     sum_ds_swds = (
         (df["stor_swds"].iloc[-1] - df["stor_swds"].iloc[0])
