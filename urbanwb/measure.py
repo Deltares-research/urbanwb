@@ -508,8 +508,8 @@ class Measure:
                     self.ctrl_runoff_meas_OW * runoff_btm_meas
                     + self.overflow_meas_OW * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             q_meas_uz = self.surf_runoff_meas_UZ * surf_runoff_meas + (
@@ -519,8 +519,8 @@ class Measure:
                     self.ctrl_runoff_meas_UZ * runoff_btm_meas
                     + self.overflow_meas_UZ * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             q_meas_gw = self.surf_runoff_meas_GW * surf_runoff_meas + (
@@ -531,8 +531,8 @@ class Measure:
                     + self.ctrl_runoff_meas_GW * runoff_btm_meas
                     + self.overflow_meas_GW * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             q_meas_swds = self.surf_runoff_meas_SWDS * surf_runoff_meas + (
@@ -542,8 +542,8 @@ class Measure:
                     self.ctrl_runoff_meas_SWDS * runoff_btm_meas
                     + self.overflow_meas_SWDS * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             q_meas_mss = self.surf_runoff_meas_MSS * surf_runoff_meas + (
@@ -553,8 +553,8 @@ class Measure:
                     self.ctrl_runoff_meas_MSS * runoff_btm_meas
                     + self.overflow_meas_MSS * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             q_meas_out = self.surf_runoff_meas_Out * surf_runoff_meas + (
@@ -564,8 +564,8 @@ class Measure:
                     self.ctrl_runoff_meas_Out * runoff_btm_meas
                     + self.overflow_meas_Out * overflow_btm_meas
                 )
-                * self.tot_meas_area
-                / self.btm_meas_area
+                * self.btm_meas_area
+                / self.tot_meas_area
             )
 
             # # add controlled runoff, uncontrolled runoff and total runoff (to be developed)
