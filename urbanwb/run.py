@@ -7,7 +7,7 @@ import fire
 import numpy as np
 import pandas as pd
 
-from urbanwb.getconstants import getconstants_measures
+from urbanwb.getconstants import (getconstants_measures, getconstants_measures_peak, getconstants_measures_owl)
 from urbanwb.main import (
     read_inputdata,
     read_parameters_csv,
@@ -51,6 +51,14 @@ def run_measures(
     )
 
     date = inputdata["date"]
+#     ### NEW CODE ------------------------------------------------------------------------------------------------------------
+#     ow_level = dict_param["ow_level"]
+#     owl_data = np.append(
+#         running(input_data, dict_param)[0]["owl"], 0
+#     )  # extra 0 at the end
+#     owl_baseline = np.ones(len(owl_data)) * ow_level - owl_data
+
+#    ### END NEW CODE --------------------------------------------------------------------------------------------------------- 
 
     nameofmeasure = dict_param["title"]
     msg_nameofmeasure = (
@@ -61,6 +69,12 @@ def run_measures(
     database_runoff = []
     database_gw = []
     database_evap = []
+    
+    ### NEW CODE ------------------------------------------------------------------------------------------------------------
+    database_owl = []
+    ### END NEW CODE --------------------------------------------------------------------------------------------------------- 
+
+    
     if correspvarkey is not None:
         for a, b in zip(vararrlist1, vararrlist2):
             dict_param[varkey] = a
@@ -86,6 +100,11 @@ def run_measures(
             )
             database_gw.append(avg_p_gw)
             database_evap.append(wbc_results[0]["evap"])
+      ### NEW CODE ============================================================================================================
+            database_owl.append(results["owl"])
+            owl_storage = dict_param["ow_level"] - database_owl
+      ### END NEW CODE ============================================================================================================-
+
     else:
         for a in vararrlist1:
             dict_param[varkey] = a
@@ -111,6 +130,14 @@ def run_measures(
             database_runoff.append(runoff)
             database_gw.append(avg_p_gw)
             database_evap.append(wbc_results[0]["evap"])
+      
+        ### NEW CODE ============================================================================================================
+            
+            database_owl.append(results["owl"])
+            owl_storage = dict_param["ow_level"] - database_owl
+
+            
+        ### END NEW CODE ============================================================================================================
 
     # Dataframe: runoff
     df_runoff = pd.DataFrame(database_runoff, index=[v for v in vararrlist1])
@@ -125,7 +152,17 @@ def run_measures(
     # Dataframe: evaporation
     df_evap = pd.DataFrame(database_evap, index=[v for v in vararrlist1])
     df_evap = df_evap.T
+    
+    ### NEW CODE ============================================================================================================
+    
+    #Dataframe: Storage (Owl)
+    df_owl = pd.DataFrame(owl_storage, index=[v for v in vararrlist1])
+    df_owl = df_owl.T
+    df_owl.insert(0, "Date", date)
+    df_owl.insert(1, "P_atm", inputdata["P_atm"])
+    ### END NEW CODE ============================================================================================================
 
+    
     results_base = pd.DataFrame(base_run[0])  # Model variables results
     wbc_results_base = base_run[1]  # Water Balance values for the entire model
 
@@ -133,12 +170,25 @@ def run_measures(
     baseline_runoff = results_base[baseline_variable]
     baseline_gw = results_base["sum_p_gw"].sum()
     baseline_evap = wbc_results_base[0]["evap"]
-
+    
+    ### NEW CODE ============================================================================================================
+    
+    baseline_owl = dict_param["ow_level"] - results_base["owl"]
+    
+    ### END NEW CODE ============================================================================================================
+    
     df_runoff.insert(2, "Baseline", baseline_runoff)
     df_gw.insert(0, "Baseline", baseline_gw)
     df_evap.insert(0, "Baseline", baseline_evap)
-
-    return df_runoff, df_gw, df_evap
+    
+    ### NEW CODE ============================================================================================================
+    
+   
+    df_owl.insert(2,"Baseline",baseline_owl)
+    
+    ### END NEW CODE ============================================================================================================
+    
+    return df_runoff, df_gw, df_evap, df_owl
 
 
 # This function implements the measure by changing the catchment properties instead of using measure parameters as input
@@ -195,6 +245,15 @@ def run_measures_exception(
     evap = wbc_results[0]["evap"]
     df_evap = pd.DataFrame([evap], columns=["alt"])
 
+    ### NEW CODE ------------------------------------------------------------------------------------------------------------
+    
+    # DataFrame: OWL
+    owl = dict_param["ow_level"] - results["owl"]
+    df_owl = pd.DataFrame([owl],columns = ["alt"])
+    df_owl.insert(0, "Date", date)
+    df_owl.insert(1, "P_atm", inputdata["P_atm"])
+    ### END NEW CODE --------------------------------------------------------------------------------------------------------- 
+    
     # Baseline results for comparison
     results_base = pd.DataFrame(base_run[0])  # Model variables results
     wbc_results_base = base_run[1]  # Water Balance values for the entire model
@@ -203,13 +262,20 @@ def run_measures_exception(
     baseline_runoff = results_base[baseline_variable]
     baseline_gw = results_base["sum_p_gw"].sum()
     baseline_evap = wbc_results_base[0]["evap"]
+    
+### NEW CODE ------------------------------------------------------------------------------------------------------------
+
+    baseline_owl = dict_param["ow_level"] - results_base["owl"]
+
+### END NEW CODE --------------------------------------------------------------------------------------------------------- 
 
     # Place the baseline values in the dataframes of the effectivity variables
     df_runoff.insert(2, "Baseline", baseline_runoff)
     df_gw.insert(0, "Baseline", baseline_gw)
     df_evap.insert(0, "Baseline", baseline_evap)
-
-    return df_runoff, df_gw, df_evap
+    df_owl.insert(2, "Baseline", baseline_owl)
+    
+    return df_runoff, df_gw, df_evap, df_owl
 
 
 def run_all(
@@ -251,6 +317,10 @@ def run_all(
     df_Ftot = df.copy()
     df_gw = df.copy()
     df_evap = df.copy()
+    ##NEW code =============================================================
+    df_owl = df.copy()
+    df_peak = df.copy()
+    ##END NEW Code ======================================================
     df_gw.insert(2, "Baseline", np.zeros(len(df_gw.index)))
     df_evap.insert(2, "Baseline", np.zeros(len(df_evap.index)))
 
@@ -383,7 +453,7 @@ def run_all(
             if measures.loc[i]["runoffcap_stor_dependent"] == 1:
                 runoffcap_factor = measures.loc[i]["runoffcap_stor_factor"]
                 runoffcap_meas = [x * runoffcap_factor for x in D_meas]
-                runoff, gw, evap = run_measures(
+                runoff, gw, evap, owl = run_measures(
                     input_csv,
                     catchment_properties,
                     measures_path,
@@ -399,7 +469,7 @@ def run_all(
                     variable_to_save=variable_to_save,
                 )
             else:
-                runoff, gw, evap = run_measures(
+                runoff, gw, evap, owl = run_measures(
                     input_csv,
                     catchment_properties,
                     measures_path,
@@ -425,6 +495,17 @@ def run_all(
             constants_runoff, mean_constants_runoff = getconstants_measures(
                 runoff, num_year=num_years
             )
+        ####NEW CODE: Calculating the peak runoff factor =================================================================================
+            constants_peak, mean_constants_peak = getconstants_measures_peak(
+                runoff,num_year =num_years
+            )
+            
+            constants_owl, mean_constants_owl = getconstants_measures_owl(
+                owl,num_year = num_years
+            )
+
+        ###END NEW CODE ============================================================================================================
+        
             gw = round(gw / num_years, 2)
             evap = round(evap / num_years, 2)
 
@@ -434,6 +515,11 @@ def run_all(
             df_gw.loc[idx_measure, D_eff_str] -= gw["Baseline"].values[0]
             df_evap.loc[idx_measure, ["Baseline"] + D_eff_str] = evap.values[0]
             df_evap.loc[idx_measure, D_eff_str] -= evap["Baseline"].values[0]
+            ##NEW CODE ======================================================================================================
+
+            df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak
+            df_owl.loc[idx_measure,D_eff_str] = mean_constants_owl
+            ##END NEW CODE ======================================================================================================
 
             # =============================================================================
             #     Calculate Ftot: Runoff reduction factor over the total area
@@ -447,6 +533,7 @@ def run_all(
                 2,
             )
 
+
         # Loop for the exception measures, which are implemented by altering the catchment itself, rather than implemented as a separate measure.
         for title in measures_exception:
             measure_title = title
@@ -456,7 +543,7 @@ def run_all(
             ]
             variable_to_save = measures_exception[measure_title]["variable_to_save"][0]
 
-            runoff, gw, evap = run_measures_exception(
+            runoff, gw, evap, owl = run_measures_exception(
                 input_csv,
                 catchment_properties,
                 measures_path,
@@ -478,6 +565,16 @@ def run_all(
             constants_runoff, mean_constants_runoff = getconstants_measures(
                 runoff, num_year=num_years
             )
+            
+            ####NEW CODE: Calculating the peak runoff factor ========================================================================
+            constants_peak, mean_constants_peak = getconstants_measures_peak(
+                runoff,num_year =num_years
+            )
+            constants_owl, mean_constants_owl = getconstants_measures_owl(
+                owl,num_year = num_years
+            )
+
+        ###END NEW CODE ============================================================================================================
             gw = round(gw / num_years, 2)
             evap = round(evap / num_years, 2)
 
@@ -491,7 +588,11 @@ def run_all(
 
             df_evap.loc[idx_measure, "Baseline"] = evap["Baseline"].values[0]
             df_evap.loc[idx_measure, D_eff_str] = evap["alt"].values[0]
-
+            
+            ##NEW CODE ======================================================================================================
+            df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak[0]
+            df_owl.loc[idx_measure, D_eff_str] = mean_constants_owl[0]
+            ##END NEW CODE ======================================================================================================
             # Calculate Ftot
             Fmeas = mean_constants_runoff[0]
             Inflow_area = measures_exception[measure_title]["inflow_area"][0]
@@ -507,7 +608,9 @@ def run_all(
         df_Ftot = df_Ftot.sort_values(by="id").reset_index(drop=True)
         df_gw = df_gw.sort_values(by="id").reset_index(drop=True)
         df_evap = df_evap.sort_values(by="id").reset_index(drop=True)
-
+        df_peak = df_peak.sort_values(by="id").reset_index(drop=True)
+        df_owl = df_owl.sort_values(by = "id").reset_index(drop=True)
+        
         neighbourhood_name = neighbourhood_pars["title"][n]
         output_file = output_name + " - %s.xlsx" % neighbourhood_name
         outdir = Path(output_file).parent
@@ -519,6 +622,8 @@ def run_all(
             df_Ftot.to_excel(writer, sheet_name="Ftot", index=0)
             df_gw.to_excel(writer, sheet_name="Groundwater recharge", index=0)
             df_evap.to_excel(writer, sheet_name="Evaporation", index=0)
+            df_peak.to_excel(writer,sheet_name="Peak factor", index=0)
+            df_owl.to_excel(writer,sheet_name="Open water level", index=0)
 
 
 if __name__ == "__main__":
