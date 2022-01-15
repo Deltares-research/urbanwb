@@ -24,7 +24,7 @@ from urbanwb.read_parameter_measure import (
     read_parameter_measure,
     read_parameter_measure_csv,
 )
-from urbanwb.sdf_curve import SDF_curve2, get_segment_index
+from urbanwb.sdf_curve import SDF_curve2, get_segment_index, plot_sdf_curve, get_max_stor, making_marks_sdf
 from urbanwb.selector import soil_selector
 from urbanwb.setlogger import setuplog
 from urbanwb.sewersystem import SewerSystem
@@ -924,7 +924,152 @@ def batch_run_sdf(
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
 
+## RDL 20210416 ================================================================================
+## New code based on new event sep from sdf_curve.py (get_segment_index2)
+        
+def batch_run_sdf2(
+    dyn_inp,
+    stat1_inp,
+    stat2_inp,
+    dyn_out,
+    q_list,
+    baseline_q=None,
+    arithmetic_progression=False,
+):
+    """
+    This batch run function is mainly designed for getting the database for sdf_curve.
 
+    Args:
+        dyn_inp (string): the filename of the inputdata of precipitation and evaporation
+        stat1_inp (string): the filename of the static form of general parameters
+        stat2_inp (string): the filename of the static form of measure parameters
+        dyn_out (string): the filename of the output file of solutions
+        q_list (float): a list of values to update "q_ow_out_cap"
+        baseline_q (float): default baseline q is mean daily rainfall if baseline_q not explicitly defined
+        arithmetic_progression (bool): default is False meaning q_list is a list of random number; when explicitly
+        defined True, q_list is (min,max,steps)
+
+    """
+    outdir = Path(dyn_out).parent
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # TODO reduce printing
+    # determine logfile name based on outputfile name
+    loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
+    logger = setuplog(loggingfilename, "BRSDF_logger", thelevel=logging.INFO)
+    input_data = read_inputdata(dyn_inp)
+    dict_param = read_parameters(stat1_inp, stat2_inp)
+
+    rank_database = []
+    iters = len(input_data["date"])
+    dt = dict_param["delta_t"]
+    mean_daily_rainfall = np.mean(input_data["P_atm"]) / dt
+    num_year = round((dt * iters) / 365)
+    print(f"The length of input time series is around {num_year} year")
+    print(f"Mean daily rainfall is {mean_daily_rainfall:.2f} mm/d")
+    print("First, do baseline run:")
+
+    if baseline_q is None:
+        dict_param["q_ow_out_cap"] = mean_daily_rainfall
+        msg0 = f"Baseline pumping capacity is by default set as mean daily rainfall {mean_daily_rainfall:.2f} mm/d to make fixed marks"
+        logger.info(msg0)
+        print(msg0)
+    else:
+        msg0 = f"Baseline pumping capacity is {baseline_q} mm/d to make fixed marks"
+        dict_param["q_ow_out_cap"] = baseline_q
+        logger.info(msg0)
+        print(msg0)
+
+    # perform baseline run
+    owl_data = running(input_data, dict_param)[0]["owl"]
+    owl_baseline = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
+    
+    #############################################
+    ranks_base = making_marks_sdf(input_data["P_atm"], dt*86400, owl_baseline)
+    k_base = get_max_stor(filename = dyn_inp, owl_stor = owl_baseline, baseline_ranks = ranks_base)
+    rank_database.append(k_base.maxima)
+    #############################################
+#     segment_marks = get_segment_index(owl_baseline)
+#     k_base = SDF_curve2(segment_marks, owl_data, ow_level=dict_param["ow_level"])
+#     rank_database.append(k_base.ranking)
+    # print(segment_marks)
+    
+    print("-----" * 8)
+    if not arithmetic_progression:  # if it is random number to type in.
+        print(f"q value to batch run: {q_list}")
+        for q in q_list:
+            dict_param["q_ow_out_cap"] = q
+            msg1 = f"Running: pumping capacity from open water to outside is {q} mm/d over entire area"
+            print(msg1)
+            logger.info(msg1)
+            rv = running(input_data, dict_param)
+            wbc_statistics = rv[1]
+            # logging the water balance for entire model
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            # logging the water balance for measure itself
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            # if measure is applied, logging the water balance for measure inflow area
+            if dict_param["tot_meas_area"] != 0:
+                logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+            # if warning messages is not empty, logging the warning message
+            if len(wbc_statistics[3]) != 0:
+                logger.warning(wbc_statistics[3])
+            owl_data = rv[0]["owl"]
+            owl_data = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
+            k = get_max_stor(filename = dyn_inp, owl_stor = owl_data, baseline_ranks = ranks_base)
+            rank_database.append(k.maxima)
+            msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.maxima[0]:.4f} m"
+            print(msg2)
+            logger.info(msg2)
+            print("-----" * 8)
+        if baseline_q is None:
+            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in q_list]
+        else:
+            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in q_list]
+        df = pd.DataFrame(rank_database, index=name_of_index)
+        df.T.to_csv(dyn_out, index=True)
+
+    else:  # if we type in an arithmetic progression
+        if len(q_list) != 3:
+            raise SystemExit("Please type in min, max, steps.")
+        array_q = np.arange(
+            q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2]
+        )
+        print(f"q value to batch run are {array_q}")
+        for q in array_q:
+            dict_param["q_ow_out_cap"] = q
+            msg1 = f"Running: pumping capacity from open water to outside is {q} mm/d over entire area"
+            print(msg1)
+            logger.info(msg1)
+            rv = running(input_data, dict_param)
+            wbc_statistics = rv[1]
+            # logging the water balance for entire model
+            logger.info(f"Entire model: {wbc_statistics[0]}")
+            # logging the water balance for measure itself
+            logger.info(f"Measure itself: {wbc_statistics[1]}")
+            # if measure is applied, logging the water balance for measure inflow area
+            if dict_param["tot_meas_area"] != 0:
+                logger.info(f"Measure inflow area: {wbc_statistics[2]}")
+            # if warning messages is not empty, logging the warning message
+            if len(wbc_statistics[3]) != 0:
+                logger.warning(wbc_statistics[3])
+            owl_data = rv[0]["owl"]
+            owl_data = np.ones(len(owl_data)) * dict_param["ow_level"] - owl_data
+            k = get_max_stor(filename = dyn_inp, owl_stor = owl_data, baseline_ranks = ranks_base)
+            rank_database.append(k.maxima)
+            msg2 = f"Maximum storage height above target water level over open water for Q = {q} mm/d is {k.maxima[0]:.4f} m"
+            print(msg2)
+            logger.info(msg2)
+            print("-----" * 8)
+
+        if baseline_q is None:
+            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in array_q]
+        else:
+            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in array_q]
+
+        df = pd.DataFrame(rank_database, index=name_of_index)
+        df.T.to_csv(dyn_out, index=True)
+## END RDL 20210204 =================================================================================
 if __name__ == "__main__":
     # provide an auto generated cli based on the functions in this file
     fire.Fire()

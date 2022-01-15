@@ -8,7 +8,7 @@ import fire
 import numpy as np
 import pandas as pd
 
-from urbanwb.getconstants import (getconstants_measures)
+from urbanwb.getconstants import (getconstants_measures,getconstants_measures_peak, getconstants_measures_owl)
 from urbanwb.main import (
     read_inputdata,
     read_parameters_csv,
@@ -89,7 +89,7 @@ def run_measures(
             database_gw.append(avg_p_gw)
             database_evap.append(wbc_results[0]["evap"])
             database_owl.append(results["owl"])
-            owl_storage = dict_param["ow_level"] - database_owl
+            owl_storage = (dict_param["ow_level"] - database_owl) * (dict_param["tot_ow_area"] / (dict_param["tot_area"] * 10**-4 ))
 
     else:
         for a in vararrlist1:
@@ -117,7 +117,7 @@ def run_measures(
             database_gw.append(avg_p_gw)
             database_evap.append(wbc_results[0]["evap"])
             database_owl.append(results["owl"])
-            owl_storage = dict_param["ow_level"] - database_owl
+            owl_storage = (dict_param["ow_level"] - database_owl) * (dict_param["tot_ow_area"] / (dict_param["tot_area"] * 10**-4 ))
 
     # Dataframe: runoff
     df_runoff = pd.DataFrame(database_runoff, index=[v for v in vararrlist1])
@@ -146,7 +146,7 @@ def run_measures(
     baseline_runoff = results_base[baseline_variable]
     baseline_gw = results_base["sum_p_gw"].sum()
     baseline_evap = wbc_results_base[0]["evap"]
-    baseline_owl = dict_param["ow_level"] - results_base["owl"]
+    baseline_owl = (dict_param["ow_level"] - results_base["owl"]) * (dict_param["tot_ow_area"] / (dict_param["tot_area"] * 10**-4 ))
     
     df_runoff.insert(2, "Baseline", baseline_runoff)
     df_gw.insert(0, "Baseline", baseline_gw)
@@ -211,11 +211,11 @@ def run_measures_exception(
     df_evap = pd.DataFrame([evap], columns=["alt"])
 
     # DataFrame: OWL
-    owl = dict_param["ow_level"] - results["owl"]
+    owl = (dict_param["ow_level"] - results["owl"]) * (dict_param["tot_ow_area"] / (dict_param["tot_area"] * 10**-4 ))
     df_owl = pd.DataFrame(owl)
     df_owl.insert(0, "Date", date)
     df_owl.insert(1, "P_atm", inputdata["P_atm"])
-    
+     
     # Baseline results for comparison
     results_base = pd.DataFrame(base_run[0])  # Model variables results
     wbc_results_base = base_run[1]  # Water Balance values for the entire model
@@ -224,7 +224,7 @@ def run_measures_exception(
     baseline_runoff = results_base[baseline_variable]
     baseline_gw = results_base["sum_p_gw"].sum()
     baseline_evap = wbc_results_base[0]["evap"]
-    baseline_owl = dict_param["ow_level"] - results_base["owl"]
+    baseline_owl = (dict_param["ow_level"] - results_base["owl"]) * (dict_param["tot_ow_area"] / (dict_param["tot_area"] * 10**-4 ))
 
     # Place the baseline values in the dataframes of the effectivity variables
     df_runoff.insert(2, "Baseline", baseline_runoff)
@@ -282,10 +282,11 @@ def run_all(
     df_Ftot = df.copy()
     df_gw = df.copy()
     df_evap = df.copy()
-#     ##NEW code =============================================================
-#     df_owl = df.copy()
-#     df_peak = df.copy()
-#     ##END NEW Code ======================================================
+    ##NEW code =============================================================
+    df_owl = df.copy()
+    df_peak = df.copy()
+    df_Ftot_peak = df.copy()
+    ##END NEW Code ======================================================
     df_gw.insert(2, "Baseline", np.zeros(len(df_gw.index)))
     df_evap.insert(2, "Baseline", np.zeros(len(df_evap.index)))
 
@@ -353,6 +354,8 @@ def run_all(
         )
         sum_Rup = base_run[0]["r_up_ow"].sum() + base_run[0]["r_up_meas"].sum()
         frac_Rup_Rp = sum_Rup / sum_Rp
+        
+        frac_peak = neighbourhood_pars["up_frac"][n] * (1-neighbourhood_pars["infilcap_up"][n]*10**-3)
 
         # Loop for each measure in the 'Parameters measures' file
         for i in measures.index:
@@ -460,16 +463,16 @@ def run_all(
             constants_runoff, mean_constants_runoff = getconstants_measures(
                 runoff, owl_stor = owl,  num_year=num_years, timestep=timestep
             )
-#         ####NEW CODE: Calculating the peak runoff factor =================================================================================
-#             constants_peak, mean_constants_peak = getconstants_measures_peak(
-#                 runoff, owl_stor = owl, num_year =num_years, timestep=timestep
-#             )
+        ####NEW CODE: Calculating the peak runoff factor ===============================
+            constants_peak, mean_constants_peak = getconstants_measures_peak(
+                runoff, owl_stor = owl, num_year =num_years, timestep=timestep
+            )
             
-#             constants_owl, mean_constants_owl = getconstants_measures_owl(
-#                 owl, owl_stor = owl, num_year = num_years, timestep=timestep
-#             )
+            constants_owl, mean_constants_owl = getconstants_measures_owl(
+                owl, owl_stor = owl, num_year = num_years, timestep=timestep
+            )
 
-#         ###END NEW CODE ============================================================================================================
+        ###END NEW CODE ================
         
             gw = round(gw / num_years, 2)
             evap = round(evap / num_years, 2)
@@ -480,11 +483,11 @@ def run_all(
             df_gw.loc[idx_measure, D_eff_str] -= gw["Baseline"].values[0]
             df_evap.loc[idx_measure, ["Baseline"] + D_eff_str] = evap.values[0]
             df_evap.loc[idx_measure, D_eff_str] -= evap["Baseline"].values[0]
-#             ##NEW CODE ======================================================================================================
+            ##NEW CODE ======================================================================================================
 
-#             df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak
-#             df_owl.loc[idx_measure,D_eff_str] = mean_constants_owl
-#             ##END NEW CODE ======================================================================================================
+            df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak
+            df_owl.loc[idx_measure,D_eff_str] = mean_constants_owl
+            ##END NEW CODE ======================================================================================================
 
             # =============================================================================
             #     Calculate Ftot: Runoff reduction factor over the total area
@@ -497,7 +500,14 @@ def run_all(
                 / (Ap + frac_Rup_Rp * Aup),
                 2,
             )
-
+            
+            # Calculate Ftot_peak
+            Fmeas_peak = mean_constants_peak
+            df_Ftot_peak.loc[idx_measure, D_eff_str] = np.round(
+                (Ap * np.exp(Ami * np.log(Fmeas_peak) / Ap) + frac_peak * Aup)
+                / (Ap + frac_peak * Aup),
+                2,
+            )
 
         # Loop for the exception measures, which are implemented by altering the catchment itself, rather than implemented as a separate measure.
         for title in measures_exception:
@@ -531,15 +541,15 @@ def run_all(
                 runoff,  owl_stor = owl, num_year=num_years, timestep=timestep
             )
             
-#             ####NEW CODE: Calculating the peak runoff factor ========================================================================
-#             constants_peak, mean_constants_peak = getconstants_measures_peak(
-#                 runoff, owl_stor = owl, num_year =num_years, timestep=timestep
-#             )
-#             constants_owl, mean_constants_owl = getconstants_measures_owl(
-#                 owl, owl_stor = owl, num_year = num_years, timestep=timestep
-#             )
+            ####NEW CODE: Calculating the peak runoff factor ========================================================================
+            constants_peak, mean_constants_peak = getconstants_measures_peak(
+                runoff, owl_stor = owl, num_year =num_years, timestep=timestep
+            )
+            constants_owl, mean_constants_owl = getconstants_measures_owl(
+                owl, owl_stor = owl, num_year = num_years, timestep=timestep
+            )
 
-#         ###END NEW CODE ============================================================================================================
+        ###END NEW CODE ============================================================================================================
             gw = round(gw / num_years, 2)
             evap = round(evap / num_years, 2)
 
@@ -554,11 +564,11 @@ def run_all(
             df_evap.loc[idx_measure, "Baseline"] = evap["Baseline"].values[0]
             df_evap.loc[idx_measure, D_eff_str] = evap["alt"].values[0]
             
-#             ##NEW CODE ======================================================================================================
-#             df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak[0]
-#             df_owl.loc[idx_measure, D_eff_str] = mean_constants_owl[0]
-#             ##END NEW CODE ======================================================================================================
-#             # Calculate Ftot
+            ##NEW CODE ======================================================================================================
+            df_peak.loc[idx_measure, D_eff_str] = mean_constants_peak[0]
+            df_owl.loc[idx_measure, D_eff_str] = mean_constants_owl[0]
+            ##END NEW CODE ======================================================================================================
+            # Calculate Ftot
             Fmeas = mean_constants_runoff[0]
             Inflow_area = measures_exception[measure_title]["inflow_area"][0]
             Ami = dict_param[f"tot_{Inflow_area}_area"]
@@ -567,14 +577,23 @@ def run_all(
                 / (Ap + frac_Rup_Rp * Aup),
                 2,
             )
+            
+            # Calculate Ftot_peak
+            Fmeas_peak = mean_constants_peak[0]
+            df_Ftot_peak.loc[idx_measure, D_eff_str] = np.round(
+                (Ap * np.exp(Ami * np.log(Fmeas_peak) / Ap) + frac_peak * Aup)
+                / (Ap + frac_peak * Aup),
+                2,
+            )
 
         # Sort the values on measure id
         df_runoff = df_runoff.sort_values(by="id").reset_index(drop=True)
         df_Ftot = df_Ftot.sort_values(by="id").reset_index(drop=True)
         df_gw = df_gw.sort_values(by="id").reset_index(drop=True)
         df_evap = df_evap.sort_values(by="id").reset_index(drop=True)
-#         df_peak = df_peak.sort_values(by="id").reset_index(drop=True)
-#         df_owl = df_owl.sort_values(by = "id").reset_index(drop=True)
+        df_peak = df_peak.sort_values(by="id").reset_index(drop=True)
+        df_Ftot_peak = df_Ftot_peak.sort_values(by="id").reset_index(drop=True)
+        df_owl = df_owl.sort_values(by = "id").reset_index(drop=True)
         
         neighbourhood_name = neighbourhood_pars["title"][n]
         output_file = output_name + " - %s.xlsx" % neighbourhood_name
@@ -587,8 +606,9 @@ def run_all(
             df_Ftot.to_excel(writer, sheet_name="Ftot", index=0)
             df_gw.to_excel(writer, sheet_name="Groundwater recharge", index=0)
             df_evap.to_excel(writer, sheet_name="Evaporation", index=0)
-#             df_peak.to_excel(writer,sheet_name="Peak factor", index=0)
-#             df_owl.to_excel(writer,sheet_name="Open water level", index=0)
+            df_peak.to_excel(writer,sheet_name="Peak factor", index=0)
+            df_Ftot_peak.to_excel(writer, sheet_name="Ftot_peak", index=0)
+            df_owl.to_excel(writer,sheet_name="Open water level", index=0)
 
 
 if __name__ == "__main__":
