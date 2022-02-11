@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import bisect
-from email.mime import base
 import logging
 import time
 from collections import OrderedDict
