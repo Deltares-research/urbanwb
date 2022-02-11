@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import bisect
+from email.mime import base
 import logging
 import time
 from collections import OrderedDict
@@ -814,6 +816,9 @@ def batch_run_sdf(
     outdir = Path(dyn_out).parent
     outdir.mkdir(parents=True, exist_ok=True)
 
+    # ensure q_list are sorted floats
+    q_list = sorted(map(float, q_list))
+
     # TODO reduce printing
     # determine logfile name based on outputfile name
     loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
@@ -831,17 +836,17 @@ def batch_run_sdf(
     print("First, do baseline run:")
 
     if baseline_q is None:
-        dict_param["q_ow_out_cap"] = mean_daily_rainfall
+        baseline_q = mean_daily_rainfall
         msg0 = f"Baseline pumping capacity is by default set as mean daily rainfall {mean_daily_rainfall:.2f} mm/d to make fixed marks"
-        logger.info(msg0)
-        print(msg0)
     else:
+        baseline_q = float(baseline_q)
         msg0 = f"Baseline pumping capacity is {baseline_q} mm/d to make fixed marks"
-        dict_param["q_ow_out_cap"] = baseline_q
-        logger.info(msg0)
-        print(msg0)
+
+    logger.info(msg0)
+    print(msg0)
 
     # perform baseline run
+    dict_param["q_ow_out_cap"] = baseline_q
     owl_data = np.append(
         running(input_data, dict_param)[0]["owl"], 0
     )  # extra 0 at the end
@@ -852,6 +857,8 @@ def batch_run_sdf(
     # print(segment_marks)
     print("-----" * 8)
     if not arithmetic_progression:  # if it is random number to type in.
+        if baseline_q not in q_list:
+            bisect.insort(q_list, baseline_q)
         print(f"q value to batch run: {q_list}")
         for q in q_list:
             dict_param["q_ow_out_cap"] = q
@@ -877,21 +884,22 @@ def batch_run_sdf(
             print(msg2)
             logger.info(msg2)
             print("-----" * 8)
-        if baseline_q is None:
-            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in q_list]
-        else:
-            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in q_list]
+
+        name_of_index = [f"baseline_{baseline_q}"] + q_list
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
 
     else:  # if we type in an arithmetic progression
         if len(q_list) != 3:
             raise SystemExit("Please type in min, max, steps.")
-        array_q = np.arange(
+        q_list = list(np.arange(
             q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2]
-        )
-        print(f"q value to batch run are {array_q}")
-        for q in array_q:
+        ))
+        if baseline_q not in q_list:
+            bisect.insort(q_list, baseline_q)
+
+        print(f"q value to batch run are {q_list}")
+        for q in q_list:
             dict_param["q_ow_out_cap"] = q
             msg1 = f"Running: pumping capacity from open water to outside is {q} mm/d over entire area"
             print(msg1)
@@ -916,11 +924,7 @@ def batch_run_sdf(
             logger.info(msg2)
             print("-----" * 8)
 
-        if baseline_q is None:
-            name_of_index = [f"{mean_daily_rainfall:.2f}"] + [f"{v}" for v in array_q]
-        else:
-            name_of_index = [f"{baseline_q:.2f}"] + [f"{v}" for v in array_q]
-
+        name_of_index = [f"baseline_{baseline_q}"] + list(q_list)
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
 
