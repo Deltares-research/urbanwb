@@ -128,9 +128,10 @@ class UrbanwbModel(object):
                 delta_t=self.param["delta_t"],
             )
             ss_sol = self.sewersystem.sol(
-                pr_no_meas_area=self.param["pr_no_meas_area"],
-                cp_no_meas_area=self.param["cp_no_meas_area"],
-                op_no_meas_area=self.param["op_no_meas_area"],
+                # make sure we don't include disconnected areas
+                pr_no_meas_area=self.param["pr_no_meas_area"] * (1 - self.pavedroof.discfrac_pr),
+                cp_no_meas_area=self.param["cp_no_meas_area"] * (1 - self.closedpaved.discfrac_cp),
+                op_no_meas_area=self.param["op_no_meas_area"] * (1 - self.openpaved.discfrac_op),
                 r_pr_swds=pr_sol["r_pr_swds"],
                 r_cp_swds=cp_sol["r_cp_swds"],
                 r_op_swds=op_sol["r_op_swds"],

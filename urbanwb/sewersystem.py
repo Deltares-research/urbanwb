@@ -74,9 +74,9 @@ class SewerSystem:
         Calculates states and fluxes of sewer system during current time step.
 
         Args:
-            pr_no_meas_area (float): area of paved roof without measure [m^2]
-            cp_no_meas_area (float): area of closed paved without measure [m^2]
-            op_no_meas_area (float): area of open paved without measure [m^2]
+            pr_no_meas_area (float): area of paved roof without measure and connected [m^2]
+            cp_no_meas_area (float): area of closed paved without measure and connected [m^2]
+            op_no_meas_area (float): area of open paved without measure and connected [m^2]
             r_pr_swds (float): runoff from paved roof to storm water drainage system during current time step [mm]
             r_cp_swds (float): runoff from closed paved to storm water drainage system during current time step [mm]
             r_op_swds (float): runoff from open paved to storm water drainage system during current time step [mm]
