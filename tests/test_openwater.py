@@ -112,27 +112,24 @@ def test_sol(ow_1):
     ow_1.prev_stor_swds = 0
     ow_1.prev_stor_mss = 0
     # ow_1.prev
-    assert (
-        ow_1.sol(
-            0,
-            0.331006211,
-            0,
-            -0.083728895,
-            0,
-            0,
-            0,
-            0,
-            0,
-            6855,
-            8140,
-            2845,
-            0,
-            0,
-            10000,
-            1 / 24,
-        )["sum_d_ow"]
-        == pytest.approx(-2.271844027)
-    )
+    assert ow_1.sol(
+        0,
+        0.331006211,
+        0,
+        -0.083728895,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6855,
+        8140,
+        2845,
+        0,
+        0,
+        10000,
+        1 / 24,
+    )["sum_d_ow"] == pytest.approx(-2.271844027)
 
 
 @pytest.mark.skip(reason="some larger differences found, have to investigate")

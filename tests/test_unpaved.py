@@ -115,41 +115,35 @@ def test_inflowfac(up_1):
 def test_sol(up_1):
     # time level t = 8/1/1988 13:00
     up_1.fin_intstor_up_prevt = 0.0  # update state
-    assert (
-        up_1.sol(
-            p_atm=0,
-            e_pot_ow=0.346642066,
-            r_pr_up=0,
-            r_cp_up=0,
-            r_op_up=0,
-            theta_uz_prevt=175.7714344,
-            pr_no_meas_area=1560,
-            cp_no_meas_area=803.3906406,
-            op_no_meas_area=481.6093594,
-            ow_no_meas_area=300,
-            delta_t=1 / 24,
-        )["actl_infilcap_up"]
-        == pytest.approx(2.0)
-    )
+    assert up_1.sol(
+        p_atm=0,
+        e_pot_ow=0.346642066,
+        r_pr_up=0,
+        r_cp_up=0,
+        r_op_up=0,
+        theta_uz_prevt=175.7714344,
+        pr_no_meas_area=1560,
+        cp_no_meas_area=803.3906406,
+        op_no_meas_area=481.6093594,
+        ow_no_meas_area=300,
+        delta_t=1 / 24,
+    )["actl_infilcap_up"] == pytest.approx(2.0)
 
     # time level t = 8/1/1988 14:00
     up_1.fin_intstor_up_prevt = 0  # update state
-    assert (
-        up_1.sol(
-            4.826,
-            0.346642066,
-            0,
-            0,
-            0,
-            175.5165721,
-            1560,
-            803.3906406,
-            481.6093594,
-            300,
-            1 / 24,
-        )["init_intstor_up"]
-        == pytest.approx(4.826)
-    )
+    assert up_1.sol(
+        4.826,
+        0.346642066,
+        0,
+        0,
+        0,
+        175.5165721,
+        1560,
+        803.3906406,
+        481.6093594,
+        300,
+        1 / 24,
+    )["init_intstor_up"] == pytest.approx(4.826)
 
 
 def test_integration():

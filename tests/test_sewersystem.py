@@ -144,48 +144,42 @@ def test_sol(ss_1):
     ss_1.so_swds_prevt = 0
     ss_1.stor_mss_prevt = 0
     ss_1.so_mss_prevt = 0
-    assert (
-        ss_1.sol(
-            1560,
-            803.390641,
-            481.6093594,
-            6.766687196,
-            6.766687196,
-            6.725020529,
-            0,
-            0,
-            0,
-            0,
-            0,
-            300,
-            0,
-        )["sum_r_swds"]
-        == pytest.approx(6.7596337490)
-    )
+    assert ss_1.sol(
+        1560,
+        803.390641,
+        481.6093594,
+        6.766687196,
+        6.766687196,
+        6.725020529,
+        0,
+        0,
+        0,
+        0,
+        0,
+        300,
+        0,
+    )["sum_r_swds"] == pytest.approx(6.7596337490)
 
     # # time level t = 1/4/1986 12:00
     ss_1.stor_swds_prevt = 0
     ss_1.so_swds_prevt = 0
     ss_1.stor_mss_prevt = 0
     ss_1.so_mss_prevt = 0
-    assert (
-        ss_1.sol(
-            1560,
-            803.390641,
-            481.6093594,
-            0.670687196,
-            0.670687196,
-            0.629020529,
-            0,
-            0,
-            0,
-            0,
-            0,
-            300,
-            0,
-        )["q_swds_ow"]
-        == pytest.approx(0.663633749)
-    )
+    assert ss_1.sol(
+        1560,
+        803.390641,
+        481.6093594,
+        0.670687196,
+        0.670687196,
+        0.629020529,
+        0,
+        0,
+        0,
+        0,
+        0,
+        300,
+        0,
+    )["q_swds_ow"] == pytest.approx(0.663633749)
 
 
 def test_integration():

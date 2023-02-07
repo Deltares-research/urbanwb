@@ -129,9 +129,12 @@ class UrbanwbModel(object):
             )
             ss_sol = self.sewersystem.sol(
                 # make sure we don't include disconnected areas
-                pr_no_meas_area=self.param["pr_no_meas_area"] * (1 - self.pavedroof.discfrac_pr),
-                cp_no_meas_area=self.param["cp_no_meas_area"] * (1 - self.closedpaved.discfrac_cp),
-                op_no_meas_area=self.param["op_no_meas_area"] * (1 - self.openpaved.discfrac_op),
+                pr_no_meas_area=self.param["pr_no_meas_area"]
+                * (1 - self.pavedroof.discfrac_pr),
+                cp_no_meas_area=self.param["cp_no_meas_area"]
+                * (1 - self.closedpaved.discfrac_cp),
+                op_no_meas_area=self.param["op_no_meas_area"]
+                * (1 - self.openpaved.discfrac_op),
                 r_pr_swds=pr_sol["r_pr_swds"],
                 r_cp_swds=cp_sol["r_cp_swds"],
                 r_op_swds=op_sol["r_op_swds"],
@@ -892,9 +895,9 @@ def batch_run_sdf(
     else:  # if we type in an arithmetic progression
         if len(q_list) != 3:
             raise SystemExit("Please type in min, max, steps.")
-        q_list = list(np.arange(
-            q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2]
-        ))
+        q_list = list(
+            np.arange(q_list[0], q_list[1] + 1, (q_list[1] - q_list[0]) / q_list[2])
+        )
         if baseline_q not in q_list:
             bisect.insort(q_list, baseline_q)
 
