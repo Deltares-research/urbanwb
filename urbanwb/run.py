@@ -228,7 +228,6 @@ def run_all(
     neighbourhood_pars_path,
     D_eff=[5, 10, 20, 30, 40, 50, 100],
 ):
-
     # read files into dataframes
     measures = pd.read_csv(measures_path, index_col=0)
     measures_exception = pd.read_excel(measures_exception_path, sheet_name=None)

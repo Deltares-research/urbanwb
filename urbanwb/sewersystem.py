@@ -175,7 +175,6 @@ class SewerSystem:
             self.so_swds_prevt = so_swds
 
         if self.mss_no_meas_area == 0.0:
-
             sum_r_mss = r_meas_mss = q_mss_out = q_mss_ow = so_mss = stor_mss = 0.0
 
         else:

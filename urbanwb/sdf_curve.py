@@ -126,7 +126,6 @@ def running_counter(source_list):
 
 
 def get_segment_index(owl):
-
     interim = np.zeros_like(owl)
     for i in range(len(owl)):
         if owl[i] != 0:

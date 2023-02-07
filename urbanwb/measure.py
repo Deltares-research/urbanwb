@@ -302,9 +302,7 @@ class Measure:
             e_atm_meas = self.EV_evaporation * min(int_meas, e_pot_ow)
 
             if self.num_stor_lvl > 1.5:
-
                 if not self.greenroof_type_measure:
-
                     interc_down_meas = max(
                         0.0,
                         min(
@@ -327,7 +325,6 @@ class Measure:
                     )
 
             else:
-
                 interc_down_meas = 0.0
 
             surf_runoff_meas = max(
@@ -356,7 +353,6 @@ class Measure:
             )
 
             if self.num_stor_lvl < 2.5:
-
                 perc_top_meas = 0.0
 
             else:

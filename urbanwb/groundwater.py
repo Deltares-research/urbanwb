@@ -40,7 +40,6 @@ class Groundwater:
         croptype=1,
         **kwargs
     ):
-
         # state
 
         # self.gwl_prevt (float): groundwater level at previous time step [m-SL]
