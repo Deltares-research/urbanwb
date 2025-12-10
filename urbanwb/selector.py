@@ -1,12 +1,8 @@
 import pandas as pd
-import pkg_resources
+from importlib.resources import files
 
-import urbanwb
-
-soilmatrix = pd.read_csv(
-    pkg_resources.resource_stream(__name__, "data/soilparameter.csv")
-)
-etmatrix = pd.read_csv(pkg_resources.resource_stream(__name__, "data/etparameter.csv"))
+soilmatrix = pd.read_csv(files(__name__).joinpath("data/soilparameter.csv"))
+etmatrix = pd.read_csv(files(__name__).joinpath("data/etparameter.csv"))
 
 
 def et_selector(a, b):
@@ -27,9 +23,9 @@ def soil_selector(a, b):
     # a --- soil type
     # b --- crop type
 
-    rootzone_thickness = 100 * et_selector(a, b)["th_rz_m"].values
+    rootzone_thickness = int(100 * et_selector(a, b)["th_rz_m"].values[0])
     soil_prm = soilmatrix.loc[
-        (soilmatrix.soil_type == int(a)) & (soilmatrix.th_rz == int(rootzone_thickness))
+        (soilmatrix.soil_type == int(a)) & (soilmatrix.th_rz == rootzone_thickness)
     ]
     # convert data frame to dictionary (list) for quick lookup.
     soil_prm = soil_prm.to_dict(orient="Records")
