@@ -35,7 +35,7 @@ dependencies = [
 dev = ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
 
 [project.urls]
-Homepage = "https://gitlab.com/deltares/urban/urbanwb"
+Homepage = "https://github.com/Deltares-research/urbanwb"
 
 [tool.setuptools]
 packages = ["urbanwb"]
