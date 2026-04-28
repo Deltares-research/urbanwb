@@ -8,8 +8,7 @@ from urbanwb.closedpaved import ClosedPaved
 
 
 def validate(a, b, c, d, e, f, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
     # a --- area of closed paved (without a measure)
@@ -91,9 +90,7 @@ def test_sol(cp_1):
 
 
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(803.39, 0, 0, 1.6, 1, 0, Dec=8, Num=0):  # default
         assert n is None
     for n in validate(0, 803.39, 0, 1.6, 1.0, 0.0, Dec=8, Num=1):  # cp_no_meas_area = 0

@@ -7,11 +7,9 @@ import numpy as np
 import pandas as pd
 
 
-class SDF_Curve(object):
+class SDF_Curve:
     def __init__(self, owl_data, num_year, ow_level):
-        """
-        creates an instance of open water level series and analyses it
-        """
+        """Creates an instance of open water level series and analyses it"""
         # owl_data --- series of open water level
         # ow_level --- target open water level as well as the inital open water level
         # event_list --- list of events which are separated by zeros
@@ -31,9 +29,7 @@ class SDF_Curve(object):
         # self.trendline = self.trendline()
 
     def event_partition(self):
-        """
-        differentiates events (segment events by zeros first, then remove empty lists[])
-        """
+        """Differentiates events (segment events by zeros first, then remove empty lists[])"""
         # needs update: last event does not end with zeros
         rt = []
         n = 0
@@ -46,25 +42,19 @@ class SDF_Curve(object):
         return [value for value in rt if len(value) != 0]
 
     def max_stor(self):
-        """
-        calculates event maximums and stores in a list.
-        """
+        """Calculates event maximums and stores in a list."""
         storage = []
         for event in self.event_list:
             storage.append(reduce(lambda x, y: x if (x > y) else y, event))
         return storage
 
     def ranking(self):
-        """
-        sorts the max_storage list, ranks the event maximum from highest to lowest.
-        """
+        """Sorts the max_storage list, ranks the event maximum from highest to lowest."""
         rank = sorted(self.max_storage, reverse=True)
         return rank
 
     def return_time(self):
-        """
-        calculates the return period of event extremes by formula : return time = number of years / rank No.
-        """
+        """Calculates the return period of event extremes by formula : return time = number of years / rank No."""
         rt = []
         for m in range(len(self.rank)):
             rt.append(self.num_year / (1 + m))
@@ -121,7 +111,7 @@ class SDF_curve2:
 
 
 def running_counter(source_list):
-    "function calculates, following the list sequence how many times a number is repeated"
+    """Function calculates, following the list sequence how many times a number is repeated"""
     return [(k, sum(1 for i in g)) for k, g in groupby(source_list)]
 
 

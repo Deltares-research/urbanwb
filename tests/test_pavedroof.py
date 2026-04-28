@@ -15,11 +15,9 @@ iters = np.shape(date)[0]
 
 
 def validate(a, b, c, d, e, f, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
-
     # a --- area of paved roof (without a measure)
     # b --- area of paved roof(with a measure)
     # c --- area of paved roof measure inflow area.
@@ -92,7 +90,7 @@ def test_sol(pr_1):
 
 
 def test_integration():
-    """runs integration tests (validate with excel using different coefficient sets for all time steps)"""
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(1560, 0, 0, 1.6, 1, 0, Dec=8, Num=0):  # default
         assert n is None
     for n in validate(0, 1560, 0, 1.6, 1.0, 0.0, Dec=10, Num=1):  # pr_no_meas_area = 0

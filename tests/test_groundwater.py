@@ -14,8 +14,7 @@ meas_gw = np.zeros(iters)
 
 
 def validate(a, b, c, d, e, f, g, h, i, j, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
     # a --- initial GWL
@@ -141,9 +140,7 @@ def test_sol(gw_1):
 
 @pytest.mark.skip(reason="some larger differences found, have to investigate")
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(
         1.5, 8140, 0, 0, 100, 20000, 21.5, 1, 2, 1, Dec=3, Num=0
     ):  # default

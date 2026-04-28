@@ -1,14 +1,10 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import sys
 import logging
 import logging.handlers
+import sys
 
 
 def setuplog(logfilename, loggername, thelevel=logging.INFO):
-    """
-    Set-up the logging system and return a logger object. Exit if this fails
+    """Set-up the logging system and return a logger object. Exit if this fails
 
     Input:
 
@@ -35,7 +31,7 @@ def setuplog(logfilename, loggername, thelevel=logging.INFO):
         # logger.addHandler(console)
         logger.debug("File logging to " + logfilename)
         return logger
-    except IOError:
+    except OSError:
         print("ERROR: Failed to initialize logger with logfile: " + logfilename)
         return None
         sys.exit(2)

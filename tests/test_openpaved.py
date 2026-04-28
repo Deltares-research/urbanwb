@@ -8,11 +8,9 @@ from urbanwb.openpaved import OpenPaved
 
 
 def validate(a, b, c, d, e, f, g, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match.
     """
-
     # a --- area of open paved (without a measure) [m^2].
     # b --- area of open paved(with a measure) [m^2].
     # c --- area of open paved measure inflow area [m^2].
@@ -81,7 +79,7 @@ def op_1():
 
 
 def test_inflowfac(op_1):
-    op_1.inflowfac() == pytest.approx(0.0)
+    assert op_1.inflowfac() == pytest.approx(0.0)
 
 
 def test_sol(op_1):
@@ -95,9 +93,7 @@ def test_sol(op_1):
 
 
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(481.61, 0, 0, 1.6, 1.0, 0, 1, Dec=8, Num=0):  # default
         assert n is None
     for n in validate(481.61, 0, 0, 0, 1, 0, 1, Dec=8, Num=1):  # intstorcap_op = 0

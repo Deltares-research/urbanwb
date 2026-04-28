@@ -6,8 +6,7 @@ import toml
 
 
 def read_parameter_base(arg):
-    """
-    reads parameters from the TOML-formated static form.
+    """Reads parameters from the TOML-formated static form.
 
     Args:
         arg (string): path of the static form of parameters for measures
@@ -15,6 +14,7 @@ def read_parameter_base(arg):
 
     Returns:
         (dictionary): A dictionary of general parameters
+
     """
     if isinstance(arg, Mapping):
         cf = arg

@@ -4,14 +4,14 @@ import toml
 
 
 def read_parameter_measure(stat2_inp):
-    """
-    reads parameters from the TOML-formated static form for measure.
+    """Reads parameters from the TOML-formated static form for measure.
 
     Args:
         stat2_inp (string): path of the static form of general parameters
 
     Returns:
         (dictionary): A dictionary of parameters for measure.
+
     """
     cf = toml.load(stat2_inp, _dict=dict)
     choice = cf["measure_applied"]
@@ -284,8 +284,7 @@ def read_parameter_measure(stat2_inp):
 def read_parameter_measure_csv(
     measure_path, measure_id, parameter_base, apply_measure=True
 ):
-    """
-    reads parameters from an Excel csv.
+    """Reads parameters from an Excel csv.
 
     Args:
         measure_path: CSV with the parameters for the measures
@@ -293,6 +292,7 @@ def read_parameter_measure_csv(
         parameter_base: a dictionary containing the catchment parameters, often read before this function is called
     Returns:
         (dictionary): A dictionary of parameters for measure.
+
     """
     # TODO, consolidate with read_parameter_measure above
     # TODO remove hardcoded path

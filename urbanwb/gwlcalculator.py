@@ -2,8 +2,7 @@ import math
 
 
 def gwlcalc(x):
-    """
-    calculates the groundwater up and groundwater low and the corresponding indexes for referencing in the database.
+    """Calculates the groundwater up and groundwater low and the corresponding indexes for referencing in the database.
 
     Args:
         x (float): groundwater level
@@ -15,8 +14,8 @@ def gwlcalc(x):
         * **gwl_low** -- First value in predefined table below groundwater level at the end of previous time step [m-SL]
         * **index** -- index of gwl_up value in the database.
         * **index2** -- index of gwl_low value in the database.
-    """
 
+    """
     gwl_up = float(x)
     if 0.0 <= gwl_up <= 2.5:
         gwl_up = math.floor(gwl_up * 10.0) / 10.0

@@ -7,14 +7,14 @@ import pandas as pd
 
 
 def making_marks(precipitation):
-    """
-    Make the marks by separating rainfall events by six consecutive hours without precipitation
+    """Make the marks by separating rainfall events by six consecutive hours without precipitation
 
     Args:
         precipitation (series): a series ("P_atm" column) of the dataframe
 
     Return:
         (numpy.ndarray): an array of corresponding marks for separating precipitation time series
+
     """
     # Create an empty array.
     mark = np.zeros_like(precipitation)
@@ -34,8 +34,7 @@ def making_marks(precipitation):
 
 
 def ranking(df, x, num):
-    """
-    According to the event mark, get the sum of x for each event, and then rank the sum from highest to lowest.
+    """According to the event mark, get the sum of x for each event, and then rank the sum from highest to lowest.
 
     Args:
         df (dataframe): a dataframe to do computations on
@@ -44,6 +43,7 @@ def ranking(df, x, num):
 
     Returns:
         (numpy.ndarray): an array of values ranked in a descending order
+
     """
     rank = np.zeros(num)
     for i in range(num):
@@ -52,8 +52,7 @@ def ranking(df, x, num):
 
 
 def removekey(d, *keys):
-    """
-    Remove keys in the dictionary
+    """Remove keys in the dictionary
 
     Args:
         d (dictionary): a dictionary to be modified
@@ -61,6 +60,7 @@ def removekey(d, *keys):
 
     Returns:
         (dictionary): a modified dictionary
+
     """
     r = dict(d)
     for _ in keys:
@@ -71,14 +71,13 @@ def removekey(d, *keys):
 def find_corresponding_T_for_array(
     t_array, array, vararr=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50]
 ):
-    """
-    Compute corresponding return period T (i.e. T=1/P, P is the probability of exceedance) for a certain return value in
+    """Compute corresponding return period T (i.e. T=1/P, P is the probability of exceedance) for a certain return value in
     an array through linear interpolation, in order to compute an averaged value as runoff frequency reduction factor
     (The algorithm can be modified with the new code in the jupyter notebook despite the same results)
 
     Args:
         t_array ()
-    Returns:
+
     """
     database = []
     for var in vararr:
@@ -112,12 +111,12 @@ def find_corresponding_T_for_array(
 
 
 def getconstants(inputfilename, num_year=30):
-    """
-    Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
+    """Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
 
     Args:
         inputfilename (string): path of the runoff time series resulted from the urbanwb model
         num_year (integer): total number of years of the time series
+
     """
     m = Analyse(filename=inputfilename, num_year=num_year)
     results = m.getconstants()
@@ -140,12 +139,12 @@ def getconstants(inputfilename, num_year=30):
 
 
 def getconstants_measures(data, num_year=30):
-    """
-    Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
+    """Get the constant --- Runoff frequency reduction factor averaged over several specified runoff return value.
 
     Args:
         inputfilename (string): filename of the runoff time series resulted from the urbanwb model
         num_year (integer): total number of years of the time series
+
     """
     # TODO consolidate with getconstants above
     m = Analyse(data=data, num_year=num_year)
@@ -173,10 +172,8 @@ def getconstants_measures(data, num_year=30):
     return results, mean_constants
 
 
-class Analyse(object):
-    """
-    Integrate all functions, basically functioning, requiring further development
-    """
+class Analyse:
+    """Integrate all functions, basically functioning, requiring further development"""
 
     def __init__(
         self,
@@ -210,7 +207,7 @@ class Analyse(object):
     def getconstants(
         self,
     ):  # consider changing function name to avoid confusion.
-        emp = dict()
+        emp = {}
         baseT = find_corresponding_T_for_array(
             t_array=self.makingranks["T_list"], array=self.makingranks["Rank_baseline"]
         )
@@ -231,7 +228,7 @@ class Analyse(object):
         self,
     ):
         # unchanged, I made a mistake here, should be self.emp rather than emp. Not a big problem.
-        emp = dict()
+        emp = {}
         emp["Rank_P"] = ranking(self.df, "P_atm", int(max(self.df.mark) + 1))
         # create T list (30 yr, thus starting from (30+1/1) according to Weibull formula)
         emp["T_list"] = [
