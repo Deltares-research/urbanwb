@@ -6,10 +6,18 @@ class OpenWater:
         ow_no_meas_area (float): area of open water without measure [m^2]
         q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d]
         ow_level (float): predefined target open water level, also the initial open water level (at t=0) [m-SL]
+        q_ow_in_cap (float): inlet capacity from outside water to open water [mm/d]. Default is inf (unlimited).
 
     """
 
-    def __init__(self, ow_no_meas_area, q_ow_out_cap, ow_level, **kwargs):
+    def __init__(
+        self,
+        ow_no_meas_area,
+        q_ow_out_cap,
+        ow_level,
+        q_ow_in_cap=float("inf"),
+        **kwargs,
+    ):
         """Creates an instance of OpenWater class."""
         # state
 
@@ -19,6 +27,7 @@ class OpenWater:
         # properties
         self.ow_no_meas_area = ow_no_meas_area
         self.q_ow_out_cap = q_ow_out_cap
+        self.q_ow_in_cap = q_ow_in_cap
         self.ow_level = ow_level
 
     def sol(
@@ -110,6 +119,12 @@ class OpenWater:
                 + sum_q_ow
                 + sum_so_ow
                 + r_meas_ow,
+            )
+
+            # Limit water inlet from outside water (negative q_ow_out)
+            q_ow_out = max(
+                q_ow_out,
+                -delta_t * self.q_ow_in_cap * (tot_area / self.ow_no_meas_area),
             )
 
             owl = (
