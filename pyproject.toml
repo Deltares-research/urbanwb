@@ -32,7 +32,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["black", "pytest", "pytest-cov", "sphinx", "sphinx_rtd_theme"]
+dev = [
+ "pytest",
+ "ruff",
+]
 
 [project.urls]
 Homepage = "https://github.com/Deltares-research/urbanwb"
