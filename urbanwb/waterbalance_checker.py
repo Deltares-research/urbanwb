@@ -372,13 +372,9 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         )
 
     except ZeroDivisionError:
-        p_mia = (
-            e_mia
-        ) = (
-            ds_mia
-        ) = (
-            ow_rech_meas_mia
-        ) = gw_rech_meas_mia = q_swds_meas_mia = q_mss_meas_mia = q_out_meas_mia = 0.0
+        p_mia = e_mia = ds_mia = ow_rech_meas_mia = gw_rech_meas_mia = (
+            q_swds_meas_mia
+        ) = q_mss_meas_mia = q_out_meas_mia = 0.0
 
     # calculate the difference in water balance to check whether water balance is closed over measure inflow area
     balance_diff_mia = (

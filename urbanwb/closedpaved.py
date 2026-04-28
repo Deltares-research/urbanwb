@@ -27,7 +27,7 @@ class ClosedPaved:
         intstorcap_cp=1.6,
         swds_frac=1.0,
         discfrac_cp=0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Creates an instance of ClosedPaved class.
@@ -90,9 +90,9 @@ class ClosedPaved:
         """
 
         if self.cp_no_meas_area == 0.0:
-            int_cp = (
-                e_atm_cp
-            ) = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = r_cp_up = 0.0
+            int_cp = e_atm_cp = intstor_cp = r_cp_meas = r_cp_swds = r_cp_mss = (
+                r_cp_up
+            ) = 0.0
 
         else:
             int_cp = min(self.intstorcap_cp, max(0.0, self.intstor_cp_prevt + p_atm))

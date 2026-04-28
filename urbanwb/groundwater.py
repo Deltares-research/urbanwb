@@ -38,7 +38,7 @@ class Groundwater:
         down_seepage_flux=1,
         soiltype=2,
         croptype=1,
-        **kwargs
+        **kwargs,
     ):
         # state
 
@@ -103,9 +103,9 @@ class Groundwater:
         """
 
         if self.gw_no_meas_area == 0.0:
-            sum_p_gw = (
-                r_meas_gw
-            ) = sc_gw = h_gw = s_gw_out = d_gw_ow = gwl = gwl_sl = 0.0
+            sum_p_gw = r_meas_gw = sc_gw = h_gw = s_gw_out = d_gw_ow = gwl = gwl_sl = (
+                0.0
+            )
         else:
             sum_p_gw = (
                 p_uz_gw * uz_no_meas_area + p_op_gw * op_no_meas_area

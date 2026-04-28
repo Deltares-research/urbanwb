@@ -429,20 +429,14 @@ def check_parameters(dict_param):
             "cp_meas_inflow_area"
         ] = dict_param["op_meas_inflow_area"] = dict_param[
             "up_meas_inflow_area"
-        ] = dict_param[
-            "ow_meas_inflow_area"
-        ] = 0.0
+        ] = dict_param["ow_meas_inflow_area"] = 0.0
         dict_param["tot_meas_inflow_area"] = 0.0
         # area of xx with measure
         dict_param["pr_meas_area"] = dict_param["cp_meas_area"] = dict_param[
             "op_meas_area"
         ] = dict_param["up_meas_area"] = dict_param["uz_meas_area"] = dict_param[
             "gw_meas_area"
-        ] = dict_param[
-            "swds_meas_area"
-        ] = dict_param[
-            "mss_meas_area"
-        ] = dict_param[
+        ] = dict_param["swds_meas_area"] = dict_param["mss_meas_area"] = dict_param[
             "ow_meas_area"
         ] = 0.0
         # area of interception layer, top storage layer, and bottom storage layer of measure
