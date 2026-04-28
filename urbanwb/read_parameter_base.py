@@ -1,6 +1,5 @@
 import math
 from collections.abc import Mapping
-from pathlib import Path
 
 import fire
 import toml
