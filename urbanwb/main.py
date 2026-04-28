@@ -368,7 +368,7 @@ def read_parameters_exception(
             if key in cf:
                 cf[key] = measures_exception[measure_title][key][0]
             elif key == "change_op_to_up":
-                if measures_exception[measure_title][key][0] == True:
+                if measures_exception[measure_title][key][0]:
                     cf["up_frac"] += cf["op_frac"]
                     cf["op_frac"] = 0
                 else:

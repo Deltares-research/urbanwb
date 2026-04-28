@@ -160,7 +160,7 @@ def getconstants_measures(data, num_year=30):
         if new_var_array is not None:
             mean_constants.append(np.round(np.mean(new_var_array), 2))
     for i in range(len(mean_constants)):
-        if np.isnan(mean_constants[i]) == True or mean_constants[i] > 1000:
+        if np.isnan(mean_constants[i]) or mean_constants[i] > 1000:
             mean_constants[i] = 1000
         else:
             pass
@@ -274,7 +274,7 @@ class Analyse(object):
                 measures_rank_dictionary[key], self.data.T_list, label=key, ms=2
             )
 
-        x = np.linspace(0, 100, 200)
+        np.linspace(0, 100, 200)
         # plt.legend(loc='best',frameon=False)
         plt.legend(loc="upper right", frameon=True)
         plt.xlabel("Runoff (mm)")

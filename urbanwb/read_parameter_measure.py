@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import toml
@@ -304,7 +302,7 @@ def read_parameter_measure_csv(
     try:
         int(measure_id)
         exception = False
-    except:
+    except Exception:
         exception = True
 
     if exception:

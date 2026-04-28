@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 
 import urbanwb
-from urbanwb.selector import soil_selector
 from urbanwb.unpaved import Unpaved
 
 path = urbanwb.urbanwbdir / ".." / "input"
