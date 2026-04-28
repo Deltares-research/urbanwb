@@ -17,11 +17,9 @@ meas_ow = np.zeros(iters)
 
 
 def validate(a, b, c, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
-
     # a --- area of open water (without a measure) [m^2].
     # b --- target open water level as well as the initial open water level [m-SL]
     # c --- q_ow_out_cap predefined discharge capacity from open water to outside water [mm/d]
@@ -134,9 +132,7 @@ def test_sol(ow_1):
 
 @pytest.mark.skip(reason="some larger differences found, have to investigate")
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(300, 1.5, 200, Dec=6, Num=0):  # default
         assert n is None
     for n in validate(300, 3, 200, Dec=3, Num=1):  # target open water level = 3

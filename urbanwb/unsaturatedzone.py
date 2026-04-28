@@ -1,14 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from urbanwb.gwlcalculator import gwlcalc
 from urbanwb.selector import et_selector, soil_selector
 
 
 class UnsaturatedZone:
-    """
-    Creates an instance of UnsaturatedZone class with given initial states and properties, iterates sol() function to
-    compute states and fluxes of unsaturated zone at each time step.
+    """Creates an instance of UnsaturatedZone class with given initial states and properties.
+
+    Iterates sol() function to compute states and fluxes of unsaturated zone at each time step.
 
     Args:
         theta_uz_t0 (float): initial (volumetric) moisture content of soil in the root zone (at t=0) [mm]
@@ -16,6 +13,7 @@ class UnsaturatedZone:
         uz_meas_area (float): area of unsaturated zone with measure [m^2]
         soiltype (int): soil type
         croptype (int): crop type
+
     """
 
     def __init__(
@@ -27,10 +25,7 @@ class UnsaturatedZone:
         croptype=1,
         **kwargs,
     ):
-        """
-        Creates an instance of UnsaturatedZone class
-        """
-
+        """Creates an instance of UnsaturatedZone class"""
         # state
 
         # self.theta_uz_prevt (float): volumetric moisture content of soil in the root zone at previous time step [mm]
@@ -68,8 +63,7 @@ class UnsaturatedZone:
         self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
 
     def sol(self, i_up_uz, meas_uz, e_ref, tot_meas_area, gwl_prevt, delta_t=1 / 24):
-        """
-        Calculates states and fluxes in unsaturated zone during current time step.
+        """Calculates states and fluxes in unsaturated zone during current time step.
 
         Args:
             i_up_uz (float): infiltration from interception storage on unpaved to unsaturated zone during current time step [mm]
@@ -93,8 +87,8 @@ class UnsaturatedZone:
             * **capris_max_uz** -- Maximum capillary rise in root zone during current time step [mm/d]
             * **p_uz_gw** -- Percolation from unsaturated zone to groundwater during current time step (positive: deep percolation, negative: capillary rise) [mm]
             * **theta_uz** -- Moisture content of root zone at the end of current time step [mm]
-        """
 
+        """
         # parameters
         if self.uz_no_meas_area == 0.0:
             sum_i_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = (

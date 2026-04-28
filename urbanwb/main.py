@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import bisect
 import logging
 import time
@@ -34,15 +31,15 @@ from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.waterbalance_checker import water_balance_checker
 
 
-class UrbanwbModel(object):
-    """
-    Creates an instance of UrbanwbModel class which consists of all eight components namely paved roof,  closed paved,
+class UrbanwbModel:
+    """Creates an instance of UrbanwbModel class which consists of all eight components namely paved roof,  closed paved,
     open paved, unpaved, unsaturated zone, groundwater, sewer system and open water together with measure module.
     Iterates __next__() as time stepping to get solutions for all time steps.
 
     Args:
         dict_param (dictionary): A dictionary of necessary parameters read from neighbourhood config file and measure
         config file to initialize a model instance
+
     """
 
     def __init__(self, dict_param):
@@ -72,9 +69,7 @@ class UrbanwbModel(object):
         ref_grass,
         lst_prevt,
     ):
-        """
-        Calculates storage, fluxes, coefficients and other related results at current time step.
-        """
+        """Calculates storage, fluxes, coefficients and other related results at current time step."""
         try:
             pr_sol = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             cp_sol = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
@@ -183,9 +178,7 @@ class UrbanwbModel(object):
 
 
 def timer(func):
-    """
-    a decorator that timings the function runtime.
-    """
+    """A decorator that timings the function runtime."""
 
     def wrapper(*args, **kwargs):
         start = time.time()
@@ -198,23 +191,22 @@ def timer(func):
 
 
 def read_inputdata(dyn_inp):
-    """
-    reads input data (time series of precipitation and evaporation) from dynamic input file.
+    """Reads input data (time series of precipitation and evaporation) from dynamic input file.
 
     Args:
         dyn_inp (string): the path of the input time series of precipitation and evaporation
 
     Returns:
         (dataframe): A dataframe of the time series of precipitation and evaporation
-    """
 
+    """
     # The actual user-defined datetime format can be problematic.
     # Therefore, date is not parsed as datetime here.
     # rv = pd.read_csv(str(path) + "\\" + dyn_inp, parse_dates=["date"], dayfirst=True)
     rv = pd.read_csv(dyn_inp)
 
     # check if there is missing value in the input time series.
-    num_nan = rv.isnull().sum().sum()
+    num_nan = rv.isna().sum().sum()
     if num_nan != 0:
         raise SystemExit(
             f"There are {num_nan} missing values in time series. Please recheck input time series file."
@@ -223,8 +215,7 @@ def read_inputdata(dyn_inp):
 
 
 def read_parameters(stat1_inp, stat2_inp):
-    """
-    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    """Reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
     configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
     computing area of xx without measure with given parameters.
 
@@ -234,29 +225,30 @@ def read_parameters(stat1_inp, stat2_inp):
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
+
     """
     parameter_base = read_parameter_base(stat1_inp)
     parameter_measure = read_parameter_measure(stat2_inp)
-    d = dict(
-        pr_no_meas_area=parameter_base["tot_pr_area"]
+    d = {
+        "pr_no_meas_area": parameter_base["tot_pr_area"]
         - parameter_measure["pr_meas_area"],
-        cp_no_meas_area=parameter_base["tot_cp_area"]
+        "cp_no_meas_area": parameter_base["tot_cp_area"]
         - parameter_measure["cp_meas_area"],
-        op_no_meas_area=parameter_base["tot_op_area"]
+        "op_no_meas_area": parameter_base["tot_op_area"]
         - parameter_measure["op_meas_area"],
-        up_no_meas_area=parameter_base["tot_up_area"]
+        "up_no_meas_area": parameter_base["tot_up_area"]
         - parameter_measure["up_meas_area"],
-        uz_no_meas_area=parameter_base["tot_uz_area"]
+        "uz_no_meas_area": parameter_base["tot_uz_area"]
         - parameter_measure["uz_meas_area"],
-        gw_no_meas_area=parameter_base["tot_gw_area"]
+        "gw_no_meas_area": parameter_base["tot_gw_area"]
         - parameter_measure["gw_meas_area"],
-        swds_no_meas_area=parameter_base["tot_swds_area"]
+        "swds_no_meas_area": parameter_base["tot_swds_area"]
         - parameter_measure["swds_meas_area"],
-        mss_no_meas_area=parameter_base["tot_mss_area"]
+        "mss_no_meas_area": parameter_base["tot_mss_area"]
         - parameter_measure["mss_meas_area"],
-        ow_no_meas_area=parameter_base["tot_ow_area"]
+        "ow_no_meas_area": parameter_base["tot_ow_area"]
         - parameter_measure["ow_meas_area"],
-    )
+    }
     rv = {**parameter_base, **parameter_measure, **d}
     return rv
 
@@ -269,8 +261,7 @@ def read_parameters_csv(
     neighbourhood_id,
     apply_measure=True,
 ):
-    """
-    reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    """Reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
     configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
     computing area of xx without measure with given parameters.
 
@@ -284,6 +275,7 @@ def read_parameters_csv(
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
+
     """
     # TODO consolidate with read_parameters above, or possibly eliminate
     cf = toml.load(stat1_inp, _dict=dict)
@@ -300,26 +292,26 @@ def read_parameters_csv(
         measures_path, measure_id, parameter_base, apply_measure
     )
 
-    d = dict(
-        pr_no_meas_area=parameter_base["tot_pr_area"]
+    d = {
+        "pr_no_meas_area": parameter_base["tot_pr_area"]
         - parameter_measure["pr_meas_area"],
-        cp_no_meas_area=parameter_base["tot_cp_area"]
+        "cp_no_meas_area": parameter_base["tot_cp_area"]
         - parameter_measure["cp_meas_area"],
-        op_no_meas_area=parameter_base["tot_op_area"]
+        "op_no_meas_area": parameter_base["tot_op_area"]
         - parameter_measure["op_meas_area"],
-        up_no_meas_area=parameter_base["tot_up_area"]
+        "up_no_meas_area": parameter_base["tot_up_area"]
         - parameter_measure["up_meas_area"],
-        uz_no_meas_area=parameter_base["tot_uz_area"]
+        "uz_no_meas_area": parameter_base["tot_uz_area"]
         - parameter_measure["uz_meas_area"],
-        gw_no_meas_area=parameter_base["tot_gw_area"]
+        "gw_no_meas_area": parameter_base["tot_gw_area"]
         - parameter_measure["gw_meas_area"],
-        swds_no_meas_area=parameter_base["tot_swds_area"]
+        "swds_no_meas_area": parameter_base["tot_swds_area"]
         - parameter_measure["swds_meas_area"],
-        mss_no_meas_area=parameter_base["tot_mss_area"]
+        "mss_no_meas_area": parameter_base["tot_mss_area"]
         - parameter_measure["mss_meas_area"],
-        ow_no_meas_area=parameter_base["tot_ow_area"]
+        "ow_no_meas_area": parameter_base["tot_ow_area"]
         - parameter_measure["ow_meas_area"],
-    )
+    }
     rv = {**parameter_base, **parameter_measure, **d}
     return rv
 
@@ -333,8 +325,7 @@ def read_parameters_exception(
     neighbourhood_id,
     apply_measure,
 ):
-    """
-    Reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
+    """Reads parameters for model initialization by calling "read_parameter_base" to read parameters from neighbourhood
     configuration file, calling "read_parameter_measure" to read parameters from measure configuration file, and
     computing area of xx without measure with given parameters.
 
@@ -349,6 +340,7 @@ def read_parameters_exception(
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
+
     """
     # TODO consolidate with read_parameters above, or possibly eliminate
     cf = toml.load(stat1_inp, _dict=dict)
@@ -385,33 +377,32 @@ def read_parameters_exception(
     )
     parameter_measure["title"] = measures_exception[measure_title]["title"][0]
 
-    d = dict(
-        pr_no_meas_area=parameter_base["tot_pr_area"]
+    d = {
+        "pr_no_meas_area": parameter_base["tot_pr_area"]
         - parameter_measure["pr_meas_area"],
-        cp_no_meas_area=parameter_base["tot_cp_area"]
+        "cp_no_meas_area": parameter_base["tot_cp_area"]
         - parameter_measure["cp_meas_area"],
-        op_no_meas_area=parameter_base["tot_op_area"]
+        "op_no_meas_area": parameter_base["tot_op_area"]
         - parameter_measure["op_meas_area"],
-        up_no_meas_area=parameter_base["tot_up_area"]
+        "up_no_meas_area": parameter_base["tot_up_area"]
         - parameter_measure["up_meas_area"],
-        uz_no_meas_area=parameter_base["tot_uz_area"]
+        "uz_no_meas_area": parameter_base["tot_uz_area"]
         - parameter_measure["uz_meas_area"],
-        gw_no_meas_area=parameter_base["tot_gw_area"]
+        "gw_no_meas_area": parameter_base["tot_gw_area"]
         - parameter_measure["gw_meas_area"],
-        swds_no_meas_area=parameter_base["tot_swds_area"]
+        "swds_no_meas_area": parameter_base["tot_swds_area"]
         - parameter_measure["swds_meas_area"],
-        mss_no_meas_area=parameter_base["tot_mss_area"]
+        "mss_no_meas_area": parameter_base["tot_mss_area"]
         - parameter_measure["mss_meas_area"],
-        ow_no_meas_area=parameter_base["tot_ow_area"]
+        "ow_no_meas_area": parameter_base["tot_ow_area"]
         - parameter_measure["ow_meas_area"],
-    )
+    }
     rv = {**parameter_base, **parameter_measure, **d}
     return rv
 
 
 def check_parameters(dict_param):
-    """
-    especially used in batch_run_measure() when the simulation switches from "with measure" cases to "without measure",
+    """Especially used in batch_run_measure() when the simulation switches from "with measure" cases to "without measure",
     i.e. the baseline case, in order to make sure all area-related parameters are correctly modified accordingly.
 
     Args:
@@ -419,6 +410,7 @@ def check_parameters(dict_param):
 
     Returns:
         (dictionary): A dictionary of all necessary parameters to initialize a model
+
     """
     if dict_param["measure_applied"]:
         return dict_param
@@ -446,26 +438,26 @@ def check_parameters(dict_param):
         # print(dict_param)
 
         # dictionary of area of xx without measure
-        d = dict(
-            pr_no_meas_area=dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
-            cp_no_meas_area=dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
-            op_no_meas_area=dict_param["tot_op_area"] - dict_param["op_meas_area"],
-            up_no_meas_area=dict_param["tot_up_area"] - dict_param["up_meas_area"],
-            uz_no_meas_area=dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
-            gw_no_meas_area=dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
-            swds_no_meas_area=dict_param["tot_swds_area"]
+        d = {
+            "pr_no_meas_area": dict_param["tot_pr_area"] - dict_param["pr_meas_area"],
+            "cp_no_meas_area": dict_param["tot_cp_area"] - dict_param["cp_meas_area"],
+            "op_no_meas_area": dict_param["tot_op_area"] - dict_param["op_meas_area"],
+            "up_no_meas_area": dict_param["tot_up_area"] - dict_param["up_meas_area"],
+            "uz_no_meas_area": dict_param["tot_uz_area"] - dict_param["uz_meas_area"],
+            "gw_no_meas_area": dict_param["tot_gw_area"] - dict_param["gw_meas_area"],
+            "swds_no_meas_area": dict_param["tot_swds_area"]
             - dict_param["swds_meas_area"],
-            mss_no_meas_area=dict_param["tot_mss_area"] - dict_param["mss_meas_area"],
-            ow_no_meas_area=dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
-        )
+            "mss_no_meas_area": dict_param["tot_mss_area"]
+            - dict_param["mss_meas_area"],
+            "ow_no_meas_area": dict_param["tot_ow_area"] - dict_param["ow_meas_area"],
+        }
         # updates dict_param with values in d
         rv = {**dict_param, **d}
         return rv
 
 
 def running(input_data, dict_param):
-    """
-    a basic running unit, which takes the forcing from input_data and the parameters from a dictionary of parameters to
+    """A basic running unit, which takes the forcing from input_data and the parameters from a dictionary of parameters to
     run the simulation once and returns all the results in a dataframe. After calculation, the water balance for the
     entire model, measure itself, and measure inflow area is checked and the corresponding statistics is returned.
 
@@ -475,6 +467,7 @@ def running(input_data, dict_param):
 
     Returns:
         (dataframe): A dataframe of computed results for all time steps
+
     """
     # global unit_list
     date = input_data["date"]
@@ -622,8 +615,7 @@ def running(input_data, dict_param):
 
 
 def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=True):
-    """
-    Runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
+    """Runs the simulation with three files (csv file of time series, configuration files of neighbourhood(base) and
     measure) and saves results in a csv file with the specified output path.
 
     Args:
@@ -636,6 +628,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
 
     Returns:
         A csv file of all (or part of) computed results
+
     """
     outdir = Path(output_filename).parent
     outdir.mkdir(parents=True, exist_ok=True)
@@ -673,7 +666,7 @@ def save_to_csv(dyn_inp, stat1_inp, stat2_inp, output_filename, *args, save_all=
         df.to_csv(output_filename, index=True)
     else:
         header = ["Date", "P_atm", "E_pot_OW", "Ref.grass"]
-        header.extend([arg for arg in args])
+        header.extend(list(args))
         df.to_csv(output_filename, index=True, columns=header)
 
 
@@ -689,8 +682,7 @@ def batch_run_measure(
     baseline_variable="r_op_swds",
     variable_to_save="q_meas_swds",
 ):
-    """
-    For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+    """For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
     dyn_inp (string): the path of the inputdata of precipitation and evaporation
@@ -702,6 +694,7 @@ def batch_run_measure(
 
     Usage:
     use in the cmd: python -m urbanwb.main batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
+
     """
     loggingfilename = "".join(list(dyn_out)[:-4]) + ".log"
     logger = setuplog(loggingfilename, "BRM_logger", thelevel=logging.INFO)
@@ -765,7 +758,7 @@ def batch_run_measure(
             print("------" * 8)
             print("\n" * 2)
 
-    df = pd.DataFrame(database, index=[v for v in vararrlist1])
+    df = pd.DataFrame(database, index=list(vararrlist1))
     df = df.T
     df.insert(0, "Date", date)
     df.insert(1, "P_atm", inputdata["P_atm"])
@@ -796,8 +789,7 @@ def batch_run_sdf(
     baseline_q=None,
     arithmetic_progression=False,
 ):
-    """
-    This batch run function is mainly designed for getting the database for sdf_curve.
+    """Batch run function mainly designed for getting the database for sdf_curve.
 
     Args:
         dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -882,7 +874,7 @@ def batch_run_sdf(
             logger.info(msg2)
             print("-----" * 8)
 
-        name_of_index = [f"baseline_{baseline_q}"] + q_list
+        name_of_index = [f"baseline_{baseline_q}", *q_list]
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
 
@@ -921,7 +913,7 @@ def batch_run_sdf(
             logger.info(msg2)
             print("-----" * 8)
 
-        name_of_index = [f"baseline_{baseline_q}"] + list(q_list)
+        name_of_index = [f"baseline_{baseline_q}", *list(q_list)]
         df = pd.DataFrame(rank_database, index=name_of_index)
         df.T.to_csv(dyn_out, index=True)
 

@@ -1,12 +1,8 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from urbanwb.selector import soil_selector
 
 
 class Unpaved:
-    """
-    Creates an instance of Unpaved class with given initial states and properties, iterates sol() function to compute
+    """Creates an instance of Unpaved class with given initial states and properties, iterates sol() function to compute
     states and fluxes of unpaved at each time step.
 
     Args:
@@ -19,6 +15,7 @@ class Unpaved:
         infilcap_up (float): predefined infiltration capacity on unpaved [mm/d]
         soiltype (int): soil type
         croptype (int): crop type
+
     """
 
     def __init__(
@@ -33,10 +30,7 @@ class Unpaved:
         croptype=1,
         **kwargs,
     ):
-        """
-        Creates an instance of Unpaved class.
-        """
-
+        """Creates an instance of Unpaved class."""
         # state
 
         # self.fin_intstor_up_prevt (float): final remaining interception storage on unpaved at previous time step [mm]
@@ -65,16 +59,15 @@ class Unpaved:
         self.inflowfac_up = self.inflowfac()
 
     def inflowfac(self):
-        """
-        Calculates measure inflow factor of unpaved.
+        """Calculates measure inflow factor of unpaved.
 
         Returns:
             (float): measure inflow factor of unpaved
 
             * **inflowfac** -- measure inflow factor is calculated as (runoff inflow area to measure from unpaved - \
             area of unpaved with measure) / area of unpaved without measure
-        """
 
+        """
         if self.up_no_meas_area != 0.0:
             return (self.up_meas_inflow_area - self.up_meas_area) / self.up_no_meas_area
         else:
@@ -94,8 +87,7 @@ class Unpaved:
         ow_no_meas_area,
         delta_t=1 / 24,
     ):
-        """
-        Calculates states and fluxes on unpaved during current time step.
+        """Calculates states and fluxes on unpaved during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -123,8 +115,8 @@ class Unpaved:
             * **fin_intstor_up** -- Final remaining interception storage on unpaved at the end of current time step [mm]
             * **r_up_meas** -- Runoff from unpaved to measure during current time step (not necessarily on unpaved itself) [mm]
             * **r_up_ow** -- Runoff from unpaved to open water during current time step [mm]
-        """
 
+        """
         if self.up_no_meas_area == 0.0:
             sum_r_up = init_intstor_up = actl_infilcap_up = timefac_up = e_atm_up = (
                 i_up_uz

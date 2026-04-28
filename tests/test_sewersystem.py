@@ -15,8 +15,7 @@ meas_swds = meas_mss = np.zeros(iters)
 
 
 def validate(a, b, c, d, e, f, g, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
     # a --- area of storm water drainage system (without a measure)
@@ -135,8 +134,7 @@ def ss_1():
 
 
 def test_sol(ss_1):
-    """
-    test the 'sol' in the SewerSystem class. Better carefully select values that can coverage all the
+    """Test the 'sol' in the SewerSystem class. Better carefully select values that can coverage all the
     process threshold
     """
     # time level t = 1/4/1986 11:00
@@ -183,9 +181,7 @@ def test_sol(ss_1):
 
 
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(2845, 0, 55.1, 26.3, 48.1, 2, 9, Dec=7, Num=0):  # default
         assert n is None
     for n in validate(

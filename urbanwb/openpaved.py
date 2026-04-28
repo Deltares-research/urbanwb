@@ -1,10 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 class OpenPaved:
-    """
-    Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function to compute
+    """Creates an instance of OpenPaved class with given initial states and properties, iterates sol() function to compute
     states and fluxes of open paved at each time step.
 
     Args:
@@ -17,6 +12,7 @@ class OpenPaved:
         infilcap_op (float): predefined infiltration capacity on open paved [mm/d]
         swds_frac (float): part of urban paved area with storm water drainage system (SWDS) [-]
         discfrac_op (float): part of open paved that is disconnected from sewer system [-]
+
     """
 
     def __init__(
@@ -31,10 +27,7 @@ class OpenPaved:
         discfrac_op=0.0,
         **kwargs,
     ):
-        """
-        Creates an instance of OpenPaved class
-        """
-
+        """Creates an instance of OpenPaved class"""
         # state
 
         # self.intstor_op_prevt (float): interception storage on open paved at previous time step [mm]
@@ -57,24 +50,22 @@ class OpenPaved:
         self.inflowfac_op = self.inflowfac()
 
     def inflowfac(self):
-        """
-        Calculates measure inflow factor of open paved.
+        """Calculates measure inflow factor of open paved.
 
         Returns:
             (float): measure inflow factor of open paved
 
             * **inflowfac** -- measure inflow factor is calculated as (runoff inflow area to measure from open paved - \
             area of open paved with measure) / area of open paved without measure
-        """
 
+        """
         if self.op_no_meas_area != 0.0:
             return (self.op_meas_inflow_area - self.op_meas_area) / self.op_no_meas_area
         else:
             return 0.0
 
     def sol(self, p_atm, e_pot_ow, delta_t):
-        """
-        Calculates states and fluxes on open paved during current time step.
+        """Calculates states and fluxes on open paved during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -94,7 +85,6 @@ class OpenPaved:
             * **r_op_up** -- Runoff from open paved to unpaved during current time step [mm]
 
         """
-
         if self.op_no_meas_area == 0.0:
             int_op = e_atm_op = intstor_op = p_op_gw = r_op_meas = r_op_swds = (
                 r_op_mss

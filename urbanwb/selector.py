@@ -1,14 +1,13 @@
-import pandas as pd
 from importlib.resources import files
+
+import pandas as pd
 
 soilmatrix = pd.read_csv(files(__name__).joinpath("data/soilparameter.csv"))
 etmatrix = pd.read_csv(files(__name__).joinpath("data/etparameter.csv"))
 
 
 def et_selector(a, b):
-    """
-    defines moisture content - related parameters based on given soil type and crop type.
-    """
+    """Defines moisture content - related parameters based on given soil type and crop type."""
     # a --- soil type
     # b --- crop type
     sol = etmatrix.loc[(etmatrix.soil_type == int(a)) & (etmatrix.crop_type == int(b))]
@@ -16,8 +15,7 @@ def et_selector(a, b):
 
 
 def soil_selector(a, b):
-    """
-    returns a database of soil parameters namely equilibrium moisture content, maximum capillary rise,
+    """Returns a database of soil parameters namely equilibrium moisture content, maximum capillary rise,
     storage coefficient, saturated permeability and unsaturated permeability based on given soil type, crop type
     """
     # a --- soil type

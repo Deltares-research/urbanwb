@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import math
 
 import numpy as np
@@ -8,10 +5,7 @@ from tabulate import tabulate
 
 
 def water_balance_checker(df, dict_param, iters, verbose=False):
-    """
-    checks whether water balance is closed both over entire area and over measure itself
-    """
-
+    """Checks whether water balance is closed both over entire area and over measure itself"""
     # check water balance over entire area:
     print("Water balance statistics: ")
     warning_msgs = []

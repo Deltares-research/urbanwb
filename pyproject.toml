@@ -40,6 +40,42 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/Deltares-research/urbanwb"
 
+[tool.ruff.lint]
+select = [
+    "B",
+    "B",
+    "C4",
+    "D",
+    "E",
+    "F",
+    "I",
+    "LOG",
+    "NPY",
+    "PD",
+    "RUF",
+    "S",
+    "SIM",
+    "UP",
+]
+ignore = [
+    "B006",
+    "B904",
+    "B905",
+    "D1",
+    "D200",
+    "D203",
+    "D205",
+    "D213",
+    "D400",
+    "D401",
+    "D415",
+    "D417",
+    "E501",
+    "S101",
+    "SIM118",
+    "UP031",
+]
+
 [tool.setuptools]
 packages = ["urbanwb"]
 include-package-data = true

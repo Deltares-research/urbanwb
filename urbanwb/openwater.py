@@ -1,23 +1,16 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 class OpenWater:
-    """
-    Creates an instance of OpenWater class with given initial states and properties, iterates sol() function to compute
+    """Creates an instance of OpenWater class with given initial states and properties, iterates sol() function to compute
     states and fluxes of open water at each time step.
 
     Args:
         ow_no_meas_area (float): area of open water without measure [m^2]
         q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d]
         ow_level (float): predefined target open water level, also the initial open water level (at t=0) [m-SL]
+
     """
 
     def __init__(self, ow_no_meas_area, q_ow_out_cap, ow_level, **kwargs):
-        """
-        Creates an instance of OpenWater class.
-        """
-
+        """Creates an instance of OpenWater class."""
         # state
 
         # self.owl_prevt (float): open water level at previous time step [m-SL]
@@ -47,8 +40,7 @@ class OpenWater:
         tot_area,
         delta_t=1 / 24,
     ):
-        """
-        Calculates states and fluxes on open water during current time step.
+        """Calculates states and fluxes on open water during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -79,8 +71,8 @@ class OpenWater:
             * **sum_so_ow** -- Total sewer overflow from sewer systems to open water during current time step [mm]
             * **r_meas_ow** -- Inflow from measure (if applicable) to open water during current time step [mm]
             * **q_ow_out** -- Discharge from open water to outside water during current time step [mm]
-        """
 
+        """
         if self.ow_no_meas_area == 0.0:
             prec_ow = e_atm_ow = sum_r_ow = sum_d_ow = sum_q_ow = sum_so_ow = (
                 r_meas_ow

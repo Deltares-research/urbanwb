@@ -1,10 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 class PavedRoof:
-    """
-    Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function to compute
+    """Creates an instance of PavedRoof class with given initial states and properties, iterates sol() function to compute
     states and fluxes of paved roof at each time step.
 
     Args:
@@ -16,6 +11,7 @@ class PavedRoof:
         intstorcap_pr (float): predefined interception storage capacity on paved roof [mm]
         swds_frac (float): part of urban paved area with storm water drainage system (SWDS) [-]
         discfrac_pr (float): part of paved roof that is disconnected from sewer system [-]
+
     """
 
     def __init__(
@@ -29,10 +25,7 @@ class PavedRoof:
         discfrac_pr=0.0,
         **kwargs,
     ):
-        """
-        Creates an instance of PavedRoof class.
-        """
-
+        """Creates an instance of PavedRoof class."""
         # state
 
         # self.intstor_pr_prevt (float): interception storage on paved roof at previous time step [mm]
@@ -54,24 +47,22 @@ class PavedRoof:
         self.inflowfac_pr = self.inflowfac()
 
     def inflowfac(self):
-        """
-        Calculates measure inflow factor of paved roof.
+        """Calculates measure inflow factor of paved roof.
 
         Returns:
             (float): Measure inflow factor of paved roof
 
             * **inflowfac** -- measure inflow factor is calculated as (runoff inflow area to measure from paved roof - \
             area of paved roof with measure) / area of paved roof without measure
-        """
 
+        """
         if self.pr_no_meas_area != 0.0:
             return (self.pr_meas_inflow_area - self.pr_meas_area) / self.pr_no_meas_area
         else:
             return 0.0
 
     def sol(self, p_atm, e_pot_ow):
-        """
-        Calculates states and fluxes on paved roof during current time step.
+        """Calculates states and fluxes on paved roof during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -87,8 +78,8 @@ class PavedRoof:
             * **r_pr_swds** -- Runoff from paved roof to storm water drainage system (SWDS) during current time step [mm]
             * **r_pr_mss** -- Runoff from paved roof to combined sewer system (MSS) during current time step [mm]
             * **r_pr_up** -- Runoff from paved roof to unpaved during current time step [mm]
-        """
 
+        """
         if self.pr_no_meas_area == 0.0:
             int_pr = e_atm_pr = intstor_pr = r_pr_meas = r_pr_swds = r_pr_mss = (
                 r_pr_up

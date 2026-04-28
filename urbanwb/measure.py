@@ -1,10 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 class Measure:
-    """
-    Creates an instance of Measure class with given initial states and properties, iterates sol() function to compute
+    """Creates an instance of Measure class with given initial states and properties, iterates sol() function to compute
     states and fluxes of measure at each time step.
 
     Args:
@@ -67,6 +62,7 @@ class Measure:
         surf_runoff_meas_Out (int): predefined definition of surface runoff from measure to outside water (0 = no, 1 = yes)
         ctrl_runoff_meas_Out (int): predefined definition of controlled runoff from measure to outside water (0 = no, 1 = yes)
         overflow_meas_Out (int): predefined definition of overflow from measure to outside water (0 = no, 1 = yes)
+
     """
 
     def __init__(
@@ -118,10 +114,7 @@ class Measure:
         greenroof_type_measure,
         **kwargs,
     ):
-        """
-        Creates an instance of Measure class.
-        """
-
+        """Creates an instance of Measure class."""
         self.tot_meas_area = tot_meas_area
         self.num_stor_lvl = num_stor_lvl
         self.runoff_to_stor_layer = runoff_to_stor_layer
@@ -199,8 +192,7 @@ class Measure:
         gwl_prevt,
         delta_t,
     ):
-        """
-        Calculates states and fluxes in measure during current time step.
+        """Calculates states and fluxes in measure during current time step.
 
         Args:
             p_atm (float): rainfall during current time step [mm]
@@ -243,8 +235,8 @@ class Measure:
             * **q_meas_swds** -- Measure outflow to storm water drainage system during current time step [mm]
             * **q_meas_mss** -- Measure outflow to mixed sewer system during current time step [mm]
             * **q_meas_out** -- Measure outflow to outside water during current time step [mm]
-        """
 
+        """
         if self.tot_meas_area == 0:
             prec_meas = sum_r_meas = int_meas = e_atm_meas = interc_down_meas = (
                 surf_runoff_meas

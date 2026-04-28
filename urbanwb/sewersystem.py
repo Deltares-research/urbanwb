@@ -1,10 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 class SewerSystem:
-    """
-    Creates an instance of SewerSystem class with given initial states and properties, iterates sol() function to
+    """Creates an instance of SewerSystem class with given initial states and properties, iterates sol() function to
     compute states and fluxes of sewer system at each time step.
 
     Args:
@@ -19,6 +14,7 @@ class SewerSystem:
         q_mss_ow_cap (float): discharge capacity of combined sewer system (MSS) to open water [mm/timestep]
         stor_swds_cap (float): predefined storage capacity of storm water drainage system (SWDS) [mm]
         stor_mss_cap (float): predefined storage capacity of combined sewer system (MSS) [mm]
+
     """
 
     def __init__(
@@ -36,9 +32,7 @@ class SewerSystem:
         storcap_mss=9.0,
         **kwargs,
     ):
-        """
-        Creates an instance of SewerSystem class.
-        """
+        """Creates an instance of SewerSystem class."""
         # state
         self.stor_swds_prevt = stor_swds_t0
         self.so_swds_prevt = so_swds_t0
@@ -70,8 +64,7 @@ class SewerSystem:
         ow_no_meas_area,
         tot_meas_area,
     ):
-        """
-        Calculates states and fluxes of sewer system during current time step.
+        """Calculates states and fluxes of sewer system during current time step.
 
         Args:
             pr_no_meas_area (float): area of paved roof without measure and connected [m^2]
@@ -102,8 +95,8 @@ class SewerSystem:
             * **so_mss** -- Sewer overflow from combined sewer system during current time step [mm]
             * **stor_swds** -- Storage in storm water drainage system at the end of current time step [mm]
             * **stor_mss** -- Storage in combined sewer system at the end of current time step [mm]
-        """
 
+        """
         if self.swds_no_meas_area == 0.0:
             sum_r_swds = r_meas_swds = q_swds_ow = so_swds = stor_swds = 0.0
 

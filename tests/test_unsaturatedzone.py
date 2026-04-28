@@ -17,8 +17,7 @@ meas_uz = np.zeros(iters)
 
 
 def validate(a, b, c, d, e, Dec, Num):
-    """
-    Integration test function. Compares python solutions with excel's for all columns for all time steps to see
+    """Integration test function. Compares python solutions with excel's for all columns for all time steps to see
     whether the results match
     """
     # a --- theta_uz_t0, which depends on the initial GWL.
@@ -115,9 +114,7 @@ def test_sol(uz_1):
 
 
 def test_integration():
-    """
-    runs integration tests (validate with excel using different coefficient sets for all time steps)
-    """
+    """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(1.5, 6855, 0, 2, 1, Dec=7, Num=0):  # default
         assert n is None
     for n in validate(1.5, 6855, 0, 3, 1, Dec=7, Num=1):  # soiltype = 3, croptype = 1

@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from urbanwb.gwlcalculator import gwlcalc
@@ -8,8 +5,7 @@ from urbanwb.selector import soil_selector
 
 
 class Groundwater:
-    """
-    creates an instance of Groundwater class with given initial states and properties, iterates sol() function to
+    """creates an instance of Groundwater class with given initial states and properties, iterates sol() function to
     compute states and fluxes of groundwater at each time step.
 
     Args:
@@ -24,6 +20,7 @@ class Groundwater:
         down_seepage_flux (float): predefined constant downward flux from shallow groundwater to deep groundwater [mm/d]
         soiltype (int): soil type
         croptype (int): crop type
+
     """
 
     def __init__(
@@ -73,8 +70,7 @@ class Groundwater:
         owl_prevt,
         delta_t=1 / 24,
     ):
-        """
-        Calculates states and fluxes in groundwater during current time step.
+        """Calculates states and fluxes in groundwater during current time step.
 
         Args:
             p_uz_gw (float): percolation from unsaturated zone to groundwater during current time step [mm]
@@ -101,7 +97,6 @@ class Groundwater:
             * **gwl_sl** -- Groundwater level above surface level at the end of current time step [m-SL]
 
         """
-
         if self.gw_no_meas_area == 0.0:
             sum_p_gw = r_meas_gw = sc_gw = h_gw = s_gw_out = d_gw_ow = gwl = gwl_sl = (
                 0.0

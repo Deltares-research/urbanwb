@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from pathlib import Path
 
 import fire
@@ -31,8 +28,7 @@ def run_measures(
     baseline_variable="r_op_swds",
     variable_to_save="q_meas_swds",
 ):
-    """
-    For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
+    """For one type of measure, run a batch of simulations with different values for one (or two) parameter(s)
 
     Args:
     dyn_inp (string): the filename of the inputdata of precipitation and evaporation
@@ -43,8 +39,8 @@ def run_measures(
 
     Usage:
     use in the cmd: python -m urbanwb.main batch_run_measure timeseries.csv stat1.ini stat2.ini results.csv storcap_btm_meas [20,30,40]
-    """
 
+    """
     inputdata = read_inputdata(dyn_inp)
     dict_param = read_parameters_csv(
         stat1_inp, measures_path, neighbourhood_pars_path, measure_id, neighbourhood_id
@@ -54,7 +50,7 @@ def run_measures(
 
     nameofmeasure = dict_param["title"]
     msg_nameofmeasure = (
-        f"Currently running Neighbourhood {str(neighbourhood_id)} - {nameofmeasure}"
+        f"Currently running Neighbourhood {neighbourhood_id!s} - {nameofmeasure}"
     )
     print(msg_nameofmeasure)
 
@@ -113,17 +109,17 @@ def run_measures(
             database_evap.append(wbc_results[0]["evap"])
 
     # Dataframe: runoff
-    df_runoff = pd.DataFrame(database_runoff, index=[v for v in vararrlist1])
+    df_runoff = pd.DataFrame(database_runoff, index=list(vararrlist1))
     df_runoff = df_runoff.T
     df_runoff.insert(0, "Date", date)
     df_runoff.insert(1, "P_atm", inputdata["P_atm"])
 
     # Dataframe: groundwater recharge
-    df_gw = pd.DataFrame(database_gw, index=[v for v in vararrlist1])
+    df_gw = pd.DataFrame(database_gw, index=list(vararrlist1))
     df_gw = df_gw.T
 
     # Dataframe: evaporation
-    df_evap = pd.DataFrame(database_evap, index=[v for v in vararrlist1])
+    df_evap = pd.DataFrame(database_evap, index=list(vararrlist1))
     df_evap = df_evap.T
 
     results_base = pd.DataFrame(base_run[0])  # Model variables results
@@ -169,7 +165,7 @@ def run_measures_exception(
     date = inputdata["date"]
     nameofmeasure = dict_param["title"]
     msg_nameofmeasure = (
-        f"Currently running Neighbourhood {str(neighbourhood_id)} - {nameofmeasure}"
+        f"Currently running Neighbourhood {neighbourhood_id!s} - {nameofmeasure}"
     )
     print(msg_nameofmeasure)
 
@@ -421,7 +417,7 @@ def run_all(
             num_years = round(num_years)
 
             # 'getconstants_measures' calculates the runoff reduction factors for the measures at each effective depth
-            constants_runoff, mean_constants_runoff = getconstants_measures(
+            _constants_runoff, mean_constants_runoff = getconstants_measures(
                 runoff, num_year=num_years
             )
             gw = round(gw / num_years, 2)
@@ -429,9 +425,9 @@ def run_all(
 
             idx_measure = np.where(df_runoff.id == i)[0][0]
             df_runoff.loc[idx_measure, D_eff_str] = mean_constants_runoff
-            df_gw.loc[idx_measure, ["Baseline"] + D_eff_str] = gw.to_numpy()[0]
+            df_gw.loc[idx_measure, ["Baseline", *D_eff_str]] = gw.to_numpy()[0]
             df_gw.loc[idx_measure, D_eff_str] -= gw["Baseline"].to_numpy()[0]
-            df_evap.loc[idx_measure, ["Baseline"] + D_eff_str] = evap.to_numpy()[0]
+            df_evap.loc[idx_measure, ["Baseline", *D_eff_str]] = evap.to_numpy()[0]
             df_evap.loc[idx_measure, D_eff_str] -= evap["Baseline"].to_numpy()[0]
 
             # =============================================================================
@@ -474,7 +470,7 @@ def run_all(
             ).days / 365
             num_years = round(num_years)
 
-            constants_runoff, mean_constants_runoff = getconstants_measures(
+            _constants_runoff, mean_constants_runoff = getconstants_measures(
                 runoff, num_year=num_years
             )
             gw = round(gw / num_years, 2)
