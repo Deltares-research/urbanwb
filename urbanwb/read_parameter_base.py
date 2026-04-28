@@ -178,9 +178,15 @@ def read_parameter_base(arg):
         )
 
     # open water parameters.
-    q_ow_out_cap = cf[
-        "q_ow_out_cap"
-    ]  # discharge capacity from open water to outside water over entire area [mm/d]
+    q_ow_out_qh = cf.get("q_ow_out_qh", None)  # Q(h) relation: list of [h, Q] pairs
+    if q_ow_out_qh is not None:
+        if "q_ow_out_cap" in cf:
+            raise ValueError("Error: Cannot specify both q_ow_out_cap and q_ow_out_qh.")
+        q_ow_out_cap = None
+    else:
+        q_ow_out_cap = cf[
+            "q_ow_out_cap"
+        ]  # discharge capacity from open water to outside water over entire area [mm/d]
     q_ow_in_cap = cf.get(
         "q_ow_in_cap", float("inf")
     )  # inlet capacity from outside water to open water over entire area [mm/d], default unlimited
@@ -227,10 +233,14 @@ def read_parameter_base(arg):
         gwl_t0,
         head_deep_gw,
         vc,
-        q_ow_out_cap,
         q_ow_in_cap,
         ow_level,
     ]  # note that: down_seepage_flux can be negative(when upward down_seepage_flux)
+    if q_ow_out_cap is not None:
+        list1.append(q_ow_out_cap)
+    if q_ow_out_qh is not None:
+        for _h_val, q_val in q_ow_out_qh:
+            list1.append(q_val)
 
     # Fraction within [0,1] check
     list2 = [
@@ -302,6 +312,7 @@ def read_parameter_base(arg):
         "q_mss_ow_cap": q_mss_ow_cap,
         "q_mss_out_cap": q_mss_out_cap,
         "q_ow_out_cap": q_ow_out_cap,
+        "q_ow_out_qh": q_ow_out_qh,
         "q_ow_in_cap": q_ow_in_cap,
         "ow_level": ow_level,
         "intstor_pr_t0": intstor_pr_t0,
