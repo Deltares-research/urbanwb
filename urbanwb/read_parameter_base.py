@@ -181,6 +181,9 @@ def read_parameter_base(arg):
     q_ow_out_cap = cf[
         "q_ow_out_cap"
     ]  # discharge capacity from open water to outside water over entire area [mm/d]
+    q_ow_in_cap = cf.get(
+        "q_ow_in_cap", float("inf")
+    )  # inlet capacity from outside water to open water over entire area [mm/d], default unlimited
     ow_level = (
         storcap_ow / 1000.0
     )  # predefined target open water level, also initial open water level (at t=0) [m-Sl]
@@ -225,6 +228,7 @@ def read_parameter_base(arg):
         head_deep_gw,
         vc,
         q_ow_out_cap,
+        q_ow_in_cap,
         ow_level,
     ]  # note that: down_seepage_flux can be negative(when upward down_seepage_flux)
 
@@ -298,6 +302,7 @@ def read_parameter_base(arg):
         "q_mss_ow_cap": q_mss_ow_cap,
         "q_mss_out_cap": q_mss_out_cap,
         "q_ow_out_cap": q_ow_out_cap,
+        "q_ow_in_cap": q_ow_in_cap,
         "ow_level": ow_level,
         "intstor_pr_t0": intstor_pr_t0,
         "intstor_cp_t0": intstor_cp_t0,

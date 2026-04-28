@@ -140,3 +140,61 @@ def test_integration():
     for n in validate(300, 1.5, 2000, Dec=2, Num=2):  # q_ow_out_cap = 2000
         assert n is None
     # for Num 1 Num 2 cases, the results are actually the same.
+
+
+def test_unlimited_inlet_capacity():
+    """Default (unlimited) inlet capacity should bring water level back to target."""
+    # ow_area = 1000, tot_area = 1000 so area ratio = 1 (no scaling)
+    # delta_t = 1 day, evaporation = 10 mm drives level below target
+    m = OpenWater(ow_no_meas_area=1000, ow_level=1.0, q_ow_out_cap=100)
+    result = m.sol(
+        p_atm=0,
+        e_pot_ow=10.0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    # With unlimited inlet, water level stays at target
+    assert result["owl"] == pytest.approx(1.0)
+    # q_ow_out is -10 (10 mm let in to compensate evaporation)
+    assert result["q_ow_out"] == pytest.approx(-10.0)
+
+
+def test_fixed_inlet_capacity():
+    """Fixed inlet capacity should limit how much water is let in."""
+    # ow_area = 1000, tot_area = 1000, delta_t = 1 day, q_ow_in_cap = 4 mm/d
+    # Evaporation = 10 mm would need 10 mm inlet, but capped at 4 mm
+    m = OpenWater(ow_no_meas_area=1000, ow_level=1.0, q_ow_out_cap=100, q_ow_in_cap=4.0)
+    result = m.sol(
+        p_atm=0,
+        e_pot_ow=10.0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    # Inlet clamped at 4 mm/d * 1 day * (1000/1000) = 4 mm
+    assert result["q_ow_out"] == pytest.approx(-4.0)
+    # 10 mm evaporation - 4 mm inlet = 6 mm net loss → owl rises by 0.006 m
+    assert result["owl"] == pytest.approx(1.006)
