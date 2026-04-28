@@ -178,10 +178,15 @@ def read_parameter_base(arg):
         )
 
     # open water parameters.
-    q_ow_out_qh = cf.get("q_ow_out_qh", None)  # Q(h) relation: list of [h, Q] pairs
+    q_ow_out_qh = cf.get("q_ow_out_qh", None)  # Q(h) relation: list of {h, q} dicts
     if q_ow_out_qh is not None:
         if "q_ow_out_cap" in cf:
             raise ValueError("Error: Cannot specify both q_ow_out_cap and q_ow_out_qh.")
+        for entry in q_ow_out_qh:
+            if not isinstance(entry, dict) or "h" not in entry or "q" not in entry:
+                raise ValueError(
+                    "Error: Each entry in q_ow_out_qh must have 'h' and 'q' keys."
+                )
         q_ow_out_cap = None
     else:
         q_ow_out_cap = cf[
@@ -217,7 +222,6 @@ def read_parameter_base(arg):
         intstorcap_cp,
         intstorcap_op,
         intstorcap_up,
-        ow_level,
         infilcap_op,
         infilcap_up,
         swds_frac,
@@ -234,13 +238,12 @@ def read_parameter_base(arg):
         head_deep_gw,
         vc,
         q_ow_in_cap,
-        ow_level,
     ]  # note that: down_seepage_flux can be negative(when upward down_seepage_flux)
     if q_ow_out_cap is not None:
         list1.append(q_ow_out_cap)
     if q_ow_out_qh is not None:
-        for _h_val, q_val in q_ow_out_qh:
-            list1.append(q_val)
+        for entry in q_ow_out_qh:
+            list1.append(entry["q"])
 
     # Fraction within [0,1] check
     list2 = [

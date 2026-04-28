@@ -4,13 +4,14 @@ class OpenWater:
 
     Args:
         ow_no_meas_area (float): area of open water without measure [m^2]
-        ow_level (float): predefined target open water level, also the initial open water level (at t=0) [m-SL]
+        ow_level (float): initial open water level (at t=0) [m-SL]. When using q_ow_out_cap this also
+            acts as the target open water level.
         q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d].
             Mutually exclusive with q_ow_out_qh.
-        q_ow_out_qh (list of [h, Q] pairs): Q(h) relation defining discharge capacity [mm/d] as a function of open
-            water level [m-SL]. Q=0 at water levels below the first defined point. Linear interpolation between
-            points, linear extrapolation beyond the last point based on the last segment slope.
-            Mutually exclusive with q_ow_out_cap.
+        q_ow_out_qh (list of {h, q} dicts): Q(h) relation defining discharge capacity as a function of water level.
+            Each entry has 'h' (water level [m-SL]) and 'q' (discharge capacity [mm/d]). Q=0 at water levels at or
+            below the highest h value. Linear interpolation between points, linear extrapolation beyond the lowest h
+            based on the first segment slope. Mutually exclusive with q_ow_out_cap.
         q_ow_in_cap (float): inlet capacity from outside water to open water [mm/d]. Default is inf (unlimited).
 
     """
@@ -45,9 +46,9 @@ class OpenWater:
         self.ow_level = ow_level
 
         if q_ow_out_qh is not None:
-            sorted_qh = sorted(q_ow_out_qh, key=lambda p: p[0])
-            self._qh_h = [p[0] for p in sorted_qh]
-            self._qh_q = [p[1] for p in sorted_qh]
+            sorted_qh = sorted(q_ow_out_qh, key=lambda p: p["h"])
+            self._qh_h = [p["h"] for p in sorted_qh]
+            self._qh_q = [p["q"] for p in sorted_qh]
         else:
             self._qh_h = None
             self._qh_q = None
@@ -164,27 +165,30 @@ class OpenWater:
             r_meas_ow = meas_ow * tot_meas_area / self.ow_no_meas_area
 
             if self._qh_h is not None:
-                discharge_cap = self._qh_discharge(self.owl_prevt)
+                # Q(h) sets q_ow_out directly (no water balance cap)
+                q_ow_out = (
+                    delta_t
+                    * self._qh_discharge(self.owl_prevt)
+                    * (tot_area / self.ow_no_meas_area)
+                )
             else:
-                discharge_cap = self.q_ow_out_cap
+                q_ow_out = min(
+                    delta_t * self.q_ow_out_cap * (tot_area / self.ow_no_meas_area),
+                    1000.0 * (self.ow_level - self.owl_prevt)
+                    + prec_ow
+                    - e_atm_ow
+                    + sum_r_ow
+                    + sum_d_ow
+                    + sum_q_ow
+                    + sum_so_ow
+                    + r_meas_ow,
+                )
 
-            q_ow_out = min(
-                delta_t * discharge_cap * (tot_area / self.ow_no_meas_area),
-                1000.0 * (self.ow_level - self.owl_prevt)
-                + prec_ow
-                - e_atm_ow
-                + sum_r_ow
-                + sum_d_ow
-                + sum_q_ow
-                + sum_so_ow
-                + r_meas_ow,
-            )
-
-            # Limit water inlet from outside water (negative q_ow_out)
-            q_ow_out = max(
-                q_ow_out,
-                -delta_t * self.q_ow_in_cap * (tot_area / self.ow_no_meas_area),
-            )
+                # Limit water inlet from outside water (negative q_ow_out)
+                q_ow_out = max(
+                    q_ow_out,
+                    -delta_t * self.q_ow_in_cap * (tot_area / self.ow_no_meas_area),
+                )
 
             owl = (
                 self.owl_prevt
