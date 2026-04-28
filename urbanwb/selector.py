@@ -23,11 +23,11 @@ def soil_selector(a, b):
     # a --- soil type
     # b --- crop type
 
-    rootzone_thickness = int(100 * et_selector(a, b)["th_rz_m"].values[0])
+    rootzone_thickness = int(100 * et_selector(a, b)["th_rz_m"].to_numpy()[0])
     soil_prm = soilmatrix.loc[
         (soilmatrix.soil_type == int(a)) & (soilmatrix.th_rz == rootzone_thickness)
     ]
     # convert data frame to dictionary (list) for quick lookup.
-    soil_prm = soil_prm.to_dict(orient="Records")
+    soil_prm = soil_prm.to_dict(orient="records")
 
     return soil_prm

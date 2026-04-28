@@ -272,28 +272,28 @@ def run_all(
         if dict_param["tot_up_area"] == 0 and np.any(measures["up_meas_area"] == 1):
             print(
                 "error: measure"
-                + str(measures[measures["up_meas_area"] == 1].title.values)
+                + str(measures[measures["up_meas_area"] == 1].title.to_numpy())
                 + "cannot be applied in zero sized unpaved area!"
             )
             break
         if dict_param["tot_cp_area"] == 0 and np.any(measures["cp_meas_area"] == 1):
             print(
                 "error: measure "
-                + str(measures[measures["cp_meas_area"] == 1].title.values)
+                + str(measures[measures["cp_meas_area"] == 1].title.to_numpy())
                 + "cannot be applied in zero sized closed paved area!"
             )
             break
         if dict_param["tot_op_area"] == 0 and np.any(measures["op_meas_area"] == 1):
             print(
                 "error: measure"
-                + str(measures[measures["op_meas_area"] == 1].title.values)
+                + str(measures[measures["op_meas_area"] == 1].title.to_numpy())
                 + "cannot be applied in zero sized open paved area!"
             )
             break
         if dict_param["tot_pr_area"] == 0 and np.any(measures["pr_meas_area"] == 1):
             print(
                 "error: measure "
-                + str(measures[measures["pr_meas_area"] == 1].title.values)
+                + str(measures[measures["pr_meas_area"] == 1].title.to_numpy())
                 + "cannot be applied in zero sized paved roof area!"
             )
             break
@@ -429,10 +429,10 @@ def run_all(
 
             idx_measure = np.where(df_runoff.id == i)[0][0]
             df_runoff.loc[idx_measure, D_eff_str] = mean_constants_runoff
-            df_gw.loc[idx_measure, ["Baseline"] + D_eff_str] = gw.values[0]
-            df_gw.loc[idx_measure, D_eff_str] -= gw["Baseline"].values[0]
-            df_evap.loc[idx_measure, ["Baseline"] + D_eff_str] = evap.values[0]
-            df_evap.loc[idx_measure, D_eff_str] -= evap["Baseline"].values[0]
+            df_gw.loc[idx_measure, ["Baseline"] + D_eff_str] = gw.to_numpy()[0]
+            df_gw.loc[idx_measure, D_eff_str] -= gw["Baseline"].to_numpy()[0]
+            df_evap.loc[idx_measure, ["Baseline"] + D_eff_str] = evap.to_numpy()[0]
+            df_evap.loc[idx_measure, D_eff_str] -= evap["Baseline"].to_numpy()[0]
 
             # =============================================================================
             #     Calculate Ftot: Runoff reduction factor over the total area
@@ -485,11 +485,11 @@ def run_all(
             )[0][0]
             df_runoff.loc[idx_measure, D_eff_str] = mean_constants_runoff[0]
 
-            df_gw.loc[idx_measure, "Baseline"] = gw["Baseline"].values[0]
-            df_gw.loc[idx_measure, D_eff_str] = gw["alt"].values[0]
+            df_gw.loc[idx_measure, "Baseline"] = gw["Baseline"].to_numpy()[0]
+            df_gw.loc[idx_measure, D_eff_str] = gw["alt"].to_numpy()[0]
 
-            df_evap.loc[idx_measure, "Baseline"] = evap["Baseline"].values[0]
-            df_evap.loc[idx_measure, D_eff_str] = evap["alt"].values[0]
+            df_evap.loc[idx_measure, "Baseline"] = evap["Baseline"].to_numpy()[0]
+            df_evap.loc[idx_measure, D_eff_str] = evap["alt"].to_numpy()[0]
 
             # Calculate Ftot
             Fmeas = mean_constants_runoff[0]
