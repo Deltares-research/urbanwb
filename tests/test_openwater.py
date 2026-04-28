@@ -198,3 +198,125 @@ def test_fixed_inlet_capacity():
     assert result["q_ow_out"] == pytest.approx(-4.0)
     # 10 mm evaporation - 4 mm inlet = 6 mm net loss → owl rises by 0.006 m
     assert result["owl"] == pytest.approx(1.006)
+
+
+def test_qh_mutually_exclusive():
+    """Cannot specify both q_ow_out_cap and q_ow_out_qh."""
+    with pytest.raises(ValueError, match="Cannot specify both"):
+        OpenWater(
+            ow_no_meas_area=1000, ow_level=1.0, q_ow_out_cap=100, q_ow_out_qh=[[1.0, 0]]
+        )
+    with pytest.raises(ValueError, match="Must specify either"):
+        OpenWater(ow_no_meas_area=1000, ow_level=1.0)
+
+
+def test_qh_requires_zero_inlet():
+    """q_ow_in_cap must be 0 when using q_ow_out_qh."""
+    with pytest.raises(ValueError, match="q_ow_in_cap must be 0"):
+        OpenWater(
+            ow_no_meas_area=1000, ow_level=1.0, q_ow_out_qh=[[1.0, 0]], q_ow_in_cap=10.0
+        )
+
+
+def test_qh_below_threshold():
+    """Water level below (m-SL above) the Q=0 point gives zero discharge."""
+    # Q(h): at owl=1.0 Q=0, at owl=0.5 Q=100
+    # owl=1.2 is below threshold → Q=0
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[[1.0, 0], [0.5, 100]],
+        q_ow_in_cap=0,
+    )
+    result = m.sol(
+        p_atm=0,
+        e_pot_ow=0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    assert result["q_ow_out"] == pytest.approx(0.0)
+    assert result["owl"] == pytest.approx(1.0)
+
+
+def test_qh_interpolation():
+    """Q(h) interpolates linearly between defined points."""
+    # Q(h): owl=1.0 → Q=0, owl=0.0 → Q=100 (slope: -100 per m-SL)
+    # Start at owl=0.5 (midpoint) → Q=50 mm/d
+    # ow_area = tot_area = 1000, delta_t = 1 day → capacity = 50 mm
+    # 20 mm rainfall, no evaporation → water balance = 20 mm
+    # q_ow_out = min(50, 20) = 20, all discharged
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[[1.0, 0], [0.0, 100]],
+        q_ow_in_cap=0,
+    )
+    m.owl_prevt = 0.5  # set water level above target
+    result = m.sol(
+        p_atm=20.0,
+        e_pot_ow=0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    # Water balance: 1000*(1.0-0.5) + 20 = 520 mm available
+    # Capacity at owl=0.5: 50 mm/d * 1 day = 50 mm
+    assert result["q_ow_out"] == pytest.approx(50.0)
+
+
+def test_qh_extrapolation():
+    """Q(h) extrapolates linearly beyond the last defined point."""
+    # Q(h): owl=1.0 → Q=0, owl=0.0 → Q=100
+    # Slope: (0 - 100) / (1.0 - 0.0) = -100 per m-SL
+    # At owl=-1.0: Q = 100 + (-100)*(-1.0 - 0.0) = 200 mm/d
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[[1.0, 0], [0.0, 100]],
+        q_ow_in_cap=0,
+    )
+    m.owl_prevt = -1.0  # very high water, 2m above target
+    result = m.sol(
+        p_atm=0,
+        e_pot_ow=0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    # Water balance: 1000*(1.0-(-1.0)) + 0 = 2000 mm available
+    # Capacity at owl=-1.0: 200 mm/d * 1 day = 200 mm
+    assert result["q_ow_out"] == pytest.approx(200.0)

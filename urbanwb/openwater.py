@@ -4,8 +4,13 @@ class OpenWater:
 
     Args:
         ow_no_meas_area (float): area of open water without measure [m^2]
-        q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d]
         ow_level (float): predefined target open water level, also the initial open water level (at t=0) [m-SL]
+        q_ow_out_cap (float): discharge capacity from open water (internal) to outside water (external) [mm/d].
+            Mutually exclusive with q_ow_out_qh.
+        q_ow_out_qh (list of [h, Q] pairs): Q(h) relation defining discharge capacity [mm/d] as a function of open
+            water level [m-SL]. Q=0 at water levels below the first defined point. Linear interpolation between
+            points, linear extrapolation beyond the last point based on the last segment slope.
+            Mutually exclusive with q_ow_out_cap.
         q_ow_in_cap (float): inlet capacity from outside water to open water [mm/d]. Default is inf (unlimited).
 
     """
@@ -13,14 +18,23 @@ class OpenWater:
     def __init__(
         self,
         ow_no_meas_area,
-        q_ow_out_cap,
         ow_level,
+        q_ow_out_cap=None,
+        q_ow_out_qh=None,
         q_ow_in_cap=float("inf"),
         **kwargs,
     ):
         """Creates an instance of OpenWater class."""
-        # state
+        if q_ow_out_cap is not None and q_ow_out_qh is not None:
+            raise ValueError("Cannot specify both q_ow_out_cap and q_ow_out_qh.")
+        if q_ow_out_cap is None and q_ow_out_qh is None:
+            raise ValueError("Must specify either q_ow_out_cap or q_ow_out_qh.")
+        if q_ow_out_qh is not None and q_ow_in_cap != 0:
+            raise ValueError(
+                "q_ow_in_cap must be 0 when using q_ow_out_qh (Q(h) relation defines the full discharge behavior)."
+            )
 
+        # state
         # self.owl_prevt (float): open water level at previous time step [m-SL]
         self.owl_prevt = ow_level
 
@@ -29,6 +43,46 @@ class OpenWater:
         self.q_ow_out_cap = q_ow_out_cap
         self.q_ow_in_cap = q_ow_in_cap
         self.ow_level = ow_level
+
+        if q_ow_out_qh is not None:
+            sorted_qh = sorted(q_ow_out_qh, key=lambda p: p[0])
+            self._qh_h = [p[0] for p in sorted_qh]
+            self._qh_q = [p[1] for p in sorted_qh]
+        else:
+            self._qh_h = None
+            self._qh_q = None
+
+    def _qh_discharge(self, owl):
+        """Evaluate discharge capacity from Q(h) relation at a given water level.
+
+        Args:
+            owl (float): open water level [m-SL]
+
+        Returns:
+            float: discharge capacity [mm/d]
+
+        """
+        h = self._qh_h
+        q = self._qh_q
+
+        # At or below the lowest water in the table (highest m-SL): Q = 0
+        if owl >= h[-1]:
+            return 0.0
+
+        # Above the highest water in the table (lowest m-SL): extrapolate from first segment
+        if owl <= h[0]:
+            if len(h) < 2:
+                return q[0]
+            slope = (q[1] - q[0]) / (h[1] - h[0])
+            return q[0] + slope * (owl - h[0])
+
+        # Linear interpolation
+        for i in range(len(h) - 1):
+            if h[i] <= owl <= h[i + 1]:
+                t = (owl - h[i]) / (h[i + 1] - h[i])
+                return q[i] + t * (q[i + 1] - q[i])
+
+        return 0.0
 
     def sol(
         self,
@@ -109,8 +163,13 @@ class OpenWater:
 
             r_meas_ow = meas_ow * tot_meas_area / self.ow_no_meas_area
 
+            if self._qh_h is not None:
+                discharge_cap = self._qh_discharge(self.owl_prevt)
+            else:
+                discharge_cap = self.q_ow_out_cap
+
             q_ow_out = min(
-                delta_t * self.q_ow_out_cap * (tot_area / self.ow_no_meas_area),
+                delta_t * discharge_cap * (tot_area / self.ow_no_meas_area),
                 1000.0 * (self.ow_level - self.owl_prevt)
                 + prec_ow
                 - e_atm_ow
