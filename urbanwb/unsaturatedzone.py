@@ -47,19 +47,19 @@ class UnsaturatedZone:
         self.et_prm = et_selector(self.soiltype, self.croptype)
 
         # self.theta_h3l (float): equilibrium moisture content of soil in root zone, transpiration (E_pot ≤ 1 mm/d) reduction starts
-        self.theta_h3l = self.et_prm["theta_h3l_mm"].values[0]
+        self.theta_h3l = self.et_prm["theta_h3l_mm"].to_numpy()[0]
 
         # self.theta_h3h (float): equilibrium moisture content of soil in root zone, transpiration (E_pot ≥ 5 mm/d) reduction starts
-        self.theta_h3h = self.et_prm["theta_h3h_mm"].values[0]
+        self.theta_h3h = self.et_prm["theta_h3h_mm"].to_numpy()[0]
 
         # self.theta_h1 (float): equilibrium moisture content of soil in root zone, groundwater level at surface level, i.e. complete saturation
-        self.theta_h1 = self.et_prm["theta_h1_mm"].values[0]
+        self.theta_h1 = self.et_prm["theta_h1_mm"].to_numpy()[0]
 
         # self.theta_h2 (float): equilibrium moisture content of soil in root zone, groundwater level at bottom root zone, i.e. field capacity
-        self.theta_h2 = self.et_prm["theta_h2_mm"].values[0]
+        self.theta_h2 = self.et_prm["theta_h2_mm"].to_numpy()[0]
 
         # self.theta_h4 (float): equilibrium moisture content of soil in root zone, transpiration = 0, i.e. permernant wilting point
-        self.theta_h4 = self.et_prm["theta_h4_mm"].values[0]
+        self.theta_h4 = self.et_prm["theta_h4_mm"].to_numpy()[0]
 
         # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
         self.soil_prm = soil_selector(self.soiltype, self.croptype)

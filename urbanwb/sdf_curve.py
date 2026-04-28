@@ -196,7 +196,7 @@ def plot_sdf_curve(csv_path, fig_path):
     # SDF Curve
     plt.figure(figsize=(15, 12))
     for key in req_storage:
-        x_stor = req_storage.index.values.astype("int") / 1000 * 9060000 / 86400
+        x_stor = req_storage.index.to_numpy().astype("int") / 1000 * 9060000 / 86400
         y_dis = (
             req_storage[key] * 0.01 * 9060000
         )  # 0.01 for converting ow_area to total area
