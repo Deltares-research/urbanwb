@@ -12,5 +12,3 @@ original Excel version into this Python module.
 To install the package, please do "pip install -e ." with cmd in the package root directory.
 
 The model is available under the MIT license.
-
-For issues regarding the calculation formulas, please contact toine.vergroesen@deltares.nl.
