@@ -25,7 +25,7 @@ class UnsaturatedZone:
         uz_meas_area,
         soiltype=2,
         croptype=1,
-        **kwargs
+        **kwargs,
     ):
         """
         Creates an instance of UnsaturatedZone class
@@ -97,17 +97,9 @@ class UnsaturatedZone:
 
         # parameters
         if self.uz_no_meas_area == 0.0:
-            sum_i_uz = (
-                r_meas_uz
-            ) = (
-                theta_h3_uz
-            ) = (
-                t_alpha_uz
-            ) = (
-                t_atm_uz
-            ) = (
-                gwl_up
-            ) = gwl_low = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0.0
+            sum_i_uz = r_meas_uz = theta_h3_uz = t_alpha_uz = t_atm_uz = gwl_up = (
+                gwl_low
+            ) = theta_eq_uz = capris_max_uz = p_uz_gw = theta_uz = 0.0
 
         else:
             sum_i_uz = i_up_uz

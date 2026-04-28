@@ -31,7 +31,7 @@ class Unpaved:
         infilcap_up=48,
         soiltype=2,
         croptype=1,
-        **kwargs
+        **kwargs,
     ):
         """
         Creates an instance of Unpaved class.
@@ -126,13 +126,9 @@ class Unpaved:
         """
 
         if self.up_no_meas_area == 0.0:
-            sum_r_up = (
-                init_intstor_up
-            ) = (
-                actl_infilcap_up
-            ) = (
-                timefac_up
-            ) = e_atm_up = i_up_uz = fin_intstor_up = r_up_meas = r_up_ow = 0.0
+            sum_r_up = init_intstor_up = actl_infilcap_up = timefac_up = e_atm_up = (
+                i_up_uz
+            ) = fin_intstor_up = r_up_meas = r_up_ow = 0.0
 
         else:
             sum_r_up = (

@@ -82,9 +82,9 @@ class OpenWater:
         """
 
         if self.ow_no_meas_area == 0.0:
-            prec_ow = (
-                e_atm_ow
-            ) = sum_r_ow = sum_d_ow = sum_q_ow = sum_so_ow = r_meas_ow = q_ow_out = 0.0
+            prec_ow = e_atm_ow = sum_r_ow = sum_d_ow = sum_q_ow = sum_so_ow = (
+                r_meas_ow
+            ) = q_ow_out = 0.0
 
             # if no area of open water without measure is defined, open water level is then a fixed drainage level.
             owl = self.ow_level

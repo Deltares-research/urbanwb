@@ -41,27 +41,15 @@ def read_parameter_measure(stat2_inp):
             # to make it as foolproof as possible, when measure is not applied, measure-related area will all be set as
             # zeros regardless of what is in the configuration file.
 
-            tot_meas_area = (
-                pr_meas_area
-            ) = (
-                cp_meas_area
-            ) = (
-                op_meas_area
-            ) = (
+            tot_meas_area = pr_meas_area = cp_meas_area = op_meas_area = (
                 up_meas_area
-            ) = (
-                uz_meas_area
-            ) = (
-                gw_meas_area
-            ) = (
-                swds_meas_area
-            ) = mss_meas_area = ow_meas_area = top_meas_area = btm_meas_area = 0.0
+            ) = uz_meas_area = gw_meas_area = swds_meas_area = mss_meas_area = (
+                ow_meas_area
+            ) = top_meas_area = btm_meas_area = 0.0
 
-            pr_meas_inflow_area = (
-                cp_meas_inflow_area
-            ) = (
-                op_meas_inflow_area
-            ) = up_meas_inflow_area = ow_meas_inflow_area = tot_meas_inflow_area = 0.0
+            pr_meas_inflow_area = cp_meas_inflow_area = op_meas_inflow_area = (
+                up_meas_inflow_area
+            ) = ow_meas_inflow_area = tot_meas_inflow_area = 0.0
 
             validinput = True
         elif choice:  # input choice: there is measure
@@ -370,27 +358,15 @@ def read_parameter_measure_csv(
             # to make it as foolproof as possible, when measure is not applied, measure-related area will all be set as
             # zeros regardless of what is in the configuration file.
 
-            tot_meas_area = (
-                pr_meas_area
-            ) = (
-                cp_meas_area
-            ) = (
-                op_meas_area
-            ) = (
+            tot_meas_area = pr_meas_area = cp_meas_area = op_meas_area = (
                 up_meas_area
-            ) = (
-                uz_meas_area
-            ) = (
-                gw_meas_area
-            ) = (
-                swds_meas_area
-            ) = mss_meas_area = ow_meas_area = top_meas_area = btm_meas_area = 0.0
+            ) = uz_meas_area = gw_meas_area = swds_meas_area = mss_meas_area = (
+                ow_meas_area
+            ) = top_meas_area = btm_meas_area = 0.0
 
-            pr_meas_inflow_area = (
-                cp_meas_inflow_area
-            ) = (
-                op_meas_inflow_area
-            ) = up_meas_inflow_area = ow_meas_inflow_area = tot_meas_inflow_area = 0.0
+            pr_meas_inflow_area = cp_meas_inflow_area = op_meas_inflow_area = (
+                up_meas_inflow_area
+            ) = ow_meas_inflow_area = tot_meas_inflow_area = 0.0
 
             validinput = True
         elif choice:  # input choice: there is measure

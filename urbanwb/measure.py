@@ -116,7 +116,7 @@ class Measure:
         ctrl_runoff_meas_Out,
         overflow_meas_Out,
         greenroof_type_measure,
-        **kwargs
+        **kwargs,
     ):
         """
         Creates an instance of Measure class.
@@ -246,41 +246,15 @@ class Measure:
         """
 
         if self.tot_meas_area == 0:
-            prec_meas = (
-                sum_r_meas
-            ) = (
-                int_meas
-            ) = (
-                e_atm_meas
-            ) = (
-                interc_down_meas
-            ) = (
+            prec_meas = sum_r_meas = int_meas = e_atm_meas = interc_down_meas = (
                 surf_runoff_meas
-            ) = (
-                intstor_meas
-            ) = (
-                ini_stor_top_meas
-            ) = (
-                t_atm_top_meas
-            ) = (
-                perc_top_meas
-            ) = (
+            ) = intstor_meas = ini_stor_top_meas = t_atm_top_meas = perc_top_meas = (
                 fin_stor_top_meas
-            ) = (
-                ini_stor_btm_meas
-            ) = (
-                t_atm_btm_meas
-            ) = (
-                p_gw_btm_meas
-            ) = (
-                runoff_btm_meas
-            ) = (
+            ) = ini_stor_btm_meas = t_atm_btm_meas = p_gw_btm_meas = runoff_btm_meas = (
                 fin_stor_btm_meas
-            ) = (
-                overflow_btm_meas
-            ) = (
-                q_meas_ow
-            ) = q_meas_uz = q_meas_gw = q_meas_swds = q_meas_mss = q_meas_out = 0.0
+            ) = overflow_btm_meas = q_meas_ow = q_meas_uz = q_meas_gw = q_meas_swds = (
+                q_meas_mss
+            ) = q_meas_out = 0.0
             # uncontrolled_runoff = controlled_runoff = total_runoff = 0.0
 
         else:

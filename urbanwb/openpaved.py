@@ -29,7 +29,7 @@ class OpenPaved:
         infilcap_op=1.0,
         swds_frac=1.0,
         discfrac_op=0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Creates an instance of OpenPaved class
@@ -96,9 +96,9 @@ class OpenPaved:
         """
 
         if self.op_no_meas_area == 0.0:
-            int_op = (
-                e_atm_op
-            ) = intstor_op = p_op_gw = r_op_meas = r_op_swds = r_op_mss = r_op_up = 0.0
+            int_op = e_atm_op = intstor_op = p_op_gw = r_op_meas = r_op_swds = (
+                r_op_mss
+            ) = r_op_up = 0.0
 
         else:
             int_op = min(self.intstorcap_op, max(0.0, p_atm + self.intstor_op_prevt))
