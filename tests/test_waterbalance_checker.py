@@ -120,6 +120,29 @@ def test_groundwater_storage_accounts_for_seepage():
     assert warnings == []
 
 
+def test_open_water_storage_sign_closes_when_level_drifts():
+    """Open water discharging to outside lowers its storage; balance stays closed.
+
+    ``owl`` is in m-SL, so storage rises as ``owl`` falls. This exercises the sign
+    of the open-water storage term, which a target-controlled (cap) run leaves
+    near zero but a drifting level (e.g. with a Q(h) relation) exposes.
+    """
+    n = 3
+    df = pd.DataFrame({col: [0.0] * n for col in _ZERO_COLUMNS})
+    df["P_atm"] = [0.0, 10.0, 10.0]  # rain 20 mm
+    df["q_ow_out"] = [0.0, 4.0, 4.0]  # discharge 8 mm to outside water
+    df["owl"] = [1.0, 0.994, 0.988]  # level rises (m-SL falls) -> storage +12 mm
+
+    params = dict(_ZERO_PARAMS)
+    params["gw_no_meas_area"] = 0.0
+    params["ow_no_meas_area"] = 1.0
+
+    stat_model, _, _, warnings = water_balance_checker(df, params, n)
+    assert stat_model["balance diff"] == pytest.approx(0.0, abs=1e-9)
+    assert stat_model["storage diff"] == pytest.approx(12.0)
+    assert warnings == []
+
+
 def test_short_model_run_balance_closes():
     """End-to-end: a short run on the example forcing keeps the balance closed."""
     from urbanwb.main import read_parameters, running

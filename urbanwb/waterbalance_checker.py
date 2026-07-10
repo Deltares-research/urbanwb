@@ -124,9 +124,11 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         * dict_param["mss_no_meas_area"]
         / dict_param["tot_area"]
     )
+    # Open water storage increases as the level owl (in m-SL, depth below surface)
+    # decreases, so the storage change uses (initial - final).
     sum_ds_ow = (
         1000
-        * (df["owl"].iloc[-1] - df["owl"].iloc[0])
+        * (df["owl"].iloc[0] - df["owl"].iloc[-1])
         * dict_param["ow_no_meas_area"]
         / dict_param["tot_area"]
     )
@@ -325,7 +327,7 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
             + (df["fin_intstor_up"].iloc[-1] - df["fin_intstor_up"].iloc[0])
             * (dict_param["up_meas_inflow_area"] - dict_param["up_meas_area"])
             + 1000
-            * (df["owl"].iloc[-1] - df["owl"].iloc[0])
+            * (df["owl"].iloc[0] - df["owl"].iloc[-1])
             * (dict_param["ow_meas_inflow_area"] - dict_param["ow_meas_area"])
             + (df["intstor_meas"].iloc[-1] - df["intstor_meas"].iloc[0])
             * (dict_param["tot_meas_area"])
