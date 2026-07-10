@@ -1,6 +1,5 @@
 import math
 
-import numpy as np
 from tabulate import tabulate
 
 
@@ -101,21 +100,18 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         / dict_param["tot_area"]
     )
 
-    # change in groundwater storage is a bit tricky to calculate
-    storage_coef = df["sc_gw"]
-    groundwater_level = df["gwl"]
-    ds_gw = np.zeros_like(groundwater_level)
-    for t in range(1, iters):
-        ds_gw[t] = (
-            1000 * storage_coef[t] * (groundwater_level[t - 1] - groundwater_level[t])
-        )
-    sum_ds_gw = sum(ds_gw) * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
-    sum_ds_gw_sl = (
-        1000
-        * (df["gwl_sl"].iloc[-1] - df["gwl_sl"].iloc[0])
-        * dict_param["gw_no_meas_area"]
-        / dict_param["tot_area"]
-    )  # ? mark it here: after changing (old - new), still not working.
+    # change in groundwater storage.
+    # Use the net flux into the groundwater store (percolation + measure inflow
+    # - deep seepage - drainage to open water) rather than the level-based
+    # sc * dgwl form. The net flux is the actual storage change in [mm] and stays
+    # exact when the groundwater ponds above the surface (gwl_sl != 0) or is held
+    # at a bottom, whereas the level-based form (which ignores gwl_sl per step)
+    # only closes when there is no ponding. Because the net flux already accounts
+    # for the above-surface storage, no separate gwl_sl term is added.
+    ds_gw = df["sum_p_gw"] + df["r_meas_gw"] - df["s_gw_out"] - df["d_gw_ow"]
+    sum_ds_gw = (
+        ds_gw.iloc[1:].sum() * dict_param["gw_no_meas_area"] / dict_param["tot_area"]
+    )
 
     # change in storage in sewer system
     sum_ds_swds = (
@@ -150,7 +146,6 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         + sum_ds_up
         + sum_ds_uz
         + sum_ds_gw
-        + sum_ds_gw_sl
         + sum_ds_swds
         + sum_ds_mss
         + sum_ds_ow
