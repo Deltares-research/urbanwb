@@ -13,6 +13,10 @@ class OpenWater:
             below the highest h value. Linear interpolation between points, linear extrapolation beyond the lowest h
             based on the first segment slope. Mutually exclusive with q_ow_out_cap.
         q_ow_in_cap (float): inlet capacity from outside water to open water [mm/d]. Default is inf (unlimited).
+        ow_bottom (float): bottom level of the open water store [m-SL]. The open water level cannot drop below this
+            level (i.e. cannot exceed this value in m-SL). When the store reaches the bottom, discharge is limited
+            first and, if evaporation would still lower the level, evaporation is limited (water-limited).
+            Default is inf (no bottom).
 
     """
 
@@ -23,6 +27,7 @@ class OpenWater:
         q_ow_out_cap=None,
         q_ow_out_qh=None,
         q_ow_in_cap=float("inf"),
+        ow_bottom=float("inf"),
         **kwargs,
     ):
         """Creates an instance of OpenWater class."""
@@ -44,6 +49,7 @@ class OpenWater:
         self.q_ow_out_cap = q_ow_out_cap
         self.q_ow_in_cap = q_ow_in_cap
         self.ow_level = ow_level
+        self.ow_bottom = ow_bottom
 
         if q_ow_out_qh is not None:
             sorted_qh = sorted(q_ow_out_qh, key=lambda p: p["h"])
@@ -164,6 +170,17 @@ class OpenWater:
 
             r_meas_ow = meas_ow * tot_meas_area / self.ow_no_meas_area
 
+            # net internal flux to open water this time step [mm] (positive = net inflow)
+            inflow_sum = (
+                prec_ow
+                - e_atm_ow
+                + sum_r_ow
+                + sum_d_ow
+                + sum_q_ow
+                + sum_so_ow
+                + r_meas_ow
+            )
+
             if self._qh_h is not None:
                 # Q(h) sets q_ow_out directly (no water balance cap)
                 q_ow_out = (
@@ -174,36 +191,32 @@ class OpenWater:
             else:
                 q_ow_out = min(
                     delta_t * self.q_ow_out_cap * (tot_area / self.ow_no_meas_area),
-                    1000.0 * (self.ow_level - self.owl_prevt)
-                    + prec_ow
-                    - e_atm_ow
-                    + sum_r_ow
-                    + sum_d_ow
-                    + sum_q_ow
-                    + sum_so_ow
-                    + r_meas_ow,
+                    1000.0 * (self.ow_level - self.owl_prevt) + inflow_sum,
                 )
 
-                # Limit water inlet from outside water (negative q_ow_out)
-                q_ow_out = max(
+            # Bottom: limit discharge so the open water level does not drop below the bottom.
+            # The store can supply at most the water above the bottom plus the net inflow.
+            if self.ow_bottom != float("inf"):
+                q_ow_out = min(
                     q_ow_out,
-                    -delta_t * self.q_ow_in_cap * (tot_area / self.ow_no_meas_area),
+                    inflow_sum + 1000.0 * (self.ow_bottom - self.owl_prevt),
                 )
 
-            owl = (
-                self.owl_prevt
-                - (
-                    prec_ow
-                    - e_atm_ow
-                    + sum_r_ow
-                    + sum_d_ow
-                    + sum_q_ow
-                    + sum_so_ow
-                    + r_meas_ow
-                    - q_ow_out
-                )
-                / 1000.0
+            # Limit water inlet from outside water (negative q_ow_out)
+            q_ow_out = max(
+                q_ow_out,
+                -delta_t * self.q_ow_in_cap * (tot_area / self.ow_no_meas_area),
             )
+
+            owl = self.owl_prevt - (inflow_sum - q_ow_out) / 1000.0
+
+            # Bottom: if evaporation would still lower the level below the bottom (inlet capped),
+            # limit evaporation to the available water so the level stays at the bottom.
+            if self.ow_bottom != float("inf") and owl > self.ow_bottom:
+                reduction = min(1000.0 * (owl - self.ow_bottom), e_atm_ow)
+                e_atm_ow -= reduction
+                inflow_sum += reduction
+                owl = self.owl_prevt - (inflow_sum - q_ow_out) / 1000.0
 
             # # runoff over the entire area (currently excluding Q to WWTP)
             # # r_ow_entire = (max(- (owl - self.owl_prevt), 0) * 1000.0 + max(q_ow_out, 0.0)) * (self.ow_no_meas_area / tot_area)

@@ -176,6 +176,9 @@ def read_parameter_base(arg):
         raise ValueError(
             "Error: Seepage to deep groundwater can only be defined as either 0-flux or 1-level."
         )
+    gw_bottom = cf.get(
+        "gw_bottom", float("inf")
+    )  # bottom level of the groundwater store [m-SL], default no bottom
 
     # open water parameters.
     q_ow_out_qh = cf.get("q_ow_out_qh", None)  # Q(h) relation: list of {h, q} dicts
@@ -195,6 +198,9 @@ def read_parameter_base(arg):
     q_ow_in_cap = cf.get(
         "q_ow_in_cap", float("inf")
     )  # inlet capacity from outside water to open water over entire area [mm/d], default unlimited
+    ow_bottom = cf.get(
+        "ow_bottom", float("inf")
+    )  # bottom level of the open water store [m-SL], default no bottom
     ow_level = (
         storcap_ow / 1000.0
     )  # predefined target open water level, also initial open water level (at t=0) [m-Sl]
@@ -318,6 +324,8 @@ def read_parameter_base(arg):
         "q_ow_out_qh": q_ow_out_qh,
         "q_ow_in_cap": q_ow_in_cap,
         "ow_level": ow_level,
+        "ow_bottom": ow_bottom,
+        "gw_bottom": gw_bottom,
         "intstor_pr_t0": intstor_pr_t0,
         "intstor_cp_t0": intstor_cp_t0,
         "intstor_op_t0": intstor_op_t0,

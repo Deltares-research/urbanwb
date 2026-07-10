@@ -184,3 +184,69 @@ def test_integration():
     ):  # gw_no_meas_area = 0
         assert n is None
     # The difference between the summations of all values in solution matrix for python and excel is from 0.0001 to 0.001.
+
+
+def _gw(gw_bottom=float("inf")):
+    return Groundwater(
+        gwl_t0=1.5,
+        gw_no_meas_area=8140,
+        gw_meas_area=0,
+        seepage_define=0,
+        w=100,
+        vc=20000,
+        head_deep_gw=21.5,
+        down_seepage_flux=1,
+        soiltype=2,
+        croptype=1,
+        gw_bottom=gw_bottom,
+    )
+
+
+# Drive the groundwater down: shallow groundwater (1.5 m-SL) draining to a deep
+# open water level (3.0 m-SL) plus downward seepage lowers the level over one day.
+_GW_STEP = dict(
+    p_uz_gw=0.0,
+    uz_no_meas_area=6855,
+    p_op_gw=0.0,
+    op_no_meas_area=300,
+    tot_meas_area=0,
+    meas_gw=0.0,
+    owl_prevt=3.0,
+    delta_t=1.0,
+)
+
+
+def test_gw_bottom_limits_drainage():
+    """Groundwater drainage is reduced so the level cannot drop below the bottom."""
+    free = _gw().sol(**_GW_STEP)
+    # sanity: without a bottom the level drops well below the chosen bottom
+    assert free["gwl"] > 1.55
+
+    bottom = 1.55
+    res = _gw(gw_bottom=bottom).sol(**_GW_STEP)
+    # level held at the bottom
+    assert res["gwl"] == pytest.approx(bottom)
+    # drainage to open water reduced relative to the unlimited case
+    assert res["d_gw_ow"] < free["d_gw_ow"]
+    # drainage alone was sufficient, so seepage to deep groundwater is untouched
+    assert res["s_gw_out"] == pytest.approx(free["s_gw_out"])
+    # water balance closes: net flux == storage change implied by the level drop
+    sc = res["sc_gw"]
+    net = res["sum_p_gw"] + res["r_meas_gw"] - res["s_gw_out"] - res["d_gw_ow"]
+    assert net == pytest.approx(1000.0 * sc * (1.5 - res["gwl"]))
+
+
+def test_gw_bottom_default_allows_drop():
+    """Without a bottom (default) the groundwater level drops freely."""
+    free = _gw().sol(**_GW_STEP)
+    deep = _gw(gw_bottom=float("inf")).sol(**_GW_STEP)
+    assert deep["gwl"] == pytest.approx(free["gwl"])
+    assert deep["gwl"] > 1.55
+
+
+def test_gw_bottom_not_reached():
+    """Bottom has no effect when the level stays above it."""
+    free = _gw().sol(**_GW_STEP)
+    res = _gw(gw_bottom=10.0).sol(**_GW_STEP)
+    assert res["gwl"] == pytest.approx(free["gwl"])
+    assert res["d_gw_ow"] == pytest.approx(free["d_gw_ow"])

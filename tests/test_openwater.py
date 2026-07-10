@@ -324,3 +324,92 @@ def test_qh_extrapolation():
     # Water balance: 1000*(1.0-(-1.0)) + 0 = 2000 mm available
     # Capacity at owl=-1.0: 200 mm/d * 1 day = 200 mm
     assert result["q_ow_out"] == pytest.approx(200.0)
+
+
+def _ow_sol(m, **overrides):
+    """Helper: run one step with all fluxes zero unless overridden."""
+    kwargs = dict(
+        p_atm=0,
+        e_pot_ow=0,
+        r_up_ow=0,
+        d_gw_ow=0,
+        q_swds_ow=0,
+        q_mss_ow=0,
+        so_swds_ow=0,
+        so_mss_ow=0,
+        meas_ow=0,
+        up_no_meas_area=0,
+        gw_no_meas_area=0,
+        swds_no_meas_area=0,
+        mss_no_meas_area=0,
+        tot_meas_area=0,
+        tot_area=1000,
+        delta_t=1.0,
+    )
+    kwargs.update(overrides)
+    return m.sol(**kwargs)
+
+
+def test_ow_bottom_limits_discharge():
+    """Q(h) discharge is reduced so the open water level cannot drop below the bottom."""
+    # Q(h): h=1.5 -> Q=0, h=0.5 -> Q=100. At owl=1.0 -> Q=50 mm/d.
+    # Without a bottom the level would drop from 1.0 to 1.05 m-SL.
+    # With bottom=1.03 m-SL, only 30 mm may be discharged.
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[{"h": 1.5, "q": 0}, {"h": 0.5, "q": 100}],
+        q_ow_in_cap=0,
+        ow_bottom=1.03,
+    )
+    result = _ow_sol(m)
+    assert result["q_ow_out"] == pytest.approx(30.0)
+    assert result["owl"] == pytest.approx(1.03)
+
+
+def test_ow_bottom_default_allows_drop():
+    """Without a bottom (default) the Q(h) level drops freely."""
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[{"h": 1.5, "q": 0}, {"h": 0.5, "q": 100}],
+        q_ow_in_cap=0,
+    )
+    result = _ow_sol(m)
+    assert result["q_ow_out"] == pytest.approx(50.0)
+    assert result["owl"] == pytest.approx(1.05)
+
+
+def test_ow_bottom_limits_evaporation():
+    """When inlet is capped, evaporation is water-limited at the bottom."""
+    # ow_level (target) = 1.0, no inlet. Evaporation of 100 mm would push the
+    # level to 1.1 m-SL, but the bottom at 1.05 m-SL limits evaporation to 50 mm.
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_cap=100,
+        q_ow_in_cap=0.0,
+        ow_bottom=1.05,
+    )
+    result = _ow_sol(m, e_pot_ow=100.0)
+    assert result["q_ow_out"] == pytest.approx(0.0)
+    assert result["e_atm_ow"] == pytest.approx(50.0)
+    assert result["owl"] == pytest.approx(1.05)
+    # Water balance closes: storage change == net inflow - discharge
+    net_in = -result["e_atm_ow"]
+    assert -(result["owl"] - 1.0) * 1000.0 == pytest.approx(net_in - result["q_ow_out"])
+
+
+def test_ow_bottom_not_reached():
+    """Bottom has no effect when the level stays above it."""
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=1.0,
+        q_ow_out_qh=[{"h": 1.5, "q": 0}, {"h": 0.5, "q": 100}],
+        q_ow_in_cap=0,
+        ow_bottom=2.0,
+    )
+    result = _ow_sol(m)
+    # Same as the unlimited case: 50 mm discharge, level 1.05 m-SL
+    assert result["q_ow_out"] == pytest.approx(50.0)
+    assert result["owl"] == pytest.approx(1.05)
