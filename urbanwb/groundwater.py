@@ -20,6 +20,9 @@ class Groundwater:
         down_seepage_flux (float): predefined constant downward flux from shallow groundwater to deep groundwater [mm/d]
         soiltype (int): soil type
         croptype (int): crop type
+        gw_bottom (float): bottom level of the groundwater store [m-SL]. The groundwater level cannot drop below
+            this level (i.e. cannot exceed this value in m-SL). When the store reaches the bottom, drainage to open
+            water is limited first and, if needed, seepage to deep groundwater is limited. Default is inf (no bottom).
 
     """
 
@@ -35,6 +38,7 @@ class Groundwater:
         down_seepage_flux=1,
         soiltype=2,
         croptype=1,
+        gw_bottom=float("inf"),
         **kwargs,
     ):
         # state
@@ -55,6 +59,7 @@ class Groundwater:
         self.down_seepage_flux = down_seepage_flux
         self.soiltype = soiltype
         self.croptype = croptype
+        self.gw_bottom = gw_bottom
 
         # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
@@ -209,6 +214,23 @@ class Groundwater:
                 )
                 * sc_gw,
             )
+
+            # Bottom: prevent the groundwater level from dropping below the bottom.
+            # Reduce drainage to open water first, then seepage to deep groundwater, and
+            # recompute the level from the adjusted balance so the water balance stays closed.
+            if self.gw_bottom != float("inf") and gwl > self.gw_bottom:
+                excess = 1000.0 * sc_gw * (gwl - self.gw_bottom)
+                cut_d = min(excess, max(0.0, d_gw_ow))
+                d_gw_ow -= cut_d
+                excess -= cut_d
+                cut_s = min(excess, max(0.0, s_gw_out))
+                s_gw_out -= cut_s
+                gwl = max(
+                    0.0,
+                    self.gwl_prevt
+                    + self.gwl_sl_prevt / sc_gw
+                    - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw),
+                )
 
             # update state
             self.gwl_prevt = gwl
