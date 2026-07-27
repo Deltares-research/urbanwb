@@ -113,6 +113,16 @@ def test_sol(uz_1):
     ] == pytest.approx(1.5102715093)
 
 
+def test_limit_capillary_rise_updates_storage(uz_1):
+    solution = {"p_uz_gw": -2.0, "theta_uz": 100.0}
+
+    uz_1.limit_capillary_rise(solution, -0.5)
+
+    assert solution["p_uz_gw"] == pytest.approx(-0.5)
+    assert solution["theta_uz"] == pytest.approx(98.5)
+    assert uz_1.theta_uz_prevt == pytest.approx(98.5)
+
+
 def test_integration():
     """Runs integration tests (validate with excel using different coefficient sets for all time steps)"""
     for n in validate(1.5, 6855, 0, 2, 1, Dec=7, Num=0):  # default

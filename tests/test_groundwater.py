@@ -204,16 +204,16 @@ def _gw(gw_bottom=float("inf")):
 
 # Drive the groundwater down: shallow groundwater (1.5 m-SL) draining to a deep
 # open water level (3.0 m-SL) plus downward seepage lowers the level over one day.
-_GW_STEP = dict(
-    p_uz_gw=0.0,
-    uz_no_meas_area=6855,
-    p_op_gw=0.0,
-    op_no_meas_area=300,
-    tot_meas_area=0,
-    meas_gw=0.0,
-    owl_prevt=3.0,
-    delta_t=1.0,
-)
+_GW_STEP = {
+    "p_uz_gw": 0.0,
+    "uz_no_meas_area": 6855,
+    "p_op_gw": 0.0,
+    "op_no_meas_area": 300,
+    "tot_meas_area": 0,
+    "meas_gw": 0.0,
+    "owl_prevt": 3.0,
+    "delta_t": 1.0,
+}
 
 
 def test_gw_bottom_limits_drainage():
@@ -226,6 +226,7 @@ def test_gw_bottom_limits_drainage():
     res = _gw(gw_bottom=bottom).sol(**_GW_STEP)
     # level held at the bottom
     assert res["gwl"] == pytest.approx(bottom)
+    assert res["h_gw"] == pytest.approx(bottom)
     # drainage to open water reduced relative to the unlimited case
     assert res["d_gw_ow"] < free["d_gw_ow"]
     # drainage alone was sufficient, so seepage to deep groundwater is untouched
@@ -250,3 +251,34 @@ def test_gw_bottom_not_reached():
     res = _gw(gw_bottom=10.0).sol(**_GW_STEP)
     assert res["gwl"] == pytest.approx(free["gwl"])
     assert res["d_gw_ow"] == pytest.approx(free["d_gw_ow"])
+
+
+def test_gw_bottom_limits_capillary_rise():
+    """Capillary rise is water-limited when other groundwater outflows are exhausted."""
+    m = Groundwater(
+        gwl_t0=1.5,
+        gw_no_meas_area=8140,
+        gw_meas_area=0,
+        seepage_define=0,
+        w=100,
+        vc=20000,
+        head_deep_gw=21.5,
+        down_seepage_flux=0,
+        soiltype=2,
+        croptype=1,
+        gw_bottom=1.5,
+    )
+    result = m.sol(**(_GW_STEP | {"p_uz_gw": -1.0, "owl_prevt": 1.5}))
+
+    unrestricted_sum_p = -1.0 * 6855 / 8140
+    assert result["sum_p_gw"] > unrestricted_sum_p
+    assert result["gwl"] == pytest.approx(1.5)
+    assert result["h_gw"] == pytest.approx(1.5)
+    assert (
+        result["sum_p_gw"] - result["s_gw_out"] - result["d_gw_ow"]
+    ) == pytest.approx(0.0)
+
+
+def test_gw_bottom_rejects_initial_level_below_bottom():
+    with pytest.raises(ValueError, match="Initial groundwater level"):
+        _gw(gw_bottom=1.4)

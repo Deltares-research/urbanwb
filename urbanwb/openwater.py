@@ -15,7 +15,7 @@ class OpenWater:
         q_ow_in_cap (float): inlet capacity from outside water to open water [mm/d]. Default is inf (unlimited).
         ow_bottom (float): bottom level of the open water store [m-SL]. The open water level cannot drop below this
             level (i.e. cannot exceed this value in m-SL). When the store reaches the bottom, discharge is limited
-            first and, if evaporation would still lower the level, evaporation is limited (water-limited).
+            first, followed by evaporation and recharge from open water to groundwater.
             Default is inf (no bottom).
 
     """
@@ -31,6 +31,8 @@ class OpenWater:
         **kwargs,
     ):
         """Creates an instance of OpenWater class."""
+        if ow_no_meas_area != 0.0 and ow_level > ow_bottom:
+            raise ValueError("Initial open water level cannot be below ow_bottom.")
         if q_ow_out_cap is not None and q_ow_out_qh is not None:
             raise ValueError("Cannot specify both q_ow_out_cap and q_ow_out_qh.")
         if q_ow_out_cap is None and q_ow_out_qh is None:
@@ -50,6 +52,7 @@ class OpenWater:
         self.q_ow_in_cap = q_ow_in_cap
         self.ow_level = ow_level
         self.ow_bottom = ow_bottom
+        self._d_gw_ow = 0.0
 
         if q_ow_out_qh is not None:
             sorted_qh = sorted(q_ow_out_qh, key=lambda p: p["h"])
@@ -150,9 +153,11 @@ class OpenWater:
 
             # if no area of open water without measure is defined, open water level is then a fixed drainage level.
             owl = self.ow_level
+            limited_d_gw_ow = d_gw_ow
 
         else:
             prec_ow = p_atm
+            limited_d_gw_ow = d_gw_ow
 
             e_atm_ow = e_pot_ow
 
@@ -213,10 +218,25 @@ class OpenWater:
             # Bottom: if evaporation would still lower the level below the bottom (inlet capped),
             # limit evaporation to the available water so the level stays at the bottom.
             if self.ow_bottom != float("inf") and owl > self.ow_bottom:
-                reduction = min(1000.0 * (owl - self.ow_bottom), e_atm_ow)
+                excess = 1000.0 * (owl - self.ow_bottom)
+                reduction = min(excess, e_atm_ow)
                 e_atm_ow -= reduction
                 inflow_sum += reduction
+                excess -= reduction
+
+                recharge_reduction = min(excess, max(0.0, -sum_d_ow))
+                sum_d_ow += recharge_reduction
+                inflow_sum += recharge_reduction
+                excess -= recharge_reduction
+                if recharge_reduction > 0.0 and gw_no_meas_area != 0.0:
+                    limited_d_gw_ow = sum_d_ow * self.ow_no_meas_area / gw_no_meas_area
+
+                if excess > 1e-10:
+                    raise RuntimeError(
+                        "Cannot enforce ow_bottom with available outflows."
+                    )
                 owl = self.owl_prevt - (inflow_sum - q_ow_out) / 1000.0
+                owl = min(owl, self.ow_bottom)
 
             # # runoff over the entire area (currently excluding Q to WWTP)
             # # r_ow_entire = (max(- (owl - self.owl_prevt), 0) * 1000.0 + max(q_ow_out, 0.0)) * (self.ow_no_meas_area / tot_area)
@@ -230,6 +250,7 @@ class OpenWater:
             # update state
             self.owl_prevt = owl
 
+        self._d_gw_ow = limited_d_gw_ow
         return {
             "prec_ow": prec_ow,
             "e_atm_ow": e_atm_ow,

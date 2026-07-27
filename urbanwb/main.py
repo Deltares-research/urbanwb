@@ -122,6 +122,10 @@ class UrbanwbModel:
                 owl_prevt=lst_prevt["owl"],
                 delta_t=self.param["delta_t"],
             )
+            if self.groundwater._p_uz_gw != uz_sol["p_uz_gw"]:
+                self.unsaturatedzone.limit_capillary_rise(
+                    uz_sol, self.groundwater._p_uz_gw
+                )
             ss_sol = self.sewersystem.sol(
                 # make sure we don't include disconnected areas
                 pr_no_meas_area=self.param["pr_no_meas_area"]
@@ -159,6 +163,21 @@ class UrbanwbModel:
                 tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
             )
+            if self.openwater._d_gw_ow != gw_sol["d_gw_ow"]:
+                self.groundwater.limit_recharge_from_open_water(
+                    gw_sol,
+                    self.openwater._d_gw_ow,
+                    self.param["uz_no_meas_area"],
+                )
+                if self.groundwater._p_uz_gw != uz_sol["p_uz_gw"]:
+                    self.unsaturatedzone.limit_capillary_rise(
+                        uz_sol, self.groundwater._p_uz_gw
+                    )
+                ow_sol["sum_d_ow"] = (
+                    gw_sol["d_gw_ow"]
+                    * self.param["gw_no_meas_area"]
+                    / self.param["ow_no_meas_area"]
+                )
             merged_dict = OrderedDict(
                 dict(
                     **pr_sol,

@@ -22,7 +22,8 @@ class Groundwater:
         croptype (int): crop type
         gw_bottom (float): bottom level of the groundwater store [m-SL]. The groundwater level cannot drop below
             this level (i.e. cannot exceed this value in m-SL). When the store reaches the bottom, drainage to open
-            water is limited first and, if needed, seepage to deep groundwater is limited. Default is inf (no bottom).
+            water is limited first, followed by seepage to deep groundwater and capillary rise.
+            Default is inf (no bottom).
 
     """
 
@@ -41,6 +42,9 @@ class Groundwater:
         gw_bottom=float("inf"),
         **kwargs,
     ):
+        if gw_no_meas_area != 0.0 and gwl_t0 > gw_bottom:
+            raise ValueError("Initial groundwater level cannot be below gw_bottom.")
+
         # state
 
         # self.gwl_prevt (float): groundwater level at previous time step [m-SL]
@@ -60,9 +64,56 @@ class Groundwater:
         self.soiltype = soiltype
         self.croptype = croptype
         self.gw_bottom = gw_bottom
+        self._p_uz_gw = 0.0
 
         # self.soil_prm (dataframe): soil parameter matrix dependent on soil type and crop type
         self.soil_prm = soil_selector(self.soiltype, self.croptype)
+
+    @staticmethod
+    def _split_head(head, storage_coefficient):
+        gwl = max(0.0, head)
+        gwl_sl = -max(0.0, -head) * storage_coefficient
+        return gwl, gwl_sl
+
+    def limit_recharge_from_open_water(self, solution, d_gw_ow, uz_no_meas_area):
+        """Limit recharge from open water and keep the groundwater balance closed."""
+        previous_d_gw_ow = solution["d_gw_ow"]
+        if d_gw_ow < previous_d_gw_ow - 1e-12:
+            raise ValueError("Limited open-water recharge cannot increase recharge.")
+
+        sc_gw = solution["sc_gw"]
+        head = solution["gwl"] + solution["gwl_sl"] / sc_gw
+        head += (d_gw_ow - previous_d_gw_ow) / (1000.0 * sc_gw)
+        solution["d_gw_ow"] = d_gw_ow
+
+        if self.gw_bottom != float("inf") and head > self.gw_bottom:
+            excess = 1000.0 * sc_gw * (head - self.gw_bottom)
+
+            cut_s = min(excess, max(0.0, solution["s_gw_out"]))
+            solution["s_gw_out"] -= cut_s
+            excess -= cut_s
+            head -= cut_s / (1000.0 * sc_gw)
+
+            if uz_no_meas_area != 0.0:
+                capillary_rise = (
+                    max(0.0, -self._p_uz_gw) * uz_no_meas_area / self.gw_no_meas_area
+                )
+                cut_capillary = min(excess, capillary_rise)
+                self._p_uz_gw += cut_capillary * self.gw_no_meas_area / uz_no_meas_area
+                solution["sum_p_gw"] += cut_capillary
+                excess -= cut_capillary
+                head -= cut_capillary / (1000.0 * sc_gw)
+
+            if excess > 1e-10:
+                raise RuntimeError(
+                    "Cannot enforce gw_bottom after limiting recharge from open water."
+                )
+            head = self.gw_bottom
+
+        solution["h_gw"] = head
+        solution["gwl"], solution["gwl_sl"] = self._split_head(head, sc_gw)
+        self.gwl_prevt = solution["gwl"]
+        self.gwl_sl_prevt = solution["gwl_sl"]
 
     def sol(
         self,
@@ -195,47 +246,47 @@ class Groundwater:
                 * 1000.0  # div sc_gw
             )
 
-            gwl = max(
-                0.0,
+            head = (
                 self.gwl_prevt
                 + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
-                - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw),
-            )
-
-            gwl_sl = -1.0 * max(
-                0.0,
-                (
-                    0.0
-                    - (
-                        self.gwl_prevt
-                        + self.gwl_sl_prevt / sc_gw  # add gwl_sl (t-1) / sc
-                        - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw)
-                    )
-                )
-                * sc_gw,
+                - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw)
             )
 
             # Bottom: prevent the groundwater level from dropping below the bottom.
-            # Reduce drainage to open water first, then seepage to deep groundwater, and
-            # recompute the level from the adjusted balance so the water balance stays closed.
-            if self.gw_bottom != float("inf") and gwl > self.gw_bottom:
-                excess = 1000.0 * sc_gw * (gwl - self.gw_bottom)
+            # Reduce drainage and seepage first, then capillary rise if necessary.
+            if self.gw_bottom != float("inf") and head > self.gw_bottom:
+                excess = 1000.0 * sc_gw * (head - self.gw_bottom)
                 cut_d = min(excess, max(0.0, d_gw_ow))
                 d_gw_ow -= cut_d
                 excess -= cut_d
                 cut_s = min(excess, max(0.0, s_gw_out))
                 s_gw_out -= cut_s
-                gwl = max(
-                    0.0,
-                    self.gwl_prevt
-                    + self.gwl_sl_prevt / sc_gw
-                    - (sum_p_gw + r_meas_gw - s_gw_out - d_gw_ow) / (1000.0 * sc_gw),
-                )
+                excess -= cut_s
+
+                if uz_no_meas_area != 0.0:
+                    capillary_rise = (
+                        max(0.0, -p_uz_gw) * uz_no_meas_area / self.gw_no_meas_area
+                    )
+                    cut_capillary = min(excess, capillary_rise)
+                    p_uz_gw += cut_capillary * self.gw_no_meas_area / uz_no_meas_area
+                    sum_p_gw += cut_capillary
+                    excess -= cut_capillary
+
+                if excess > 1e-10:
+                    raise RuntimeError(
+                        "Cannot enforce gw_bottom with available outflows."
+                    )
+
+                head = self.gw_bottom
+
+            h_gw = head
+            gwl, gwl_sl = self._split_head(head, sc_gw)
 
             # update state
             self.gwl_prevt = gwl
             self.gwl_sl_prevt = gwl_sl
 
+        self._p_uz_gw = p_uz_gw
         return {
             "sum_p_gw": sum_p_gw,
             "r_meas_gw": r_meas_gw,
