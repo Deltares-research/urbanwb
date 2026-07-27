@@ -157,3 +157,28 @@ def test_short_model_run_balance_closes():
     stat_model = wbc[0]
 
     assert stat_model["balance diff"] == pytest.approx(0.0, abs=1e-6)
+
+
+def test_coupled_bottoms_limit_all_donor_fluxes():
+    """A dry coupled run cannot drain either store through its internal fluxes."""
+    from urbanwb.main import read_parameters, running
+
+    example = urbanwb.urbanwbdir / ".." / "examples" / "input"
+    dict_param = read_parameters(
+        str(example / "ep_neighbourhood.ini"), str(example / "ep_measure.ini")
+    )
+    bottom = 1.1
+    dict_param.update(
+        gw_bottom=bottom,
+        ow_bottom=bottom,
+        q_ow_in_cap=0.0,
+    )
+    ts = pd.read_csv(example / "ep_ts.csv").iloc[:30000].reset_index(drop=True)
+
+    results, wbc = running(ts, dict_param)
+    df = pd.DataFrame(results)
+
+    assert df["gwl"].max() <= bottom
+    assert df["h_gw"].max() <= bottom
+    assert df["owl"].max() <= bottom
+    assert wbc[0]["balance diff"] == pytest.approx(0.0, abs=1e-6)

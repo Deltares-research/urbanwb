@@ -328,24 +328,24 @@ def test_qh_extrapolation():
 
 def _ow_sol(m, **overrides):
     """Helper: run one step with all fluxes zero unless overridden."""
-    kwargs = dict(
-        p_atm=0,
-        e_pot_ow=0,
-        r_up_ow=0,
-        d_gw_ow=0,
-        q_swds_ow=0,
-        q_mss_ow=0,
-        so_swds_ow=0,
-        so_mss_ow=0,
-        meas_ow=0,
-        up_no_meas_area=0,
-        gw_no_meas_area=0,
-        swds_no_meas_area=0,
-        mss_no_meas_area=0,
-        tot_meas_area=0,
-        tot_area=1000,
-        delta_t=1.0,
-    )
+    kwargs = {
+        "p_atm": 0,
+        "e_pot_ow": 0,
+        "r_up_ow": 0,
+        "d_gw_ow": 0,
+        "q_swds_ow": 0,
+        "q_mss_ow": 0,
+        "so_swds_ow": 0,
+        "so_mss_ow": 0,
+        "meas_ow": 0,
+        "up_no_meas_area": 0,
+        "gw_no_meas_area": 0,
+        "swds_no_meas_area": 0,
+        "mss_no_meas_area": 0,
+        "tot_meas_area": 0,
+        "tot_area": 1000,
+        "delta_t": 1.0,
+    }
     kwargs.update(overrides)
     return m.sol(**kwargs)
 
@@ -413,3 +413,29 @@ def test_ow_bottom_not_reached():
     # Same as the unlimited case: 50 mm discharge, level 1.05 m-SL
     assert result["q_ow_out"] == pytest.approx(50.0)
     assert result["owl"] == pytest.approx(1.05)
+
+
+def test_ow_bottom_limits_recharge_to_groundwater():
+    """Groundwater recharge stops when open water reaches its bottom."""
+    m = OpenWater(
+        ow_no_meas_area=1000,
+        ow_level=0.99,
+        q_ow_out_cap=100,
+        q_ow_in_cap=0,
+        ow_bottom=1.0,
+    )
+    result = _ow_sol(m, d_gw_ow=-20.0, gw_no_meas_area=1000)
+
+    assert result["sum_d_ow"] == pytest.approx(-10.0)
+    assert m._d_gw_ow == pytest.approx(-10.0)
+    assert result["owl"] == pytest.approx(1.0)
+
+
+def test_ow_bottom_rejects_initial_level_below_bottom():
+    with pytest.raises(ValueError, match="Initial open water level"):
+        OpenWater(
+            ow_no_meas_area=1000,
+            ow_level=1.0,
+            q_ow_out_cap=100,
+            ow_bottom=0.9,
+        )

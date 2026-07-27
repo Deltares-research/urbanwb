@@ -62,6 +62,15 @@ class UnsaturatedZone:
         # self.k_sat_uz (float): predefined saturated permeability of soil
         self.k_sat_uz = 10 * self.soil_prm[0]["k_sat"]
 
+    def limit_capillary_rise(self, solution, p_uz_gw):
+        """Reduce capillary rise and update unsaturated-zone storage."""
+        if p_uz_gw < solution["p_uz_gw"]:
+            raise ValueError("Limited percolation cannot increase capillary rise.")
+
+        solution["theta_uz"] -= p_uz_gw - solution["p_uz_gw"]
+        solution["p_uz_gw"] = p_uz_gw
+        self.theta_uz_prevt = solution["theta_uz"]
+
     def sol(self, i_up_uz, meas_uz, e_ref, tot_meas_area, gwl_prevt, delta_t=1 / 24):
         """Calculates states and fluxes in unsaturated zone during current time step.
 
