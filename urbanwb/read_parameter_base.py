@@ -1,5 +1,6 @@
 import math
 from collections.abc import Mapping
+from pathlib import Path
 
 import fire
 import toml
@@ -21,6 +22,12 @@ def read_parameter_base(arg):
     else:
         stat1_inp = arg
         cf = toml.load(stat1_inp, _dict=dict)
+
+    water_cycle = dict(cf.get("urban_water_cycle", {}))
+    if water_cycle.get("timeseries") and not isinstance(arg, Mapping):
+        water_cycle["timeseries"] = str(
+            (Path(arg).resolve().parent / water_cycle["timeseries"]).resolve()
+        )
 
     delta_t = (
         cf["timestep"] / 86400
@@ -286,6 +293,7 @@ def read_parameter_base(arg):
     so_mss_t0 = cf["so_mss_t0"]
 
     return {
+        "urban_water_cycle": water_cycle,
         "delta_t": delta_t,
         "tot_area": tot_area,
         "soiltype": soiltype,

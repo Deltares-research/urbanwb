@@ -63,6 +63,7 @@ class SewerSystem:
         meas_mss,
         ow_no_meas_area,
         tot_meas_area,
+        wastewater=0.0,
     ):
         """Calculates states and fluxes of sewer system during current time step.
 
@@ -80,6 +81,7 @@ class SewerSystem:
             meas_mss (float): inflow from measure (if applicable) to combined sewer system during current time step [mm]
             ow_no_meas_area (float): area of open water without measure [m^2]
             tot_meas_area (float): total area of measure [m^2]
+            wastewater (float): additional combined-sewer inflow over MSS area [mm/timestep]
 
         Returns:
             (dictionary): A dictionary of computed states and fluxes of sewer system during current time step:
@@ -175,7 +177,7 @@ class SewerSystem:
                 pr_no_meas_area * r_pr_mss
                 + cp_no_meas_area * r_cp_mss
                 + op_no_meas_area * r_op_mss
-            ) / self.mss_no_meas_area
+            ) / self.mss_no_meas_area + wastewater
 
             r_meas_mss = meas_mss * tot_meas_area / self.mss_no_meas_area
 

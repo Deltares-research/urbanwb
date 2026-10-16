@@ -62,7 +62,9 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
     sum_q_out = (
         sum(df["q_ow_out"].iloc[1:]) * dict_param["ow_no_meas_area"]
         + sum(df["q_meas_out"].iloc[1:]) * dict_param["tot_meas_area"]
-        + sum(df["q_mss_out"].iloc[1:]) * dict_param["tot_mss_area"]
+        + sum(df["q_mss_out"].iloc[1:]) * (
+            0.0 if "cycle_boundary_out_m3" in df else dict_param["tot_mss_area"]
+        )
     ) / dict_param["tot_area"]
 
     # seepage to deep groundwater over entire area
@@ -156,6 +158,16 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
 
     # calculate the difference in water balance to check whether water balance is closed over entire area
     balance_diff = sum_prec - sum_evap - sum_q_out - sum_s_deepgw - sum_ds
+    if "cycle_boundary_in_m3" in df:
+        volume_to_depth = 1000 / dict_param["tot_area"]
+        sum_cycle_in = df["cycle_boundary_in_m3"].iloc[1:].sum() * volume_to_depth
+        sum_cycle_out = df["cycle_boundary_out_m3"].iloc[1:].sum() * volume_to_depth
+        cycle_storage = (
+            df["cycle_storage_m3"].iloc[-1] - df["cycle_storage_m3"].iloc[0]
+        ) * volume_to_depth
+        sum_ds += cycle_storage
+        sum_q_out += sum_cycle_out
+        balance_diff += sum_cycle_in - sum_cycle_out - cycle_storage
 
     # statistics of entire model for logging
     stat_model = {
@@ -166,6 +178,9 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         "storage diff": round(sum_ds, 2),
         "balance diff": balance_diff,
     }
+    if "cycle_boundary_in_m3" in df:
+        stat_model["urban water input"] = sum_cycle_in
+        stat_model["urban water output"] = sum_cycle_out
     if verbose:
         print("\n")
         print("Entire model:")
@@ -378,6 +393,13 @@ def water_balance_checker(df, dict_param, iters, verbose=False):
         - ds_mia
         - q_out_meas_mia
     )
+    if "garden_use_m3" in df and dict_param["tot_meas_inflow_area"] > 0 and dict_param["up_no_meas_area"] > 0:
+        balance_diff_mia += (
+            df["garden_use_m3"].iloc[1:].sum() * 1000
+            / dict_param["up_no_meas_area"]
+            * (dict_param["up_meas_inflow_area"] - dict_param["up_meas_area"])
+            / dict_param["tot_meas_inflow_area"]
+        )
 
     stat_mia = {
         "rain": round(p_mia, 2),

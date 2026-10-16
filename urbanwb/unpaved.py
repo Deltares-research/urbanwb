@@ -1,4 +1,5 @@
 from urbanwb.selector import soil_selector
+from urbanwb.unsaturatedzone import UnsaturatedZone
 
 
 class Unpaved:
@@ -86,6 +87,7 @@ class Unpaved:
         op_no_meas_area,
         ow_no_meas_area,
         delta_t=1 / 24,
+        irrigation=0.0,
     ):
         """Calculates states and fluxes on unpaved during current time step.
 
@@ -101,6 +103,7 @@ class Unpaved:
             op_no_meas_area (float): area of open paved without measure [m^2]
             ow_no_meas_area (float): area of open water without measure [m^2]
             delta_t (float): length of time step [d]
+            irrigation (float): garden water applied to the unpaved surface [mm/timestep]
 
         Returns:
             (dictionary): A dictionary of computed states and fluxes of unpaved during current time step:
@@ -129,7 +132,7 @@ class Unpaved:
                 + r_op_up * op_no_meas_area
             ) / self.up_no_meas_area
 
-            init_intstor_up = self.fin_intstor_up_prevt + p_atm + sum_r_up
+            init_intstor_up = self.fin_intstor_up_prevt + p_atm + sum_r_up + irrigation
 
             actl_infilcap_up = min(
                 delta_t * self.infilcap_up,
@@ -197,3 +200,88 @@ class Unpaved:
             "r_up_meas": r_up_meas,
             "r_up_ow": r_up_ow,
         }
+
+
+class UnpavedAreas:
+    """Separate irrigated and other unpaved stores with area-weighted outputs."""
+
+    surface_columns = (
+        "init_intstor_up", "fin_intstor_up", "e_atm_up", "i_up_uz",
+        "r_up_meas", "r_up_ow",
+    )
+    root_columns = ("theta_uz", "t_atm_uz", "p_uz_gw")
+
+    def __init__(self, parameters, garden_fraction, initial_theta):
+        self.parameters = parameters
+        self.fractions = {"garden": garden_fraction, "other_unpaved": 1 - garden_fraction}
+        self.surfaces = {}
+        self.rootzones = {}
+        self.surface_solutions = {}
+        self.root_solutions = {}
+        for name, fraction in self.fractions.items():
+            if fraction == 0:
+                continue
+            subset = dict(parameters)
+            for area in ("up_no_meas_area", "up_meas_area", "up_meas_inflow_area", "uz_no_meas_area"):
+                subset[area] *= fraction
+            self.surfaces[name] = Unpaved(**subset)
+            self.rootzones[name] = UnsaturatedZone(theta_uz_t0=initial_theta, **subset)
+            self.surface_solutions[name] = dict.fromkeys(self.surface_columns, 0.0)
+            self.surface_solutions[name]["fin_intstor_up"] = parameters["fin_intstor_up_t0"]
+            self.root_solutions[name] = dict.fromkeys(self.root_columns, 0.0)
+            self.root_solutions[name]["theta_uz"] = initial_theta
+
+    def _aggregate(self, solutions):
+        first = next(iter(solutions.values()))
+        return {
+            column: sum(self.fractions[name] * result[column] for name, result in solutions.items())
+            for column in first
+        }
+
+    def surface_sol(self, **kwargs):
+        for name, surface in self.surfaces.items():
+            fraction = self.fractions[name]
+            inputs = dict(kwargs)
+            inputs["theta_uz_prevt"] = self.rootzones[name].theta_uz_prevt
+            for area in ("pr_no_meas_area", "cp_no_meas_area", "op_no_meas_area"):
+                inputs[area] *= fraction
+            inputs["irrigation"] = kwargs.get("irrigation", 0.0) / fraction if name == "garden" else 0.0
+            self.surface_solutions[name] = surface.sol(**inputs)
+        return self._aggregate(self.surface_solutions)
+
+    def sol(self, **kwargs):
+        for name, rootzone in self.rootzones.items():
+            inputs = dict(kwargs)
+            inputs["i_up_uz"] = self.surface_solutions[name]["i_up_uz"]
+            inputs["tot_meas_area"] *= self.fractions[name]
+            self.root_solutions[name] = rootzone.sol(**inputs)
+            rootzone.theta_uz_prevt = self.root_solutions[name]["theta_uz"]
+        return self._aggregate(self.root_solutions)
+
+    def limit_capillary_rise(self, solution, p_uz_gw):
+        """Share a groundwater donor limit among only the capillary-rise requests."""
+        reduction = p_uz_gw - solution["p_uz_gw"]
+        available = sum(
+            self.fractions[name] * max(0.0, -result["p_uz_gw"])
+            for name, result in self.root_solutions.items()
+        )
+        if reduction < 0 or reduction > available + 1e-10:
+            raise ValueError("Limited capillary rise must lie within the requested groundwater supply")
+        if available > 0:
+            factor = min(1.0, reduction / available)
+            for name, result in self.root_solutions.items():
+                if result["p_uz_gw"] < 0:
+                    limited = result["p_uz_gw"] + factor * -result["p_uz_gw"]
+                    self.rootzones[name].limit_capillary_rise(result, limited)
+        solution.update(self._aggregate(self.root_solutions))
+        solution["p_uz_gw"] = p_uz_gw
+
+    def diagnostics(self):
+        result = {}
+        for name, fraction in self.fractions.items():
+            result[f"{name}_area_m2"] = fraction * self.parameters["up_no_meas_area"]
+            for column in self.surface_columns:
+                result[f"{name}_{column}"] = self.surface_solutions.get(name, {}).get(column, 0.0)
+            for column in self.root_columns:
+                result[f"{name}_{column}"] = self.root_solutions.get(name, {}).get(column, 0.0)
+        return result

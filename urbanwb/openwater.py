@@ -112,6 +112,7 @@ class OpenWater:
         tot_meas_area,
         tot_area,
         delta_t=1 / 24,
+        external_inflow=0.0,
     ):
         """Calculates states and fluxes on open water during current time step.
 
@@ -132,6 +133,7 @@ class OpenWater:
             tot_meas_area (float): total area of measure [m^2]
             tot_area (float): total area of study area [m^2]
             delta_t (float): length of time step [d]
+            external_inflow (float): local effluent and foul overflow over open-water area [mm/timestep]
 
         Returns:
             (dictionary): A dictionary of computed states and fluxes of open water during current time step:
@@ -184,6 +186,7 @@ class OpenWater:
                 + sum_q_ow
                 + sum_so_ow
                 + r_meas_ow
+                + external_inflow
             )
 
             if self._qh_h is not None:

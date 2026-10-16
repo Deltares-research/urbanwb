@@ -26,9 +26,10 @@ from urbanwb.sdf_curve import SDF_curve2, get_segment_index
 from urbanwb.selector import soil_selector
 from urbanwb.setlogger import setuplog
 from urbanwb.sewersystem import SewerSystem
-from urbanwb.unpaved import Unpaved
+from urbanwb.unpaved import Unpaved, UnpavedAreas
 from urbanwb.unsaturatedzone import UnsaturatedZone
 from urbanwb.waterbalance_checker import water_balance_checker
+from urbanwb.watercycle import WaterCycle
 
 
 class UrbanwbModel:
@@ -58,6 +59,19 @@ class UrbanwbModel:
         self.sewersystem = SewerSystem(**self.param)
         self.openwater = OpenWater(**self.param)
         self.measure = Measure(k_sat_uz=self.unsaturatedzone.k_sat_uz, **self.param)
+        self.watercycle = WaterCycle(self.param)
+        cycle = self.watercycle
+        self.unpaved_areas = None
+        if cycle.uses("drinking_water") and self.param["up_no_meas_area"] > 0:
+            self.unpaved_areas = UnpavedAreas(
+                self.param, cycle.config.get("garden_fraction", 1.0),
+                self.unsaturatedzone.theta_uz_prevt,
+            )
+        if cycle.uses("sewer") and cycle.config.get("sewer_system", "separated") == "mixed" and "mixed_capacity_m3_day" in cycle.config:
+            self.sewersystem.q_mss_out_cap = (
+                cycle.config["mixed_capacity_m3_day"] * self.param["delta_t"]
+                * 1000 / self.param["mss_no_meas_area"]
+            )
 
     def __iter__(self):
         return self
@@ -68,15 +82,28 @@ class UrbanwbModel:
         e_pot_ow,
         ref_grass,
         lst_prevt,
+        water_cycle_forcing=None,
     ):
         """Calculates storage, fluxes, coefficients and other related results at current time step."""
         try:
+            cycle_sol = {}
+            surface_solver = self.unpaved_areas.surface_sol if self.unpaved_areas else self.unpaved.sol
+            rootzone = self.unpaved_areas or self.unsaturatedzone
+            irrigation = groundwater_recharge = wastewater = 0.0
+            if self.watercycle.enabled:
+                cycle_sol = self.watercycle.prepare(water_cycle_forcing or {}, self.param, lst_prevt)
+                if self.param["up_no_meas_area"] > 0:
+                    irrigation = 1000 * cycle_sol["garden_use_m3"] / self.param["up_no_meas_area"]
+                if self.param["gw_no_meas_area"] > 0:
+                    groundwater_recharge = 1000 * cycle_sol["groundwater_net_m3"] / self.param["gw_no_meas_area"]
+                if self.watercycle.uses("sewer") and self.watercycle.config.get("sewer_system", "separated") == "mixed":
+                    wastewater = 1000 * cycle_sol["sewer_inflow_m3"] / self.param["mss_no_meas_area"]
             pr_sol = self.pavedroof.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             cp_sol = self.closedpaved.sol(p_atm=p_atm, e_pot_ow=e_pot_ow)
             op_sol = self.openpaved.sol(
                 p_atm=p_atm, e_pot_ow=e_pot_ow, delta_t=self.param["delta_t"]
             )
-            up_sol = self.unpaved.sol(
+            up_sol = surface_solver(
                 p_atm=p_atm,
                 e_pot_ow=e_pot_ow,
                 r_pr_up=pr_sol["r_pr_up"],
@@ -88,6 +115,7 @@ class UrbanwbModel:
                 op_no_meas_area=self.param["op_no_meas_area"],
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 delta_t=self.param["delta_t"],
+                irrigation=irrigation,
             )
             meas_sol = self.measure.sol(
                 p_atm=p_atm,
@@ -104,7 +132,7 @@ class UrbanwbModel:
                 gwl_prevt=lst_prevt["gwl"],
                 delta_t=self.param["delta_t"],
             )
-            uz_sol = self.unsaturatedzone.sol(
+            uz_sol = rootzone.sol(
                 i_up_uz=up_sol["i_up_uz"],
                 meas_uz=meas_sol["q_meas_uz"],
                 tot_meas_area=self.param["tot_meas_area"],
@@ -121,9 +149,10 @@ class UrbanwbModel:
                 meas_gw=meas_sol["q_meas_gw"],
                 owl_prevt=lst_prevt["owl"],
                 delta_t=self.param["delta_t"],
+                external_recharge=groundwater_recharge,
             )
             if self.groundwater._p_uz_gw != uz_sol["p_uz_gw"]:
-                self.unsaturatedzone.limit_capillary_rise(
+                rootzone.limit_capillary_rise(
                     uz_sol, self.groundwater._p_uz_gw
                 )
             ss_sol = self.sewersystem.sol(
@@ -144,7 +173,13 @@ class UrbanwbModel:
                 meas_mss=meas_sol["q_meas_mss"],
                 ow_no_meas_area=self.param["ow_no_meas_area"],
                 tot_meas_area=self.param["tot_meas_area"],
+                wastewater=wastewater,
             )
+            local_inflow = 0.0
+            if self.watercycle.enabled:
+                local_volume = self.watercycle.route(cycle_sol, ss_sol, self.param)
+                if self.param["ow_no_meas_area"] > 0:
+                    local_inflow = 1000 * local_volume / self.param["ow_no_meas_area"]
             ow_sol = self.openwater.sol(
                 p_atm=p_atm,
                 e_pot_ow=e_pot_ow,
@@ -162,6 +197,7 @@ class UrbanwbModel:
                 tot_meas_area=self.param["tot_meas_area"],
                 tot_area=self.param["tot_area"],
                 delta_t=self.param["delta_t"],
+                external_inflow=local_inflow,
             )
             if self.openwater._d_gw_ow != gw_sol["d_gw_ow"]:
                 self.groundwater.limit_recharge_from_open_water(
@@ -170,7 +206,7 @@ class UrbanwbModel:
                     self.param["uz_no_meas_area"],
                 )
                 if self.groundwater._p_uz_gw != uz_sol["p_uz_gw"]:
-                    self.unsaturatedzone.limit_capillary_rise(
+                    rootzone.limit_capillary_rise(
                         uz_sol, self.groundwater._p_uz_gw
                     )
                 ow_sol["sum_d_ow"] = (
@@ -189,6 +225,8 @@ class UrbanwbModel:
                     **ss_sol,
                     **ow_sol,
                     **meas_sol,
+                    **cycle_sol,
+                    **(self.unpaved_areas.diagnostics() if self.unpaved_areas else {}),
                 )
             )
         except IndexError:
@@ -488,6 +526,9 @@ def running(input_data, dict_param):
         (dataframe): A dataframe of computed results for all time steps
 
     """
+    cycle = WaterCycle(dict_param)
+    if cycle.enabled:
+        input_data = cycle.forcing(input_data)
     # global unit_list
     date = input_data["date"]
     P_atm = input_data["P_atm"]
@@ -614,6 +655,10 @@ def running(input_data, dict_param):
             # "total_runoff": np.nan
         }
     ]
+    if cycle.enabled:
+        lst[0].update(k.watercycle.initial_result())
+    if k.unpaved_areas:
+        lst[0].update(k.unpaved_areas.diagnostics())
     # time series first line is not relevant, computation starts from the second line.
     for t in tqdm(range(1, iters)):
         lst.append(
@@ -622,6 +667,7 @@ def running(input_data, dict_param):
                 E_pot_OW[t],
                 Ref_grass[t],
                 lst[t - 1],
+                input_data.iloc[t].to_dict() if cycle.enabled else None,
             )
         )
     df = pd.DataFrame(lst)

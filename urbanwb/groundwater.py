@@ -125,6 +125,7 @@ class Groundwater:
         meas_gw,
         owl_prevt,
         delta_t=1 / 24,
+        external_recharge=0.0,
     ):
         """Calculates states and fluxes in groundwater during current time step.
 
@@ -137,6 +138,7 @@ class Groundwater:
             meas_gw (float): inflow from measure to groundwater during current time step [mm]
             owl_prevt (float): open water level at previous time step [m-SL]
             delta_t (float): length of time step [d]
+            external_recharge (float): net pipe leakage minus sewer infiltration [mm/timestep]
 
         Returns:
             (dictionary): A dictionary of computed states and fluxes of groundwater during current time step:
@@ -160,7 +162,7 @@ class Groundwater:
         else:
             sum_p_gw = (
                 p_uz_gw * uz_no_meas_area + p_op_gw * op_no_meas_area
-            ) / self.gw_no_meas_area
+            ) / self.gw_no_meas_area + external_recharge
 
             r_meas_gw = meas_gw * tot_meas_area / self.gw_no_meas_area
 
